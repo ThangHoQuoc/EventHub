@@ -1,0 +1,3 @@
+jwt:
+  secret: ${JWT_SECRET:1GoW+muYogITqBOOJ3lhB505eGlX21OaTcNNbUn/yDg=}
+  expiration: ${JWT_EXPIRATION:3600000}
