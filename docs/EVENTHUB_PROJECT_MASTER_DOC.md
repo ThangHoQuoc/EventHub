@@ -24,6 +24,7 @@ Core business:
 ```text
 CUSTOMER
   -> discover events
+  -> use EventMatch to find events by intent
   -> choose ticket type
   -> booking
   -> payment
@@ -53,6 +54,8 @@ The project is intended as a Junior/Fresher Backend Java portfolio project. Its 
 - Concurrency/race-condition handling
 - Idempotency
 - Payment workflow
+- Buyer-side AI event matching
+- Smart waitlist / sold-out demand recovery
 - Event-driven architecture
 - Kafka
 - Redis
@@ -86,6 +89,16 @@ DRAFT/PUBLISHED -> CANCELLED
 ### Ticket inventory
 
 Inventory cannot simply be incremented/decremented without considering concurrent requests.
+
+### Buyer-side discovery
+
+Customers often search by intent rather than exact event names:
+
+```text
+"Beginner-friendly tech event in HCMC this weekend, under 300k, good for networking"
+```
+
+EventHub should translate that intent into structured preferences, then let backend search/ranking return real events.
 
 ### Booking
 
@@ -279,7 +292,198 @@ Important concerns:
 
 AI should not be added as a meaningless chatbot.
 
+Decision record:
+
+```text
+docs/decisions/ADR-001-buyer-side-eventmatch-and-smart-waitlist.md
+```
+
 Main direction:
+
+## EventMatch for Attendees
+
+EventMatch is the flagship AI feature for the customer side.
+
+Goal:
+
+```text
+Help buyers find events that match their real intent, not only exact keywords.
+```
+
+Example customer input:
+
+```text
+I want a beginner-friendly tech event in Ho Chi Minh City this weekend,
+under 300k, good for networking.
+```
+
+AI responsibility:
+
+```text
+Natural language intent
+  -> structured preferences
+  -> optional explanation text
+```
+
+Example structured preferences:
+
+```text
+topic = tech
+location = Ho Chi Minh City
+dateRange = this weekend
+maxBudget = 300000
+audienceLevel = beginner
+goal = networking
+```
+
+Backend responsibility:
+
+```text
+Validate AI output
+Apply database filters
+Check event status and ticket availability
+Rank eligible events deterministically
+Return only real events from the database
+Cache/fallback where appropriate
+```
+
+Important rule:
+
+**The LLM must not invent events or directly decide what the customer can buy.**
+
+The backend remains the source of truth for:
+
+- event existence
+- event status
+- ticket availability
+- price
+- authorization
+- ranking constraints
+
+MVP behavior:
+
+- customer submits natural-language intent
+- AI extracts structured preferences
+- backend finds and ranks eligible published events
+- response returns top matches with a short reason
+- if AI fails, fallback to normal search/filter
+
+Possible API:
+
+```http
+POST /api/v1/event-match
+```
+
+Possible response shape:
+
+```json
+{
+  "query": "beginner tech event in HCMC this weekend under 300k",
+  "preferences": {
+    "topic": "tech",
+    "location": "Ho Chi Minh City",
+    "maxBudget": 300000,
+    "audienceLevel": "beginner"
+  },
+  "results": [
+    {
+      "eventId": "event-123",
+      "matchScore": 86,
+      "reason": "Matches your tech topic, beginner level, location, and budget."
+    }
+  ]
+}
+```
+
+Recommended implementation direction:
+
+- Start with structured JSON output from an AI provider.
+- Validate the parsed preferences using DTO validation.
+- Use regular SQL/JPA queries first.
+- Add PostgreSQL full-text search or vector search only after the MVP works.
+- Track clicks/saves/bookings later as feedback signals.
+
+Event metadata required before EventMatch becomes strong:
+
+- category
+- tags/topics
+- audience level
+- target audience
+- event goal/format
+- price range derived from TicketType
+
+Not doing in MVP:
+
+- no custom machine learning model
+- no generic chatbot
+- no AI-generated fake events
+- no collaborative filtering until user behavior data exists
+- no LLM-only ranking without backend validation
+
+---
+
+## Smart Waitlist for Sold-Out Ticket Demand
+
+Smart Waitlist is the second standout feature and should be built after the booking/payment foundation exists.
+
+Goal:
+
+```text
+When a ticket type is sold out, buyers can join a fair queue instead of leaving the platform.
+```
+
+When inventory becomes available because of:
+
+- booking expiration
+- payment failure
+- cancellation/refund
+- organizer adding capacity
+
+the system can offer the next eligible buyer a time-limited reservation.
+
+Core backend concerns:
+
+- waitlist ordering and fairness
+- duplicate join prevention
+- time-limited reservation offers
+- idempotent accept/skip/expire actions
+- race-condition handling when inventory reappears
+- notification event when an offer is created
+- audit trail for queue movement
+
+Possible flow:
+
+```text
+TicketType SOLD OUT
+      |
+Customer joins waitlist
+      |
+Inventory becomes available
+      |
+Backend selects next waitlist entry
+      |
+Reservation offer CREATED
+      |
+Customer accepts before expiration
+      |
+Booking/Payment continues
+```
+
+Possible APIs:
+
+```http
+POST /api/v1/ticket-types/{ticketTypeId}/waitlist
+GET  /api/v1/me/waitlist
+POST /api/v1/waitlist-offers/{offerId}/accept
+POST /api/v1/waitlist-offers/{offerId}/skip
+```
+
+Smart Waitlist is not primarily an AI feature.
+Its value is backend depth: transactions, scheduling, idempotency, fairness, and event-driven notification.
+
+---
+
+Secondary direction:
 
 ## AI Event Assistant for Organizers
 
@@ -317,10 +521,7 @@ Save
 
 The Organizer remains the decision maker.
 
-Possible future customer-side AI:
-
-- personalized event recommendations
-- preference-based discovery
+This is useful, but it is secondary to buyer-side EventMatch because the current product direction prioritizes attendee value.
 
 ---
 
@@ -429,6 +630,9 @@ BookingItem N:1 TicketType
 
 Booking 1:N Payment
 Booking 1:N Ticket
+
+TicketType 1:N WaitlistEntry
+WaitlistEntry 1:N WaitlistOffer
 ```
 
 Detailed conceptual ERD:
@@ -454,6 +658,11 @@ Detailed conceptual ERD:
 | description    |
 | thumbnailUrl   |
 | location       |
+| category       |
+| tags/topics    |
+| audienceLevel  |
+| targetAudience |
+| format/goal    |
 | startAt        |
 | endAt          |
 | status         |
@@ -507,6 +716,12 @@ Detailed conceptual ERD:
                               +-- status
                               +-- QR data
                               +-- checkedInAt
+
+TicketType
+    |
+    +--------------< WaitlistEntry
+                         |
+                         +--------------< WaitlistOffer
 ```
 
 Important: `BookingItem` preserves purchase-time price (`unitPrice`) so later TicketType price changes do not alter historical purchases.
@@ -565,6 +780,19 @@ endAt
 status
 organizer
 ```
+
+Planned discovery metadata for EventMatch:
+
+```text
+category
+tags/topics
+audienceLevel
+targetAudience
+format/goal
+```
+
+These fields are needed because AI-based discovery is only useful if the backend has reliable structured data to search and rank.
+Do not implement EventMatch as a pure prompt-to-chatbot feature.
 
 Relationship:
 
@@ -701,6 +929,77 @@ CANCELLED
 
 ---
 
+## WaitlistEntry
+
+Planned entity representing a customer's position in the sold-out demand queue for a TicketType.
+
+Possible fields:
+
+```text
+id
+customer
+ticketType
+status
+position / createdAt
+createdAt
+updatedAt
+```
+
+Possible statuses:
+
+```text
+WAITING
+OFFERED
+CONVERTED
+SKIPPED
+EXPIRED
+CANCELLED
+```
+
+Rules:
+
+- one active waitlist entry per customer per TicketType
+- queue ordering must be deterministic
+- customer must not bypass normal booking/payment rules
+- waitlist does not guarantee a ticket
+
+---
+
+## WaitlistOffer
+
+Planned entity representing a time-limited chance to reserve a newly available ticket.
+
+Possible fields:
+
+```text
+id
+waitlistEntry
+ticketType
+quantity
+status
+expiresAt
+acceptedAt
+createdAt
+```
+
+Possible statuses:
+
+```text
+CREATED
+ACCEPTED
+SKIPPED
+EXPIRED
+CONVERTED_TO_BOOKING
+```
+
+Rules:
+
+- accept/skip/expire operations must be idempotent
+- expiration should be handled by a scheduled job or event-driven worker
+- accepting an offer must still respect inventory consistency
+
+---
+
 # 11. Current API Roadmap
 
 ## Authentication
@@ -768,6 +1067,57 @@ Update        IN PROGRESS
 Delete        TODO
 Testing       TODO
 ```
+
+---
+
+## EventMatch APIs
+
+Status: **PLANNED**
+
+```http
+POST /api/v1/event-match
+```
+
+Purpose:
+
+```text
+Convert a buyer's natural-language intent into structured preferences,
+then return real, eligible events ranked by backend logic.
+```
+
+Important:
+
+- EventMatch should only return `PUBLISHED` events.
+- Results must come from the database.
+- AI output must be validated before it affects search/ranking.
+- Normal search/filter must remain available as fallback.
+
+---
+
+## Waitlist APIs
+
+Status: **PLANNED AFTER BOOKING/PAYMENT**
+
+```http
+POST /api/v1/ticket-types/{ticketTypeId}/waitlist
+GET  /api/v1/me/waitlist
+POST /api/v1/waitlist-offers/{offerId}/accept
+POST /api/v1/waitlist-offers/{offerId}/skip
+```
+
+Purpose:
+
+```text
+Let customers join a fair queue for sold-out ticket types and receive
+time-limited reservation offers when inventory returns.
+```
+
+Important:
+
+- waitlist operations must be customer-owned
+- duplicate active entries must be rejected or treated idempotently
+- offer accept/skip/expire must be idempotent
+- accepting an offer must reuse booking/inventory consistency rules
 
 ---
 
@@ -1129,7 +1479,44 @@ Planned:
 
 ---
 
-# 20. Phase 8 — Notification / Kafka
+# 20. Phase 8 — Smart Waitlist
+
+Status: **NOT IMPLEMENTED**
+
+Smart Waitlist should be implemented after Booking, Payment, and Ticket inventory rules are stable.
+
+Target:
+
+```text
+TicketType sold out
+      |
+Customer joins waitlist
+      |
+Inventory returns
+      |
+Create time-limited offer
+      |
+Customer accepts
+      |
+Continue Booking/Payment
+```
+
+Planned:
+
+- WaitlistEntry entity
+- WaitlistOffer entity
+- duplicate active-entry prevention
+- fair queue ordering
+- offer expiration
+- idempotent accept/skip/expire
+- integration with booking inventory rules
+- notification event when an offer is created
+
+This phase is valuable for backend interviews because it combines transactions, scheduling, idempotency, fairness, and event-driven thinking.
+
+---
+
+# 21. Phase 9 — Notification / Kafka
 
 Status: **NOT IMPLEMENTED**
 
@@ -1152,6 +1539,7 @@ Potential notifications:
 - booking confirmation
 - payment success
 - ticket delivery
+- waitlist offer created
 - event reminder
 - cancellation
 
@@ -1159,7 +1547,7 @@ Kafka should only be introduced where it has a real business/architecture reason
 
 ---
 
-# 21. Phase 9 — Admin Management
+# 22. Phase 10 — Admin Management
 
 Status: **NOT FULLY IMPLEMENTED**
 
@@ -1200,36 +1588,48 @@ If admin approval remains mandatory, an approval state or separate approval mode
 
 ---
 
-# 22. Phase 10 — AI
+# 23. Phase 11 — AI / EventMatch
 
 Status: **NOT IMPLEMENTED**
 
 Main feature:
 
 ```text
-AI Event Assistant
+EventMatch for attendees
 ```
 
-Organizer gives rough information.
+Customer gives natural-language intent.
 
-AI suggests:
+AI extracts structured preferences:
 
-- title
-- description
-- tags
-- target audience
-- ticket types
-- pricing
-- marketing content
+- topic/category
+- location
+- date range
+- budget
+- audience level
+- goal/format
 
-Possible future:
+Backend then:
 
-- customer recommendation
-- preference-based event discovery
+- validates AI output
+- filters real published events
+- checks availability/price constraints
+- ranks matches deterministically
+- returns match reasons
+
+Secondary feature:
+
+```text
+AI Event Assistant for Organizers
+```
+
+Organizer gives rough information and AI suggests title, description, tags, target audience, ticket types, pricing, and marketing content.
+
+EventMatch is the priority AI direction because it directly improves buyer discovery.
 
 ---
 
-# 23. Phase 11 — Redis / Docker / CI/CD
+# 24. Phase 12 — Redis / Docker / CI/CD
 
 Status: **NOT FULLY IMPLEMENTED**
 
@@ -1265,7 +1665,7 @@ Git push
 
 ---
 
-# 24. Security Roadmap
+# 25. Security Roadmap
 
 Current:
 
@@ -1295,7 +1695,7 @@ AI must not remove security checks just to make an endpoint easier to test.
 
 ---
 
-# 25. CV Positioning
+# 26. CV Positioning
 
 Do NOT describe the project simply as:
 
@@ -1307,7 +1707,7 @@ Preferred positioning:
 
 > **EventHub — Event Ticketing & Booking Platform**
 >
-> Backend-focused event ticketing platform built with Java Spring Boot, featuring JWT authentication/authorization, organizer resource ownership, event lifecycle management, ticket inventory, transactional booking, concurrency-safe inventory handling, payment/webhook processing, QR ticketing, Kafka-based notifications, Redis optimization, and AI-assisted event creation.
+> Backend-focused event ticketing platform built with Java Spring Boot, featuring JWT authentication/authorization, organizer resource ownership, event lifecycle management, ticket inventory, transactional booking, concurrency-safe inventory handling, payment/webhook processing, QR ticketing, smart waitlist for sold-out ticket demand, Kafka-based notifications, Redis optimization, and AI-powered buyer-side event matching.
 
 Only put features on the final CV that are actually implemented.
 
@@ -1326,15 +1726,17 @@ Strong CV/interview keywords, when implemented:
 - idempotency
 - payment webhook
 - QR ticket
+- smart waitlist
 - Kafka
 - Redis
 - Docker
 - CI/CD
-- AI integration
+- AI-powered event matching
+- structured AI output validation
 
 ---
 
-# 26. Why It Is Impressive in an Interview
+# 27. Why It Is Impressive in an Interview
 
 The project should allow discussion of:
 
@@ -1376,6 +1778,22 @@ The project should allow discussion of:
 - What happens if a Kafka consumer fails?
 - What if payment succeeds but notification fails?
 
+## Smart Waitlist
+
+- How do you prevent duplicate waitlist entries?
+- How do you choose the next eligible buyer fairly?
+- What happens if a waitlist offer expires?
+- Why must accept/skip/expire be idempotent?
+- How does waitlist reuse booking inventory rules?
+
+## AI / EventMatch
+
+- Why not build a generic chatbot?
+- How do you prevent AI from inventing events?
+- What does the AI extract, and what does the backend decide?
+- How do you fallback when the AI provider fails?
+- What event metadata is required for useful matching?
+
 ## Architecture
 
 - Why DTO instead of returning Entity?
@@ -1385,7 +1803,7 @@ The project should allow discussion of:
 
 ---
 
-# 27. AI Coding Rules
+# 28. AI Coding Rules
 
 Any AI assistant working on EventHub MUST:
 
@@ -1488,7 +1906,7 @@ explain the trade-off before making a major change.
 
 ---
 
-# 28. Immediate Next Steps
+# 29. Immediate Next Steps
 
 ```text
 CURRENT
@@ -1513,11 +1931,15 @@ Payment
    |
 Ticket + QR
    |
+Smart Waitlist
+   |
 Kafka / Notification
    |
 Admin
    |
-AI
+Event metadata for matching
+   |
+AI / EventMatch
    |
 Redis / Docker / CI/CD / Deployment
 ```
@@ -1525,3 +1947,6 @@ Redis / Docker / CI/CD / Deployment
 **Current priority is to finish Ticket Management cleanly, then move to Booking.**
 
 Booking is the point where EventHub should demonstrate the strongest backend engineering ability: transaction management, inventory consistency, concurrency, locking, and idempotency.
+
+EventMatch should be implemented after the Event model has enough structured discovery metadata.
+Smart Waitlist should be implemented after Booking/Payment can safely reserve and release inventory.
