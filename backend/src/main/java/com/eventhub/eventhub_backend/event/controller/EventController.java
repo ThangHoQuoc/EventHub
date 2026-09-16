@@ -58,11 +58,11 @@ public class EventController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
-    @PutMapping("/{eventId}")
+    @PatchMapping("/{eventId}")
     public ApiResponse<EventResponse> updateEvents(@PathVariable String eventId, @Valid @RequestBody UpdateEventRequest request) {
         EventResponse response = eventService.updateEvent(eventId, request);
 
-        return ApiResponse.<EventResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Published events retrieved successfully").result(response).build();
+        return ApiResponse.<EventResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Event updated successfully").result(response).build();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
