@@ -28,6 +28,8 @@ public class Event extends BaseEntity {
 
     String thumbnailUrl;
 
+    String category;
+
     @Column(nullable = false)
     String location;
 
