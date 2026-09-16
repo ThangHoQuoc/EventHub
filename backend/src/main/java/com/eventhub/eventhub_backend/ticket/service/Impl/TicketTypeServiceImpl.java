@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -106,7 +107,20 @@ public class TicketTypeServiceImpl implements TicketTypeService {
         List<TicketType> ticketTypes = ticketTypeRepository.findByEventId(event.getId());
 
 
-        if()
+        if (request.getName() != null && !StringUtils.hasText(request.getName())) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        if (request.getName() != null) {
+            boolean exist = ticketTypes.stream()
+                    .anyMatch(ticketTypeItem -> !ticketTypeItem.getId().equals(ticketType.getId())
+                            && ticketTypeItem.getName().equalsIgnoreCase(request.getName()));
+
+            if (exist) {
+                throw new AppException(ErrorCode.TICKET_TYPE_ALREADY_EXIST);
+            }
+        }
+
         ticketTypeMapper.updateTicketType(ticketType, request);
 
         ticketTypeRepository.save(ticketType);
