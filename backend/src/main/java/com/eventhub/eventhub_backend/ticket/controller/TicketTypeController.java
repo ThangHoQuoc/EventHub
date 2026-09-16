@@ -59,4 +59,12 @@ public class TicketTypeController {
         return ApiResponse.<TicketTypeResponse>builder().code(1000).message("TicketType updated successfully").result(response).build();
 
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
+    @DeleteMapping("/ticket-types/{ticketTypeId}")
+    public ApiResponse<Void> deleteTicketType(@PathVariable String ticketTypeId) {
+        ticketTypeService.deleteTicketType(ticketTypeId);
+
+        return ApiResponse.<Void>builder().code(1000).message("TicketType deleted successfully").build();
     }
+}

@@ -26,6 +26,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,6 +92,56 @@ class TicketTypeServiceImplTest {
                 .isInstanceOf(AppException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TICKET_TYPE_ALREADY_EXIST);
+    }
+
+    @Test
+    void deleteTicketType_shouldDeleteWhenOrganizerOwnsDraftEventAndNoTicketsSold() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+        vip.setSoldQuantity(0);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        ticketTypeService.deleteTicketType("ticket-type-1");
+
+        verify(ticketTypeRepository).delete(vip);
+    }
+
+    @Test
+    void deleteTicketType_shouldRejectWhenTicketsWereSold() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.deleteTicketType("ticket-type-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        verify(ticketTypeRepository, never()).delete(vip);
+    }
+
+    @Test
+    void deleteTicketType_shouldRejectWhenOrganizerDoesNotOwnEvent() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+        vip.setSoldQuantity(0);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-2");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.deleteTicketType("ticket-type-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.UNAUTHORIZED);
+
+        verify(ticketTypeRepository, never()).delete(vip);
     }
 
     private Event createDraftEvent() {
