@@ -60,6 +60,10 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
 
+        if (user.getStatus() != Status.ACTIVE) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
         String accessToken = jwtService.generateToken(user);
 
         return LoginResponse.builder()

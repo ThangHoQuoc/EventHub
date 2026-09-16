@@ -1,8 +1,7 @@
 package com.eventhub.eventhub_backend.auth.security.Impl;
 
 import com.eventhub.eventhub_backend.auth.security.JwtService;
-import com.eventhub.eventhub_backend.common.exception.AppException;
-import com.eventhub.eventhub_backend.common.exception.ErrorCode;
+import com.eventhub.eventhub_backend.user.entity.Status;
 import com.eventhub.eventhub_backend.user.entity.User;
 import com.eventhub.eventhub_backend.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -17,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -48,10 +48,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String userId = jwtService.extractUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.USER_NOT_FOUND)
-                );
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (userOptional.isEmpty() || userOptional.get().getStatus() != Status.ACTIVE) {
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        User user = userOptional.get();
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
