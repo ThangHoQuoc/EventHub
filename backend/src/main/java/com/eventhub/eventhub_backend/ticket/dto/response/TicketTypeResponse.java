@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TicketTypeResponse {
+    String id;
+    String eventId;
     String name;
     String description;
     BigDecimal price;
