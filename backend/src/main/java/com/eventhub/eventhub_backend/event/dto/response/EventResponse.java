@@ -22,6 +22,8 @@ public class EventResponse {
 
     String thumbnailUrl;
 
+    String category;
+
     String location;
 
     Instant startAt;

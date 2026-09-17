@@ -71,8 +71,8 @@ public class EventSpecification {
 
             predicates.add(
                     cb.equal(
-                            event.get("category"),
-                            request.getCategory()
+                            cb.lower(event.get("category")),
+                            request.getCategory().trim().toLowerCase()
                     )
             );
         }
