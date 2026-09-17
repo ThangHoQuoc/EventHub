@@ -121,6 +121,12 @@ public class TicketTypeServiceImpl implements TicketTypeService {
             }
         }
 
+        if (request.getQuantity() != null
+                && ticketType.getSoldQuantity() != null
+                && request.getQuantity() < ticketType.getSoldQuantity()) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         ticketTypeMapper.updateTicketType(ticketType, request);
 
         ticketTypeRepository.save(ticketType);

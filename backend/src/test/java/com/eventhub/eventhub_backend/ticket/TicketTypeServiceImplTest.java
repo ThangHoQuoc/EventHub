@@ -95,6 +95,29 @@ class TicketTypeServiceImplTest {
     }
 
     @Test
+    void updateTicketType_shouldRejectQuantityBelowSoldQuantity() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+
+        UpdateTicketTypeRequest request = UpdateTicketTypeRequest.builder()
+                .quantity(20)
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.findByEventId("event-1")).thenReturn(List.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.updateTicketType("ticket-type-1", request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        assertThat(vip.getQuantity()).isEqualTo(100);
+        verify(ticketTypeRepository, never()).save(vip);
+    }
+
+    @Test
     void deleteTicketType_shouldDeleteWhenOrganizerOwnsDraftEventAndNoTicketsSold() {
         Event event = createDraftEvent();
         TicketType vip = createTicketType("ticket-type-1", "VIP", event);
