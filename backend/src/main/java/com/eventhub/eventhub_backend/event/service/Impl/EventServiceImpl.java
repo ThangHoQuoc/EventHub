@@ -71,6 +71,16 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventResponse getPublishedEvent(String eventId) {
+
+        Event event = eventRepository.findById(eventId)
+                .filter(item -> item.getStatus() == EventStatus.PUBLISHED)
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
+
+        return eventMapper.toResponse(event);
+    }
+
+    @Override
     public EventResponse updateEvent(String eventId, UpdateEventRequest request) {
 
 

@@ -51,6 +51,7 @@ public class TicketTypeController {
         return ApiResponse.<TicketTypeResponse>builder().code(1000).message("TicketType retrieved successfully").result(response).build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
     @PatchMapping("/ticket-types/{ticketTypeId}")
     public ApiResponse<TicketTypeResponse> updateTicketType(@PathVariable String ticketTypeId, @Valid @RequestBody UpdateTicketTypeRequest request) {
         TicketTypeResponse response = ticketTypeService.updateTicketType(ticketTypeId, request);
