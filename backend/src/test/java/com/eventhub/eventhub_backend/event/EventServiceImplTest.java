@@ -151,6 +151,22 @@ class EventServiceImplTest {
         verify(eventRepository, never()).save(event);
     }
 
+    @Test
+    void cancelEvent_shouldRejectCustomer() {
+        Event event = createEvent(EventStatus.PUBLISHED);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(eventRepository.findById("event-1")).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> eventService.cancelEvent("event-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.UNAUTHORIZED);
+
+        assertThat(event.getStatus()).isEqualTo(EventStatus.PUBLISHED);
+        verify(eventRepository, never()).save(event);
+    }
+
     private Event createEvent(EventStatus status) {
         User organizer = User.builder()
                 .build();

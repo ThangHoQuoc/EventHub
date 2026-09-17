@@ -173,6 +173,10 @@ public class EventServiceImpl implements EventService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        if (role != Role.ADMIN && role != Role.ORGANIZER) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
         if (event.getStatus() == EventStatus.CANCELLED || event.getStatus() == EventStatus.COMPLETED) {
             throw new AppException(ErrorCode.EVENT_CANNOT_BE_UPDATED);
         }
