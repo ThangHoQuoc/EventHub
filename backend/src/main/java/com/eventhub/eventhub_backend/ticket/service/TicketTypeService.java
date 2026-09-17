@@ -15,4 +15,6 @@ public interface TicketTypeService {
     TicketTypeResponse getTicketTypeById(String ticketTypeId);
 
     TicketTypeResponse updateTicketType(String ticketTypeId, UpdateTicketTypeRequest request);
+
+    void deleteTicketType(String ticketTypeId);
 }

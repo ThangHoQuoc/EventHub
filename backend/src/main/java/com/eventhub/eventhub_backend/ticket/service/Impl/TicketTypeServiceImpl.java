@@ -126,4 +126,33 @@ public class TicketTypeServiceImpl implements TicketTypeService {
         ticketTypeRepository.save(ticketType);
         return ticketTypeMapper.toTicketTypeResponse(ticketType);
     }
+
+    @Override
+    public void deleteTicketType(String ticketTypeId) {
+
+        TicketType ticketType = ticketTypeRepository.findById(ticketTypeId).orElseThrow(() -> new AppException(ErrorCode.TICKET_TYPE_NOT_FOUND));
+
+        Event event = ticketType.getEvent();
+
+        if (event.getStatus() != EventStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        Role role = currentUserService.getCurrentUserRole();
+
+        if (role == Role.ORGANIZER
+                && !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (role != Role.ADMIN && role != Role.ORGANIZER) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (ticketType.getSoldQuantity() != null && ticketType.getSoldQuantity() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        ticketTypeRepository.delete(ticketType);
+    }
 }
