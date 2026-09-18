@@ -20,6 +20,8 @@ public class UpdateEventRequest {
 
     String thumbnailUrl;
 
+    String category;
+
     String location;
 
     Instant startAt;

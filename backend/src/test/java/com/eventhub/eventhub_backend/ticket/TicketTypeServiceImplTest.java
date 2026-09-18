@@ -5,6 +5,7 @@ import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.event.entity.Event;
 import com.eventhub.eventhub_backend.event.entity.EventStatus;
 import com.eventhub.eventhub_backend.event.repository.EventRepository;
+import com.eventhub.eventhub_backend.ticket.dto.request.CreateTicketTypeRequest;
 import com.eventhub.eventhub_backend.ticket.dto.request.UpdateTicketTypeRequest;
 import com.eventhub.eventhub_backend.ticket.dto.response.TicketTypeResponse;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
@@ -25,7 +26,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +46,84 @@ class TicketTypeServiceImplTest {
             ticketTypeRepository,
             eventRepository
     );
+
+    @Test
+    void createTicketType_shouldCreateForDraftEventOwnerWithZeroSoldQuantity() {
+        Event event = createDraftEvent();
+        CreateTicketTypeRequest request = CreateTicketTypeRequest.builder()
+                .name("VIP")
+                .description("Front seats")
+                .price(BigDecimal.valueOf(500000))
+                .quantity(100)
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(eventRepository.findById("event-1")).thenReturn(Optional.of(event));
+        when(ticketTypeRepository.findByEventId("event-1")).thenReturn(List.of());
+
+        TicketTypeResponse response = ticketTypeService.createTicketType("event-1", request);
+
+        assertThat(response.getEventId()).isEqualTo("event-1");
+        assertThat(response.getName()).isEqualTo("VIP");
+        assertThat(response.getSoldQuantity()).isZero();
+        assertThat(response.getAvailableQuantity()).isEqualTo(100);
+        verify(ticketTypeRepository).save(any(TicketType.class));
+    }
+
+    @Test
+    void createTicketType_shouldRejectDuplicateNameIgnoringCase() {
+        Event event = createDraftEvent();
+        TicketType existing = createTicketType("ticket-type-1", "VIP", event);
+        CreateTicketTypeRequest request = CreateTicketTypeRequest.builder()
+                .name("vip")
+                .price(BigDecimal.valueOf(500000))
+                .quantity(100)
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(eventRepository.findById("event-1")).thenReturn(Optional.of(event));
+        when(ticketTypeRepository.findByEventId("event-1")).thenReturn(List.of(existing));
+
+        assertThatThrownBy(() -> ticketTypeService.createTicketType("event-1", request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TICKET_TYPE_ALREADY_EXIST);
+
+        verify(ticketTypeRepository, never()).save(any(TicketType.class));
+    }
+
+    @Test
+    void getTicketTypesByEvent_shouldReturnMappedTicketTypes() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+        TicketType standard = createTicketType("ticket-type-2", "Standard", event);
+
+        when(eventRepository.findById("event-1")).thenReturn(Optional.of(event));
+        when(ticketTypeRepository.findByEventId("event-1")).thenReturn(List.of(vip, standard));
+
+        List<TicketTypeResponse> responses = ticketTypeService.getTicketTypesByEvent("event-1");
+
+        assertThat(responses).extracting(TicketTypeResponse::getName)
+                .containsExactly("VIP", "Standard");
+        assertThat(responses).extracting(TicketTypeResponse::getAvailableQuantity)
+                .containsExactly(75, 75);
+    }
+
+    @Test
+    void getTicketTypeById_shouldReturnMappedTicketType() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        TicketTypeResponse response = ticketTypeService.getTicketTypeById("ticket-type-1");
+
+        assertThat(response.getId()).isEqualTo("ticket-type-1");
+        assertThat(response.getEventId()).isEqualTo("event-1");
+        assertThat(response.getAvailableQuantity()).isEqualTo(75);
+    }
 
     @Test
     void updateTicketType_shouldUpdateProvidedFieldsAndKeepOmittedFields() {
@@ -90,6 +172,79 @@ class TicketTypeServiceImplTest {
                 .isInstanceOf(AppException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TICKET_TYPE_ALREADY_EXIST);
+    }
+
+    @Test
+    void updateTicketType_shouldRejectQuantityBelowSoldQuantity() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+
+        UpdateTicketTypeRequest request = UpdateTicketTypeRequest.builder()
+                .quantity(20)
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.findByEventId("event-1")).thenReturn(List.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.updateTicketType("ticket-type-1", request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        assertThat(vip.getQuantity()).isEqualTo(100);
+        verify(ticketTypeRepository, never()).save(vip);
+    }
+
+    @Test
+    void deleteTicketType_shouldDeleteWhenOrganizerOwnsDraftEventAndNoTicketsSold() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+        vip.setSoldQuantity(0);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        ticketTypeService.deleteTicketType("ticket-type-1");
+
+        verify(ticketTypeRepository).delete(vip);
+    }
+
+    @Test
+    void deleteTicketType_shouldRejectWhenTicketsWereSold() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.deleteTicketType("ticket-type-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        verify(ticketTypeRepository, never()).delete(vip);
+    }
+
+    @Test
+    void deleteTicketType_shouldRejectWhenOrganizerDoesNotOwnEvent() {
+        Event event = createDraftEvent();
+        TicketType vip = createTicketType("ticket-type-1", "VIP", event);
+        vip.setSoldQuantity(0);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-2");
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        assertThatThrownBy(() -> ticketTypeService.deleteTicketType("ticket-type-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.UNAUTHORIZED);
+
+        verify(ticketTypeRepository, never()).delete(vip);
     }
 
     private Event createDraftEvent() {

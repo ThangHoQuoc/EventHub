@@ -71,6 +71,16 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventResponse getPublishedEvent(String eventId) {
+
+        Event event = eventRepository.findById(eventId)
+                .filter(item -> item.getStatus() == EventStatus.PUBLISHED)
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
+
+        return eventMapper.toResponse(event);
+    }
+
+    @Override
     public EventResponse updateEvent(String eventId, UpdateEventRequest request) {
 
 
@@ -170,6 +180,10 @@ public class EventServiceImpl implements EventService {
         Role role = currentUserService.getCurrentUserRole();
 
         if (role == Role.ORGANIZER && !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (role != Role.ADMIN && role != Role.ORGANIZER) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 

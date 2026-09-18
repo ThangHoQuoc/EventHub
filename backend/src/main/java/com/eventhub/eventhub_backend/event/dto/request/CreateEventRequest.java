@@ -24,6 +24,8 @@ public class CreateEventRequest {
 
     String thumbnailUrl;
 
+    String category;
+
     @NotBlank
     String location;
 

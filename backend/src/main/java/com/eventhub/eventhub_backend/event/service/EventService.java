@@ -17,6 +17,8 @@ public interface EventService {
 
     PageResponse<EventResponse> getPublishedEvents(Pageable pageable);
 
+    EventResponse getPublishedEvent(String eventId);
+
     EventResponse updateEvent(String eventId, UpdateEventRequest request);
 
     EventResponse getEvent(String eventId);
