@@ -71,26 +71,38 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventResponse getPublishedEvent(String eventId) {
+
+        Event event = eventRepository.findById(eventId)
+                .filter(item -> item.getStatus() == EventStatus.PUBLISHED)
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
+
+        return eventMapper.toResponse(event);
+    }
+
+    @Override
     public EventResponse updateEvent(String eventId, UpdateEventRequest request) {
 
 
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
-        Instant startAt = request.getStartAt() != null ? request.getStartAt() : event.getStartAt();
-
-        Instant endAt = request.getEndAt() != null ? request.getEndAt() : event.getEndAt();
-
-        if (!startAt.isBefore(endAt)) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        Role role = currentUserService.getCurrentUserRole();
+        if (role == Role.ORGANIZER && !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        if (!startAt.isAfter(Instant.now())) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (role != Role.ADMIN && role != Role.ORGANIZER) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+
         if (event.getStatus().equals(EventStatus.CANCELLED) || event.getStatus().equals(EventStatus.COMPLETED)) {
             throw new AppException(ErrorCode.EVENT_CANNOT_BE_UPDATED);
         }
+
         if (event.getStatus() == EventStatus.PUBLISHED) {
+            if (request.getThumbnailUrl() != null || request.getStartAt() != null || request.getEndAt() != null) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
 
             if (request.getTitle() != null) {
                 event.setTitle(request.getTitle());
@@ -105,19 +117,21 @@ public class EventServiceImpl implements EventService {
             }
 
         } else {
-            eventMapper.updateEntity(request, event);
-        }
-        Role role = currentUserService.getCurrentUserRole();
-        if (role.equals(Role.ADMIN)) {
-            eventMapper.updateEntity(request, event);
-        } else if (role.equals(Role.ORGANIZER)) {
-            if (!currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
-                throw new AppException(ErrorCode.UNAUTHORIZED);
+            Instant startAt = request.getStartAt() != null ? request.getStartAt() : event.getStartAt();
+
+            Instant endAt = request.getEndAt() != null ? request.getEndAt() : event.getEndAt();
+
+            if (!startAt.isBefore(endAt)) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+
+            if (!startAt.isAfter(Instant.now())) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
             }
 
             eventMapper.updateEntity(request, event);
-
         }
+
         eventRepository.save(event);
 
         return eventMapper.toResponse(event);
@@ -166,6 +180,10 @@ public class EventServiceImpl implements EventService {
         Role role = currentUserService.getCurrentUserRole();
 
         if (role == Role.ORGANIZER && !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (role != Role.ADMIN && role != Role.ORGANIZER) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 

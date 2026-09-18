@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 4 — Ticket Management.
+> **Current phase:** Phase 5 — Booking.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -1027,6 +1027,7 @@ Implemented/substantially implemented:
 ```http
 POST  /api/v1/events
 GET   /api/v1/events
+GET   /api/v1/events/public/{eventId}
 GET   /api/v1/events/{eventId}
 PATCH /api/v1/events/{eventId}
 ```
@@ -1037,13 +1038,14 @@ Also implemented:
 - cancel
 - pagination
 - search/filter
+- anonymous published-event detail
 - automatic completion
 
-Pending design decision:
+Current public browsing rule:
 
-- published event detail should ideally be accessible to anonymous users, while booking requires login.
-
-Current security configuration has a broad authenticated fallback, so public browsing still needs to be adjusted if this remains the final requirement.
+- `GET /api/v1/events/public/{eventId}` returns only `PUBLISHED` events.
+- Draft/missing events return `EVENT_NOT_FOUND` to avoid leaking private event existence.
+- Booking still requires login.
 
 ---
 
@@ -1053,8 +1055,8 @@ Current security configuration has a broad authenticated fallback, so public bro
 POST   /api/v1/events/{eventId}/ticket-types
 GET    /api/v1/events/{eventId}/ticket-types
 GET    /api/v1/events/ticket-types/{ticketTypeId}
-PATCH  /api/v1/ticket-types/{ticketTypeId}
-DELETE /api/v1/ticket-types/{ticketTypeId}
+PATCH  /api/v1/events/ticket-types/{ticketTypeId}
+DELETE /api/v1/events/ticket-types/{ticketTypeId}
 ```
 
 Current status:
@@ -1063,9 +1065,9 @@ Current status:
 Create        DONE
 Get list      DONE
 Get detail    DONE
-Update        IN PROGRESS
-Delete        TODO
-Testing       TODO
+Update        DONE
+Delete        DONE
+Testing       DONE
 ```
 
 ---
@@ -1143,16 +1145,17 @@ Important:
 6. If name changes, check duplicate name.
 7. PATCH semantics: omitted fields remain unchanged.
 8. Null request properties must not overwrite existing values.
+9. Quantity must not be lower than current `soldQuantity`.
 
 ## Delete
 
-Expected:
+Implemented:
 
 1. TicketType must exist.
 2. User must be authorized.
 3. Organizer must own Event.
 4. Event must be `DRAFT`.
-5. Decide explicitly whether deletion is allowed once tickets have been sold.
+5. Deletion is allowed only when `soldQuantity = 0`.
 
 ---
 
@@ -1317,7 +1320,6 @@ Remaining security hardening:
 - refresh-token rotation
 - refresh-token revocation
 - logout
-- user status checks in JWT filter
 - security hardening
 
 ---
@@ -1352,18 +1354,19 @@ Auto-complete Scheduler   DONE
 Ownership Authorization   DONE
 ```
 
-Pending:
+Deferred:
 
 ```text
-Public published-event browsing -> TODO / final business decision
 Admin approval workflow         -> TODO / needs final status design
 ```
+
+Public published-event browsing is implemented through `GET /api/v1/events/public/{eventId}`.
 
 ---
 
 ## Phase 4 — Ticket Management
 
-Status: **IN PROGRESS**
+Status: **DONE / substantially implemented**
 
 ```text
 TicketType Entity       DONE
@@ -1375,12 +1378,12 @@ Mapper                  DONE
 Create TicketType       DONE
 Get TicketTypes         DONE
 Get TicketType Detail   DONE
-Update TicketType       IN PROGRESS
-Delete TicketType       TODO
-Full testing            TODO
+Update TicketType       DONE
+Delete TicketType       DONE
+Full testing            DONE
 ```
 
-After these are complete, Phase 4 is considered complete.
+Phase 4 is complete. Booking can now build on stable Event and TicketType rules.
 
 ---
 
@@ -1685,7 +1688,6 @@ Refresh Token
 Refresh Token Rotation
 Refresh Token Revocation
 Logout
-User Status Validation
 Rate Limiting
 Token Blacklist if needed
 General Security Hardening
@@ -1911,16 +1913,6 @@ explain the trade-off before making a major change.
 ```text
 CURRENT
    |
-Finish TicketType Update
-   |
-TicketType Delete
-   |
-Test Phase 4
-   |
-Review Event/TicketType authorization
-   |
-PHASE 4 COMPLETE
-   |
 Design Booking ERD in detail
    |
 Booking + BookingItem
@@ -1944,7 +1936,7 @@ AI / EventMatch
 Redis / Docker / CI/CD / Deployment
 ```
 
-**Current priority is to finish Ticket Management cleanly, then move to Booking.**
+**Current priority is to design and implement Booking cleanly on top of the completed Event and TicketType foundations.**
 
 Booking is the point where EventHub should demonstrate the strongest backend engineering ability: transaction management, inventory consistency, concurrency, locking, and idempotency.
 

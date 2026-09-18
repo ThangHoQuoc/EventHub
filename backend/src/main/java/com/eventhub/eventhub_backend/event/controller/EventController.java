@@ -57,12 +57,20 @@ public class EventController {
         return ApiResponse.<PageResponse<EventResponse>>builder().code(ErrorCode.SUCCESS.getCode()).message("Published events retrieved successfully").result(response).build();
     }
 
+    @GetMapping("/public/{eventId}")
+    public ApiResponse<EventResponse> getPublishedEvent(@PathVariable String eventId) {
+
+        EventResponse response = eventService.getPublishedEvent(eventId);
+
+        return ApiResponse.<EventResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Published event retrieved successfully").result(response).build();
+    }
+
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
-    @PutMapping("/{eventId}")
+    @PatchMapping("/{eventId}")
     public ApiResponse<EventResponse> updateEvents(@PathVariable String eventId, @Valid @RequestBody UpdateEventRequest request) {
         EventResponse response = eventService.updateEvent(eventId, request);
 
-        return ApiResponse.<EventResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Published events retrieved successfully").result(response).build();
+        return ApiResponse.<EventResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Event updated successfully").result(response).build();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
