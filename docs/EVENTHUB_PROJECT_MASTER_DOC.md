@@ -858,7 +858,7 @@ List<TicketType> ticketTypes;
 
 ## Booking
 
-Planned entity representing a customer's purchase/reservation.
+Implemented entity representing a customer's purchase/reservation.
 
 Responsibilities:
 
@@ -866,14 +866,24 @@ Responsibilities:
 - booking status
 - total amount
 - creation time
-- inventory reservation
-- payment relationship
+- BookingItem relationship
+- future inventory reservation
+- future payment relationship
+
+Current statuses:
+
+```text
+PENDING_PAYMENT
+CONFIRMED
+CANCELLED
+EXPIRED
+```
 
 ---
 
 ## BookingItem
 
-Planned entity representing each TicketType selection inside a Booking.
+Implemented entity representing each TicketType selection inside a Booking.
 
 Example:
 
@@ -1069,6 +1079,43 @@ Update        DONE
 Delete        DONE
 Testing       DONE
 ```
+
+---
+
+## Booking APIs
+
+Implemented/substantially implemented:
+
+```http
+POST  /api/v1/bookings
+GET   /api/v1/bookings
+GET   /api/v1/bookings/{bookingId}
+PATCH /api/v1/bookings/{bookingId}/cancel
+```
+
+Current status:
+
+```text
+Booking entity          DONE
+BookingItem entity      DONE
+Create booking          DONE
+Get my bookings         DONE
+Get booking detail      DONE
+Cancel pending booking  DONE
+Ownership checks        DONE
+Basic availability      DONE
+Inventory reservation   DEFERRED
+Payment confirmation    DEFERRED
+Concurrency locking     DEFERRED
+```
+
+Current rule:
+
+- Only `CUSTOMER` can use customer booking APIs.
+- Booking can contain multiple ticket types, but all items must belong to the same `PUBLISHED` event.
+- `BookingItem.unitPrice` and `BookingItem.subtotal` preserve purchase-time pricing.
+- Phase 5 basic booking validates available quantity using `quantity - soldQuantity`.
+- Phase 5 basic booking does not reserve inventory or increment `soldQuantity` yet. That must be handled with Payment/Concurrency design.
 
 ---
 
@@ -1389,9 +1436,9 @@ Phase 4 is complete. Booking can now build on stable Event and TicketType rules.
 
 # 17. Phase 5 — Booking
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR1-PR4 implemented**
 
-Planned entities:
+Implemented entities:
 
 ```text
 Booking
@@ -1413,11 +1460,31 @@ Create Booking
    |
 Validate availability
    |
-Reserve inventory
-   |
 Calculate total
    |
 Payment
+```
+
+Implemented in current phase:
+
+```text
+Booking / BookingItem entities
+Create Booking
+Get current customer's bookings
+Get booking detail with ownership check
+Cancel PENDING_PAYMENT booking
+Basic availability validation
+Purchase-time unit price preservation
+```
+
+Deferred to later Booking/Payment/Concurrency work:
+
+```text
+Reserve inventory
+Confirm payment
+Increment soldQuantity
+Expire pending bookings
+Concurrency locking / idempotency
 ```
 
 Important topics:
