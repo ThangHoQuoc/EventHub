@@ -57,22 +57,47 @@ create a booking and never pay, but the system would still count the ticket as s
 ## Consequences
 
 - Current Booking APIs are not a complete oversell-prevention system.
-- Future Payment/Concurrency work must re-check inventory before confirming a booking.
-- Future confirmation must increment `soldQuantity` inside a transaction.
-- Future confirmation must be idempotent so repeated payment callbacks cannot sell twice.
+- Payment confirmation re-checks inventory before confirming a booking.
+- Payment confirmation increments `soldQuantity` inside a transaction.
+- Payment confirmation is idempotent for repeated successful provider transaction references.
 - A later phase may introduce `reservedQuantity` or compute active reservations from
   `PENDING_PAYMENT` bookings with expiration.
 
-## Follow-up Work
+## Implementation Note
 
-Recommended next backend slice:
+PR6-PR7 added a payment foundation and manual/admin confirmation endpoint:
 
 ```text
-Payment SUCCESS / confirm booking
-  -> load booking
-  -> reject non-PENDING_PAYMENT
-  -> re-check inventory
-  -> increment soldQuantity transactionally
-  -> set booking CONFIRMED
-  -> make confirmation idempotent
+POST /api/v1/payments/confirm
+```
+
+Current confirmation behavior:
+
+- load booking
+- reject non-`PENDING_PAYMENT` bookings
+- re-check inventory
+- increment `TicketType.soldQuantity`
+- set booking to `CONFIRMED`
+- store a successful `Payment`
+- return the existing successful `Payment` when the same provider transaction is replayed
+
+This is still not the final provider/webhook implementation. Real payment provider
+checkout, callback signature verification, payment expiration, and stronger concurrent
+inventory locking are deferred.
+
+## Follow-up Work
+
+Recommended next backend slices:
+
+```text
+Real payment provider integration
+  -> create payment intent / payment URL or QR
+  -> verify callback/webhook signature
+  -> map provider statuses safely
+  -> keep confirm operation idempotent
+
+Concurrency hardening
+  -> choose optimistic/pessimistic/atomic update strategy
+  -> prevent oversell under simultaneous confirmations
+  -> add integration tests around the final strategy
 ```

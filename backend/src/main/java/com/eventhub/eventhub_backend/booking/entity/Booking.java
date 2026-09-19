@@ -1,6 +1,7 @@
 package com.eventhub.eventhub_backend.booking.entity;
 
 import com.eventhub.eventhub_backend.common.entity.BaseEntity;
+import com.eventhub.eventhub_backend.payment.entity.Payment;
 import com.eventhub.eventhub_backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,4 +33,7 @@ public class Booking extends BaseEntity {
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     List<BookingItem> items;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Payment> payments;
 }

@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 5 — Booking.
+> **Current phase:** Phase 6 — Payment.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -900,16 +900,17 @@ Must preserve relevant purchase-time pricing.
 
 ## Payment
 
-Planned entity representing payment state for a Booking.
+Implemented entity representing payment state for a Booking.
 
 Responsibilities:
 
 - payment status
 - amount
 - provider/reference information
-- callback/webhook handling
-- verification
-- idempotency
+- manual/admin confirmation foundation
+- idempotency by provider transaction reference
+- future callback/webhook handling
+- future provider verification
 
 ---
 
@@ -1107,7 +1108,7 @@ Basic availability      DONE
 Inventory decision      DONE
 Safety contract test    DONE
 Inventory reservation   DEFERRED
-Payment confirmation    DEFERRED
+Payment confirmation    DONE
 Concurrency locking     DEFERRED
 ```
 
@@ -1117,8 +1118,42 @@ Current rule:
 - Booking can contain multiple ticket types, but all items must belong to the same `PUBLISHED` event.
 - `BookingItem.unitPrice` and `BookingItem.subtotal` preserve purchase-time pricing.
 - Phase 5 basic booking validates available quantity using `quantity - soldQuantity`.
-- Phase 5 basic booking does not reserve inventory or increment `soldQuantity` yet. That must be handled with Payment/Concurrency design.
+- Phase 5 basic booking does not reserve inventory or increment `soldQuantity`.
+- Phase 6 payment confirmation re-checks inventory and increments `soldQuantity` when payment is confirmed.
 - Inventory boundary decision is recorded in `docs/decisions/ADR-002-booking-inventory-reservation.md`.
+
+---
+
+## Payment APIs
+
+Implemented foundation:
+
+```http
+POST /api/v1/payments/confirm
+```
+
+Current status:
+
+```text
+Payment entity                         DONE
+Payment status                         DONE
+Payment repository                     DONE
+Manual/admin payment confirmation      DONE
+Confirm booking on successful payment  DONE
+Increment soldQuantity on confirmation DONE
+Basic provider transaction idempotency DONE
+Provider webhook                       DEFERRED
+QR/provider integration                DEFERRED
+Payment expiration/refund              DEFERRED
+```
+
+Current rule:
+
+- `POST /api/v1/payments/confirm` is an admin-only manual confirmation endpoint.
+- Confirmation accepts `bookingId`, `provider`, and `providerTransactionId`.
+- Reusing the same provider transaction for the same booking returns the existing successful payment response.
+- Reusing the same provider transaction for another booking is rejected.
+- Customer-facing payment provider checkout and webhook verification are planned later.
 
 ---
 
@@ -1439,7 +1474,7 @@ Phase 4 is complete. Booking can now build on stable Event and TicketType rules.
 
 # 17. Phase 5 — Booking
 
-Status: **IN PROGRESS / PR1-PR4 implemented**
+Status: **DONE / booking foundation implemented**
 
 Implemented entities:
 
@@ -1482,14 +1517,20 @@ Inventory reservation decision ADR
 Safety contract test for soldQuantity
 ```
 
-Deferred to later Booking/Payment/Concurrency work:
+Handled by Phase 6 payment confirmation:
+
+```text
+Confirm payment
+Increment soldQuantity
+Basic idempotency by provider transaction
+```
+
+Deferred to later Booking/Concurrency work:
 
 ```text
 Reserve inventory
-Confirm payment
-Increment soldQuantity
 Expire pending bookings
-Concurrency locking / idempotency
+Advanced concurrency locking / idempotency
 ```
 
 Important topics:
@@ -1509,19 +1550,28 @@ This is one of the most important CV/interview phases.
 
 # 18. Phase 6 — Payment
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR6-PR7 implemented**
 
-Planned:
+Implemented:
 
 - Payment entity
 - payment status
+- payment repository
+- manual/admin payment confirmation endpoint
+- booking confirmation after successful payment
+- inventory re-check before confirmation
+- `TicketType.soldQuantity` increment on confirmation
+- basic idempotency using provider transaction id
+
+Deferred:
+
 - QR payment
 - payment creation
 - callback/webhook
 - payment verification
-- idempotency
+- provider webhook signature verification
+- advanced idempotency/concurrency hardening
 - timeout/expiration
-- booking confirmation
 
 ---
 
