@@ -1104,6 +1104,8 @@ Get booking detail      DONE
 Cancel pending booking  DONE
 Ownership checks        DONE
 Basic availability      DONE
+Inventory decision      DONE
+Safety contract test    DONE
 Inventory reservation   DEFERRED
 Payment confirmation    DEFERRED
 Concurrency locking     DEFERRED
@@ -1116,6 +1118,7 @@ Current rule:
 - `BookingItem.unitPrice` and `BookingItem.subtotal` preserve purchase-time pricing.
 - Phase 5 basic booking validates available quantity using `quantity - soldQuantity`.
 - Phase 5 basic booking does not reserve inventory or increment `soldQuantity` yet. That must be handled with Payment/Concurrency design.
+- Inventory boundary decision is recorded in `docs/decisions/ADR-002-booking-inventory-reservation.md`.
 
 ---
 
@@ -1475,6 +1478,8 @@ Get booking detail with ownership check
 Cancel PENDING_PAYMENT booking
 Basic availability validation
 Purchase-time unit price preservation
+Inventory reservation decision ADR
+Safety contract test for soldQuantity
 ```
 
 Deferred to later Booking/Payment/Concurrency work:
