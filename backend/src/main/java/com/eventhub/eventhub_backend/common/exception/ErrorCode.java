@@ -35,6 +35,8 @@ public enum ErrorCode {
 
     TICKET_TYPE_NOT_FOUND(1013,"Ticket type not found",HttpStatus.NOT_FOUND),
 
+    BOOKING_NOT_FOUND(1014, "Booking not found", HttpStatus.NOT_FOUND),
+
     INTERNAL_SERVER_ERROR(9999, "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
