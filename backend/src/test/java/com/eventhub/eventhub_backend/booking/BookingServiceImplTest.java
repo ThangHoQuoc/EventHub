@@ -86,6 +86,25 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void createBooking_shouldNotIncreaseSoldQuantityForPendingPaymentBooking() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1", createEvent(EventStatus.PUBLISHED));
+        CreateBookingRequest request = createSingleItemRequest("ticket-type-1", 2);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        BookingResponse response = bookingService.createBooking(request);
+
+        assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING_PAYMENT);
+        assertThat(vip.getSoldQuantity()).isEqualTo(25);
+        verify(ticketTypeRepository, never()).save(any(TicketType.class));
+    }
+
+    @Test
     void createBooking_shouldRejectNonCustomerRole() {
         CreateBookingRequest request = CreateBookingRequest.builder()
                 .items(List.of(BookingItemRequest.builder()
