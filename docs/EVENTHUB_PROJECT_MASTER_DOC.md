@@ -944,7 +944,9 @@ Current rule:
 - One `Ticket` row is issued per purchased quantity.
 - `ticketCode` is unique.
 - `qrPayload` is a backend-generated payload string that can later be rendered as a QR image.
-- Check-in scan/validation is planned later.
+- Admin or the owning Organizer can check in a valid ticket.
+- A ticket can be checked in only once.
+- QR image rendering is planned later.
 
 ---
 
@@ -1173,6 +1175,7 @@ Implemented foundation:
 ```http
 GET /api/v1/tickets
 GET /api/v1/tickets/{ticketId}
+POST /api/v1/tickets/check-in
 ```
 
 Current status:
@@ -1187,9 +1190,12 @@ QR payload string                     DONE
 Get my tickets                        DONE
 Get my ticket detail                  DONE
 Customer ownership check              DONE
+Check-in by ticketCode/qrPayload      DONE
+Organizer event ownership check       DONE
+Admin check-in override               DONE
+Duplicate check-in prevention         DONE
 QR image rendering                    DEFERRED
-Check-in scan                         DEFERRED
-Duplicate check-in prevention         DEFERRED
+Refund/cancel ticket integration      DEFERRED
 ```
 
 Current rule:
@@ -1198,6 +1204,9 @@ Current rule:
 - Customers can only view their own tickets.
 - Tickets are issued from confirmed bookings, not from pending bookings.
 - `qrPayload` is stored as a string payload for future QR rendering/scanning.
+- `ADMIN` can check in any valid ticket.
+- `ORGANIZER` can check in tickets only for their own events.
+- A `USED` or `CANCELLED` ticket cannot be checked in again.
 
 ---
 
@@ -1622,7 +1631,7 @@ Deferred:
 
 # 19. Phase 7 — Ticket + QR
 
-Status: **IN PROGRESS / PR8-PR9 implemented**
+Status: **IN PROGRESS / PR8-PR11 implemented**
 
 Flow:
 
@@ -1657,12 +1666,14 @@ Implemented:
 - QR payload string
 - customer ticket list/detail APIs
 - customer ownership checks
+- check-in by ticket code or QR payload
+- admin check-in override
+- organizer event ownership check
+- duplicate check-in prevention
 
 Deferred:
 
 - QR image rendering
-- check-in scan endpoint
-- duplicate check-in prevention
 - ticket cancellation/refund integration
 
 ---

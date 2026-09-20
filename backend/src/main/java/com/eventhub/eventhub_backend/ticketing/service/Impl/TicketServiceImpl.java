@@ -8,6 +8,7 @@ import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.common.response.PageResponse;
 import com.eventhub.eventhub_backend.event.entity.Event;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
+import com.eventhub.eventhub_backend.ticketing.dto.request.CheckInTicketRequest;
 import com.eventhub.eventhub_backend.ticketing.dto.response.TicketResponse;
 import com.eventhub.eventhub_backend.ticketing.entity.Ticket;
 import com.eventhub.eventhub_backend.ticketing.entity.TicketStatus;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,6 +105,24 @@ public class TicketServiceImpl implements TicketService {
         return toResponse(ticket);
     }
 
+    @Override
+    @Transactional
+    public TicketResponse checkInTicket(CheckInTicketRequest request) {
+        validateCheckInRequest(request);
+
+        Ticket ticket = findTicketForCheckIn(request);
+        requireCheckInPermission(ticket);
+
+        if (ticket.getStatus() != TicketStatus.VALID) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        ticket.setStatus(TicketStatus.USED);
+        ticket.setCheckedInAt(Instant.now());
+
+        return toResponse(ticketRepository.save(ticket));
+    }
+
     private void validateIssuableBooking(Booking booking) {
         if (booking == null || !StringUtils.hasText(booking.getId())
                 || booking.getStatus() != BookingStatus.CONFIRMED
@@ -125,6 +145,23 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    private void requireCheckInPermission(Ticket ticket) {
+        Role role = currentUserService.getCurrentUserRole();
+        if (role == Role.ADMIN) {
+            return;
+        }
+
+        if (role != Role.ORGANIZER) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Event event = ticket.getTicketType().getEvent();
+        if (event == null || event.getOrganizer() == null
+                || !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
     private void validateOwner(Ticket ticket) {
         if (ticket.getCustomer() == null
                 || !currentUserService.getCurrentUserId().equals(ticket.getCustomer().getId())) {
@@ -138,6 +175,24 @@ public class TicketServiceImpl implements TicketService {
 
     private String buildQrPayload(String ticketCode) {
         return "EVENTHUB|TICKET|" + ticketCode;
+    }
+
+    private void validateCheckInRequest(CheckInTicketRequest request) {
+        if (request == null
+                || (!StringUtils.hasText(request.getTicketCode())
+                && !StringUtils.hasText(request.getQrPayload()))) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+    }
+
+    private Ticket findTicketForCheckIn(CheckInTicketRequest request) {
+        if (StringUtils.hasText(request.getTicketCode())) {
+            return ticketRepository.findByTicketCode(request.getTicketCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
+        }
+
+        return ticketRepository.findByQrPayload(request.getQrPayload())
+                .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
     }
 
     private TicketResponse toResponse(Ticket ticket) {

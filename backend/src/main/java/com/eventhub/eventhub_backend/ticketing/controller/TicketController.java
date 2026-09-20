@@ -3,8 +3,10 @@ package com.eventhub.eventhub_backend.ticketing.controller;
 import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.common.response.ApiResponse;
 import com.eventhub.eventhub_backend.common.response.PageResponse;
+import com.eventhub.eventhub_backend.ticketing.dto.request.CheckInTicketRequest;
 import com.eventhub.eventhub_backend.ticketing.dto.response.TicketResponse;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -40,6 +42,18 @@ public class TicketController {
         return ApiResponse.<TicketResponse>builder()
                 .code(ErrorCode.SUCCESS.getCode())
                 .message("Ticket retrieved successfully")
+                .result(response)
+                .build();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
+    @PostMapping("/check-in")
+    public ApiResponse<TicketResponse> checkInTicket(@Valid @RequestBody CheckInTicketRequest request) {
+        TicketResponse response = ticketService.checkInTicket(request);
+
+        return ApiResponse.<TicketResponse>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Ticket checked in successfully")
                 .result(response)
                 .build();
     }

@@ -8,6 +8,7 @@ import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.event.entity.Event;
 import com.eventhub.eventhub_backend.event.entity.EventStatus;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
+import com.eventhub.eventhub_backend.ticketing.dto.request.CheckInTicketRequest;
 import com.eventhub.eventhub_backend.ticketing.dto.response.TicketResponse;
 import com.eventhub.eventhub_backend.ticketing.entity.Ticket;
 import com.eventhub.eventhub_backend.ticketing.entity.TicketStatus;
@@ -135,6 +136,94 @@ class TicketServiceImplTest {
                 .isEqualTo(ErrorCode.UNAUTHORIZED);
     }
 
+    @Test
+    void checkInTicket_shouldMarkValidTicketAsUsedForOrganizerOwner() {
+        TicketType vip = createTicketType("ticket-type-1", "VIP");
+        Booking booking = createBooking("booking-1", BookingStatus.CONFIRMED, vip, 1);
+        Ticket ticket = createTicket("ticket-1", booking, vip, "EVH-booking-1-1");
+        CheckInTicketRequest request = CheckInTicketRequest.builder()
+                .ticketCode("EVH-booking-1-1")
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketRepository.findByTicketCode("EVH-booking-1-1")).thenReturn(Optional.of(ticket));
+        when(ticketRepository.save(ticket)).thenReturn(ticket);
+
+        TicketResponse response = ticketService.checkInTicket(request);
+
+        assertThat(response.getStatus()).isEqualTo(TicketStatus.USED);
+        assertThat(response.getCheckedInAt()).isNotNull();
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.USED);
+        assertThat(ticket.getCheckedInAt()).isNotNull();
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void checkInTicket_shouldAllowAdminToCheckInByQrPayload() {
+        TicketType vip = createTicketType("ticket-type-1", "VIP");
+        Booking booking = createBooking("booking-1", BookingStatus.CONFIRMED, vip, 1);
+        Ticket ticket = createTicket("ticket-1", booking, vip, "EVH-booking-1-1");
+        CheckInTicketRequest request = CheckInTicketRequest.builder()
+                .qrPayload("EVENTHUB|TICKET|EVH-booking-1-1")
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ADMIN);
+        when(ticketRepository.findByQrPayload("EVENTHUB|TICKET|EVH-booking-1-1"))
+                .thenReturn(Optional.of(ticket));
+        when(ticketRepository.save(ticket)).thenReturn(ticket);
+
+        TicketResponse response = ticketService.checkInTicket(request);
+
+        assertThat(response.getStatus()).isEqualTo(TicketStatus.USED);
+        assertThat(response.getCheckedInAt()).isNotNull();
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void checkInTicket_shouldRejectAlreadyUsedTicket() {
+        TicketType vip = createTicketType("ticket-type-1", "VIP");
+        Booking booking = createBooking("booking-1", BookingStatus.CONFIRMED, vip, 1);
+        Ticket ticket = createTicket("ticket-1", booking, vip, "EVH-booking-1-1");
+        ticket.setStatus(TicketStatus.USED);
+        ticket.setCheckedInAt(Instant.now());
+        CheckInTicketRequest request = CheckInTicketRequest.builder()
+                .ticketCode("EVH-booking-1-1")
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-1");
+        when(ticketRepository.findByTicketCode("EVH-booking-1-1")).thenReturn(Optional.of(ticket));
+
+        assertThatThrownBy(() -> ticketService.checkInTicket(request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void checkInTicket_shouldRejectOrganizerThatDoesNotOwnEvent() {
+        TicketType vip = createTicketType("ticket-type-1", "VIP");
+        Booking booking = createBooking("booking-1", BookingStatus.CONFIRMED, vip, 1);
+        Ticket ticket = createTicket("ticket-1", booking, vip, "EVH-booking-1-1");
+        CheckInTicketRequest request = CheckInTicketRequest.builder()
+                .ticketCode("EVH-booking-1-1")
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ORGANIZER);
+        when(currentUserService.getCurrentUserId()).thenReturn("organizer-2");
+        when(ticketRepository.findByTicketCode("EVH-booking-1-1")).thenReturn(Optional.of(ticket));
+
+        assertThatThrownBy(() -> ticketService.checkInTicket(request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.UNAUTHORIZED);
+
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
     private Booking createBooking(String id, BookingStatus status, TicketType ticketType, int quantity) {
         Booking booking = Booking.builder()
                 .customer(createCustomer("customer-1"))
@@ -187,6 +276,7 @@ class TicketServiceImplTest {
                 .status(EventStatus.PUBLISHED)
                 .startAt(Instant.now().plusSeconds(3600))
                 .endAt(Instant.now().plusSeconds(7200))
+                .organizer(createOrganizer("organizer-1"))
                 .build();
         event.setId("event-1");
         return event;
@@ -198,5 +288,13 @@ class TicketServiceImplTest {
                 .build();
         customer.setId(id);
         return customer;
+    }
+
+    private User createOrganizer(String id) {
+        User organizer = User.builder()
+                .role(Role.ORGANIZER)
+                .build();
+        organizer.setId(id);
+        return organizer;
     }
 }
