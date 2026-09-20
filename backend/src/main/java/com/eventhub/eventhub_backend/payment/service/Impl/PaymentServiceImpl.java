@@ -14,6 +14,7 @@ import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
 import com.eventhub.eventhub_backend.payment.service.PaymentService;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
 import com.eventhub.eventhub_backend.ticket.repository.TicketTypeRepository;
+import com.eventhub.eventhub_backend.ticketing.service.TicketService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final TicketTypeRepository ticketTypeRepository;
+    private final TicketService ticketService;
 
     @Override
     @Transactional
@@ -70,6 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
+        ticketService.issueTicketsForBooking(booking);
 
         return toResponse(savedPayment);
     }
