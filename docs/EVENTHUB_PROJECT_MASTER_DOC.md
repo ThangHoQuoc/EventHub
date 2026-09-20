@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 5 — Booking.
+> **Current phase:** Phase 7 — Ticket + QR.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -900,22 +900,23 @@ Must preserve relevant purchase-time pricing.
 
 ## Payment
 
-Planned entity representing payment state for a Booking.
+Implemented entity representing payment state for a Booking.
 
 Responsibilities:
 
 - payment status
 - amount
 - provider/reference information
-- callback/webhook handling
-- verification
-- idempotency
+- manual/admin confirmation foundation
+- idempotency by provider transaction reference
+- future callback/webhook handling
+- future provider verification
 
 ---
 
 ## Ticket
 
-Planned entity representing an actual issued ticket.
+Implemented entity representing an actual issued ticket.
 
 Possible fields:
 
@@ -925,7 +926,7 @@ ticketCode
 booking
 ticketType
 status
-qrCode / QR payload
+qrPayload
 checkedInAt
 ```
 
@@ -936,6 +937,14 @@ VALID
 USED
 CANCELLED
 ```
+
+Current rule:
+
+- Tickets are issued only after payment confirmation succeeds.
+- One `Ticket` row is issued per purchased quantity.
+- `ticketCode` is unique.
+- `qrPayload` is a backend-generated payload string that can later be rendered as a QR image.
+- Check-in scan/validation is planned later.
 
 ---
 
@@ -1107,7 +1116,7 @@ Basic availability      DONE
 Inventory decision      DONE
 Safety contract test    DONE
 Inventory reservation   DEFERRED
-Payment confirmation    DEFERRED
+Payment confirmation    DONE
 Concurrency locking     DEFERRED
 ```
 
@@ -1117,8 +1126,78 @@ Current rule:
 - Booking can contain multiple ticket types, but all items must belong to the same `PUBLISHED` event.
 - `BookingItem.unitPrice` and `BookingItem.subtotal` preserve purchase-time pricing.
 - Phase 5 basic booking validates available quantity using `quantity - soldQuantity`.
-- Phase 5 basic booking does not reserve inventory or increment `soldQuantity` yet. That must be handled with Payment/Concurrency design.
+- Phase 5 basic booking does not reserve inventory or increment `soldQuantity`.
+- Phase 6 payment confirmation re-checks inventory and increments `soldQuantity` when payment is confirmed.
 - Inventory boundary decision is recorded in `docs/decisions/ADR-002-booking-inventory-reservation.md`.
+
+---
+
+## Payment APIs
+
+Implemented foundation:
+
+```http
+POST /api/v1/payments/confirm
+```
+
+Current status:
+
+```text
+Payment entity                         DONE
+Payment status                         DONE
+Payment repository                     DONE
+Manual/admin payment confirmation      DONE
+Confirm booking on successful payment  DONE
+Increment soldQuantity on confirmation DONE
+Basic provider transaction idempotency DONE
+Provider webhook                       DEFERRED
+QR/provider integration                DEFERRED
+Payment expiration/refund              DEFERRED
+```
+
+Current rule:
+
+- `POST /api/v1/payments/confirm` is an admin-only manual confirmation endpoint.
+- Confirmation accepts `bookingId`, `provider`, and `providerTransactionId`.
+- Reusing the same provider transaction for the same booking returns the existing successful payment response.
+- Reusing the same provider transaction for another booking is rejected.
+- Customer-facing payment provider checkout and webhook verification are planned later.
+- Successful manual/admin confirmation issues customer tickets.
+
+---
+
+## Ticket APIs
+
+Implemented foundation:
+
+```http
+GET /api/v1/tickets
+GET /api/v1/tickets/{ticketId}
+```
+
+Current status:
+
+```text
+Ticket entity                         DONE
+Ticket status                         DONE
+Ticket repository                     DONE
+Issue tickets after payment success   DONE
+Unique ticket code                    DONE
+QR payload string                     DONE
+Get my tickets                        DONE
+Get my ticket detail                  DONE
+Customer ownership check              DONE
+QR image rendering                    DEFERRED
+Check-in scan                         DEFERRED
+Duplicate check-in prevention         DEFERRED
+```
+
+Current rule:
+
+- Only `CUSTOMER` can use customer ticket APIs.
+- Customers can only view their own tickets.
+- Tickets are issued from confirmed bookings, not from pending bookings.
+- `qrPayload` is stored as a string payload for future QR rendering/scanning.
 
 ---
 
@@ -1439,7 +1518,7 @@ Phase 4 is complete. Booking can now build on stable Event and TicketType rules.
 
 # 17. Phase 5 — Booking
 
-Status: **IN PROGRESS / PR1-PR4 implemented**
+Status: **DONE / booking foundation implemented**
 
 Implemented entities:
 
@@ -1482,14 +1561,20 @@ Inventory reservation decision ADR
 Safety contract test for soldQuantity
 ```
 
-Deferred to later Booking/Payment/Concurrency work:
+Handled by Phase 6 payment confirmation:
+
+```text
+Confirm payment
+Increment soldQuantity
+Basic idempotency by provider transaction
+```
+
+Deferred to later Booking/Concurrency work:
 
 ```text
 Reserve inventory
-Confirm payment
-Increment soldQuantity
 Expire pending bookings
-Concurrency locking / idempotency
+Advanced concurrency locking / idempotency
 ```
 
 Important topics:
@@ -1509,25 +1594,35 @@ This is one of the most important CV/interview phases.
 
 # 18. Phase 6 — Payment
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR6-PR9 implemented**
 
-Planned:
+Implemented:
 
 - Payment entity
 - payment status
+- payment repository
+- manual/admin payment confirmation endpoint
+- booking confirmation after successful payment
+- inventory re-check before confirmation
+- `TicketType.soldQuantity` increment on confirmation
+- basic idempotency using provider transaction id
+- ticket issuance after successful confirmation
+
+Deferred:
+
 - QR payment
 - payment creation
 - callback/webhook
 - payment verification
-- idempotency
+- provider webhook signature verification
+- advanced idempotency/concurrency hardening
 - timeout/expiration
-- booking confirmation
 
 ---
 
 # 19. Phase 7 — Ticket + QR
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR8-PR9 implemented**
 
 Flow:
 
@@ -1547,10 +1642,28 @@ Planned:
 
 - Ticket entity
 - unique ticket code
-- QR generation
+- QR payload generation
 - ticket status
 - check-in
 - duplicate check-in prevention
+
+Implemented:
+
+- Ticket entity
+- Ticket status
+- Ticket repository
+- one issued ticket per confirmed purchased quantity
+- deterministic unique ticket code
+- QR payload string
+- customer ticket list/detail APIs
+- customer ownership checks
+
+Deferred:
+
+- QR image rendering
+- check-in scan endpoint
+- duplicate check-in prevention
+- ticket cancellation/refund integration
 
 ---
 
