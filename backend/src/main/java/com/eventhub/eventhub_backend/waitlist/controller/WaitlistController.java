@@ -63,4 +63,28 @@ public class WaitlistController {
                 .result(response)
                 .build();
     }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/waitlist-offers/{offerId}/accept")
+    public ApiResponse<WaitlistOfferResponse> acceptWaitlistOffer(@PathVariable String offerId) {
+        WaitlistOfferResponse response = waitlistOfferService.acceptOffer(offerId);
+
+        return ApiResponse.<WaitlistOfferResponse>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Waitlist offer accepted successfully")
+                .result(response)
+                .build();
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/waitlist-offers/{offerId}/skip")
+    public ApiResponse<WaitlistOfferResponse> skipWaitlistOffer(@PathVariable String offerId) {
+        WaitlistOfferResponse response = waitlistOfferService.skipOffer(offerId);
+
+        return ApiResponse.<WaitlistOfferResponse>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Waitlist offer skipped successfully")
+                .result(response)
+                .build();
+    }
 }

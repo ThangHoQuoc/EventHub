@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 8 — Smart Waitlist.
+> **Current phase:** Phase 9 — Notification / Kafka.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -1023,9 +1023,12 @@ Rules:
 - a waitlist entry with an active `CREATED` offer cannot receive another active offer
 - creating an offer moves the waitlist entry to `OFFERED`
 - customer can view their own waitlist offers
-- accept/skip/expire operations must be idempotent
-- expiration should be handled by a scheduled job or event-driven worker
-- accepting an offer must still respect inventory consistency
+- customer can accept only their own active, unexpired offer
+- accepting an offer creates a `PENDING_PAYMENT` booking through the existing Booking flow
+- accepted offers are marked `CONVERTED_TO_BOOKING`
+- skip and repeated accept for already converted offers are idempotent
+- expiration is handled by a scheduled job
+- accepting an offer still reuses booking inventory consistency rules
 
 ---
 
@@ -1244,17 +1247,12 @@ Important:
 
 ## Waitlist APIs
 
-Status: **IN PROGRESS / PR12-PR13 implemented**
+Status: **DONE / substantially implemented**
 
 ```http
 POST /api/v1/ticket-types/{ticketTypeId}/waitlist
 GET  /api/v1/me/waitlist
 GET  /api/v1/me/waitlist-offers
-```
-
-Planned:
-
-```http
 POST /api/v1/waitlist-offers/{offerId}/accept
 POST /api/v1/waitlist-offers/{offerId}/skip
 ```
@@ -1273,6 +1271,7 @@ Important:
 - duplicate active entries are rejected
 - offer accept/skip/expire must be idempotent
 - accepting an offer must reuse booking/inventory consistency rules
+- expired offers are closed by a scheduler
 
 ---
 
@@ -1695,7 +1694,7 @@ Deferred:
 
 # 20. Phase 8 — Smart Waitlist
 
-Status: **IN PROGRESS / PR12-PR13 implemented**
+Status: **DONE / substantially implemented**
 
 Smart Waitlist should be implemented after Booking, Payment, and Ticket inventory rules are stable.
 
@@ -1728,13 +1727,13 @@ Implemented:
 - internal offer creation service
 - duplicate active-offer prevention
 - customer waitlist offer list API
-
-Deferred:
-
 - fair queue ordering
 - offer expiration
 - idempotent accept/skip/expire
 - integration with booking inventory rules
+
+Deferred:
+
 - notification event when an offer is created
 
 This phase is valuable for backend interviews because it combines transactions, scheduling, idempotency, fairness, and event-driven thinking.
@@ -2134,18 +2133,6 @@ explain the trade-off before making a major change.
 
 ```text
 CURRENT
-   |
-Design Booking ERD in detail
-   |
-Booking + BookingItem
-   |
-Inventory / Transaction / Concurrency
-   |
-Payment
-   |
-Ticket + QR
-   |
-Smart Waitlist
    |
 Kafka / Notification
    |

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface WaitlistEntryRepository extends JpaRepository<WaitlistEntry, String> {
 
@@ -17,4 +18,10 @@ public interface WaitlistEntryRepository extends JpaRepository<WaitlistEntry, St
     );
 
     Page<WaitlistEntry> findByCustomerId(String customerId, Pageable pageable);
+
+    Optional<WaitlistEntry> findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAsc(
+            String ticketTypeId,
+            WaitlistEntryStatus status,
+            Integer quantity
+    );
 }
