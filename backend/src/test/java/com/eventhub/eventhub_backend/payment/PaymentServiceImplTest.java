@@ -16,6 +16,7 @@ import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
 import com.eventhub.eventhub_backend.payment.service.Impl.PaymentServiceImpl;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
 import com.eventhub.eventhub_backend.ticket.repository.TicketTypeRepository;
+import com.eventhub.eventhub_backend.ticketing.service.TicketService;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
 import org.junit.jupiter.api.Test;
@@ -38,11 +39,13 @@ class PaymentServiceImplTest {
     private final BookingRepository bookingRepository = mock(BookingRepository.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
     private final TicketTypeRepository ticketTypeRepository = mock(TicketTypeRepository.class);
+    private final TicketService ticketService = mock(TicketService.class);
 
     private final PaymentServiceImpl paymentService = new PaymentServiceImpl(
             bookingRepository,
             paymentRepository,
-            ticketTypeRepository
+            ticketTypeRepository,
+            ticketService
     );
 
     @Test
@@ -72,6 +75,7 @@ class PaymentServiceImplTest {
         verify(ticketTypeRepository).saveAll(List.of(vip));
         verify(bookingRepository).save(booking);
         verify(paymentRepository).save(any(Payment.class));
+        verify(ticketService).issueTicketsForBooking(booking);
     }
 
     @Test
@@ -93,6 +97,7 @@ class PaymentServiceImplTest {
         verify(ticketTypeRepository, never()).saveAll(any());
         verify(bookingRepository, never()).save(booking);
         verify(paymentRepository, never()).save(any(Payment.class));
+        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
     }
 
     @Test
@@ -115,6 +120,7 @@ class PaymentServiceImplTest {
         verify(ticketTypeRepository, never()).saveAll(any());
         verify(bookingRepository, never()).save(booking);
         verify(paymentRepository, never()).save(any(Payment.class));
+        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
     }
 
     @Test
@@ -137,6 +143,7 @@ class PaymentServiceImplTest {
         verify(ticketTypeRepository, never()).saveAll(any());
         verify(bookingRepository, never()).save(any(Booking.class));
         verify(paymentRepository, never()).save(any(Payment.class));
+        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
     }
 
     @Test
@@ -158,6 +165,7 @@ class PaymentServiceImplTest {
         verify(ticketTypeRepository, never()).saveAll(any());
         verify(bookingRepository, never()).save(any(Booking.class));
         verify(paymentRepository, never()).save(any(Payment.class));
+        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
     }
 
     private ConfirmPaymentRequest createRequest(String bookingId, String provider, String providerTransactionId) {

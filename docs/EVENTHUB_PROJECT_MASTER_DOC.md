@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 6 — Payment.
+> **Current phase:** Phase 7 — Ticket + QR.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -916,7 +916,7 @@ Responsibilities:
 
 ## Ticket
 
-Planned entity representing an actual issued ticket.
+Implemented entity representing an actual issued ticket.
 
 Possible fields:
 
@@ -926,7 +926,7 @@ ticketCode
 booking
 ticketType
 status
-qrCode / QR payload
+qrPayload
 checkedInAt
 ```
 
@@ -937,6 +937,14 @@ VALID
 USED
 CANCELLED
 ```
+
+Current rule:
+
+- Tickets are issued only after payment confirmation succeeds.
+- One `Ticket` row is issued per purchased quantity.
+- `ticketCode` is unique.
+- `qrPayload` is a backend-generated payload string that can later be rendered as a QR image.
+- Check-in scan/validation is planned later.
 
 ---
 
@@ -1154,6 +1162,42 @@ Current rule:
 - Reusing the same provider transaction for the same booking returns the existing successful payment response.
 - Reusing the same provider transaction for another booking is rejected.
 - Customer-facing payment provider checkout and webhook verification are planned later.
+- Successful manual/admin confirmation issues customer tickets.
+
+---
+
+## Ticket APIs
+
+Implemented foundation:
+
+```http
+GET /api/v1/tickets
+GET /api/v1/tickets/{ticketId}
+```
+
+Current status:
+
+```text
+Ticket entity                         DONE
+Ticket status                         DONE
+Ticket repository                     DONE
+Issue tickets after payment success   DONE
+Unique ticket code                    DONE
+QR payload string                     DONE
+Get my tickets                        DONE
+Get my ticket detail                  DONE
+Customer ownership check              DONE
+QR image rendering                    DEFERRED
+Check-in scan                         DEFERRED
+Duplicate check-in prevention         DEFERRED
+```
+
+Current rule:
+
+- Only `CUSTOMER` can use customer ticket APIs.
+- Customers can only view their own tickets.
+- Tickets are issued from confirmed bookings, not from pending bookings.
+- `qrPayload` is stored as a string payload for future QR rendering/scanning.
 
 ---
 
@@ -1550,7 +1594,7 @@ This is one of the most important CV/interview phases.
 
 # 18. Phase 6 — Payment
 
-Status: **IN PROGRESS / PR6-PR7 implemented**
+Status: **IN PROGRESS / PR6-PR9 implemented**
 
 Implemented:
 
@@ -1562,6 +1606,7 @@ Implemented:
 - inventory re-check before confirmation
 - `TicketType.soldQuantity` increment on confirmation
 - basic idempotency using provider transaction id
+- ticket issuance after successful confirmation
 
 Deferred:
 
@@ -1577,7 +1622,7 @@ Deferred:
 
 # 19. Phase 7 — Ticket + QR
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR8-PR9 implemented**
 
 Flow:
 
@@ -1597,10 +1642,28 @@ Planned:
 
 - Ticket entity
 - unique ticket code
-- QR generation
+- QR payload generation
 - ticket status
 - check-in
 - duplicate check-in prevention
+
+Implemented:
+
+- Ticket entity
+- Ticket status
+- Ticket repository
+- one issued ticket per confirmed purchased quantity
+- deterministic unique ticket code
+- QR payload string
+- customer ticket list/detail APIs
+- customer ownership checks
+
+Deferred:
+
+- QR image rendering
+- check-in scan endpoint
+- duplicate check-in prevention
+- ticket cancellation/refund integration
 
 ---
 
