@@ -25,5 +25,6 @@ public class WaitlistOfferResponse {
     WaitlistOfferStatus status;
     Instant expiresAt;
     Instant acceptedAt;
+    String bookingId;
     Instant createdAt;
 }

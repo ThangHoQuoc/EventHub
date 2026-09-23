@@ -1,10 +1,13 @@
 package com.eventhub.eventhub_backend.waitlist;
 
+import com.eventhub.eventhub_backend.booking.dto.response.BookingResponse;
+import com.eventhub.eventhub_backend.booking.service.BookingService;
 import com.eventhub.eventhub_backend.common.exception.AppException;
 import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.event.entity.Event;
 import com.eventhub.eventhub_backend.event.entity.EventStatus;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
+import com.eventhub.eventhub_backend.ticket.repository.TicketTypeRepository;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
@@ -38,11 +41,15 @@ class WaitlistOfferServiceImplTest {
 
     private final WaitlistEntryRepository waitlistEntryRepository = mock(WaitlistEntryRepository.class);
     private final WaitlistOfferRepository waitlistOfferRepository = mock(WaitlistOfferRepository.class);
+    private final TicketTypeRepository ticketTypeRepository = mock(TicketTypeRepository.class);
+    private final BookingService bookingService = mock(BookingService.class);
     private final CurrentUserService currentUserService = mock(CurrentUserService.class);
 
     private final WaitlistOfferServiceImpl waitlistOfferService = new WaitlistOfferServiceImpl(
             waitlistEntryRepository,
             waitlistOfferRepository,
+            ticketTypeRepository,
+            bookingService,
             currentUserService
     );
 
@@ -198,6 +205,193 @@ class WaitlistOfferServiceImplTest {
                 .isEqualTo(ErrorCode.UNAUTHORIZED);
 
         verify(waitlistOfferRepository, never()).findByWaitlistEntryCustomerId("customer-1", pageable);
+    }
+
+    @Test
+    void acceptOffer_shouldCreateBookingAndMarkOfferConverted() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.OFFERED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
+        BookingResponse bookingResponse = BookingResponse.builder()
+                .id("booking-1")
+                .customerId("customer-1")
+                .build();
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        when(bookingService.createBooking(any())).thenReturn(bookingResponse);
+        when(waitlistOfferRepository.save(any(WaitlistOffer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        WaitlistOfferResponse response = waitlistOfferService.acceptOffer("waitlist-offer-1");
+
+        assertThat(response.getStatus()).isEqualTo(WaitlistOfferStatus.CONVERTED_TO_BOOKING);
+        assertThat(response.getAcceptedAt()).isNotNull();
+        assertThat(response.getBookingId()).isEqualTo("booking-1");
+        assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.CONVERTED);
+        verify(bookingService).createBooking(any());
+        verify(waitlistEntryRepository).save(entry);
+        verify(waitlistOfferRepository).save(offer);
+    }
+
+    @Test
+    void acceptOffer_shouldBeIdempotentWhenOfferAlreadyConverted() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.CONVERTED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CONVERTED_TO_BOOKING);
+        offer.setConvertedBookingId("booking-1");
+        offer.setAcceptedAt(Instant.now());
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+
+        WaitlistOfferResponse response = waitlistOfferService.acceptOffer("waitlist-offer-1");
+
+        assertThat(response.getStatus()).isEqualTo(WaitlistOfferStatus.CONVERTED_TO_BOOKING);
+        assertThat(response.getBookingId()).isEqualTo("booking-1");
+        verify(bookingService, never()).createBooking(any());
+        verify(waitlistOfferRepository, never()).save(any(WaitlistOffer.class));
+    }
+
+    @Test
+    void acceptOffer_shouldRejectNonOwner() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.OFFERED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-2");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+
+        assertThatThrownBy(() -> waitlistOfferService.acceptOffer("waitlist-offer-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.UNAUTHORIZED);
+
+        verify(bookingService, never()).createBooking(any());
+    }
+
+    @Test
+    void acceptOffer_shouldRejectExpiredCreatedOffer() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.OFFERED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
+        offer.setExpiresAt(Instant.now().minusSeconds(60));
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+
+        assertThatThrownBy(() -> waitlistOfferService.acceptOffer("waitlist-offer-1"))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        assertThat(offer.getStatus()).isEqualTo(WaitlistOfferStatus.EXPIRED);
+        assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.EXPIRED);
+        verify(bookingService, never()).createBooking(any());
+        verify(waitlistEntryRepository).save(entry);
+        verify(waitlistOfferRepository).save(offer);
+    }
+
+    @Test
+    void skipOffer_shouldMarkCreatedOfferSkipped() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.OFFERED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        when(waitlistOfferRepository.save(any(WaitlistOffer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        WaitlistOfferResponse response = waitlistOfferService.skipOffer("waitlist-offer-1");
+
+        assertThat(response.getStatus()).isEqualTo(WaitlistOfferStatus.SKIPPED);
+        assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.SKIPPED);
+        verify(waitlistEntryRepository).save(entry);
+        verify(waitlistOfferRepository).save(offer);
+    }
+
+    @Test
+    void skipOffer_shouldBeIdempotentWhenAlreadySkipped() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.SKIPPED);
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.SKIPPED);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+
+        WaitlistOfferResponse response = waitlistOfferService.skipOffer("waitlist-offer-1");
+
+        assertThat(response.getStatus()).isEqualTo(WaitlistOfferStatus.SKIPPED);
+        verify(waitlistOfferRepository, never()).save(any(WaitlistOffer.class));
+    }
+
+    @Test
+    void expireCreatedOffers_shouldExpirePastCreatedOffers() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.OFFERED);
+        Instant now = Instant.now();
+        WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
+        offer.setExpiresAt(now.minusSeconds(60));
+
+        when(waitlistOfferRepository.findByStatusAndExpiresAtBefore(WaitlistOfferStatus.CREATED, now))
+                .thenReturn(List.of(offer));
+
+        int expiredCount = waitlistOfferService.expireCreatedOffers(now);
+
+        assertThat(expiredCount).isEqualTo(1);
+        assertThat(offer.getStatus()).isEqualTo(WaitlistOfferStatus.EXPIRED);
+        assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.EXPIRED);
+        verify(waitlistEntryRepository).save(entry);
+        verify(waitlistOfferRepository).save(offer);
+    }
+
+    @Test
+    void offerNextEligibleEntry_shouldCreateOfferForOldestEligibleWaitingEntry() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1");
+        vip.setQuantity(100);
+        vip.setSoldQuantity(99);
+        WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.WAITING);
+        Instant expiresAt = Instant.now().plusSeconds(900);
+
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(waitlistEntryRepository.findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAsc(
+                "ticket-type-1",
+                WaitlistEntryStatus.WAITING,
+                1
+        )).thenReturn(Optional.of(entry));
+        when(waitlistOfferRepository.existsByWaitlistEntryIdAndStatus(
+                "waitlist-entry-1",
+                WaitlistOfferStatus.CREATED
+        )).thenReturn(false);
+        when(waitlistOfferRepository.save(any(WaitlistOffer.class))).thenAnswer(invocation -> {
+            WaitlistOffer offer = invocation.getArgument(0);
+            offer.setId("waitlist-offer-1");
+            return offer;
+        });
+
+        Optional<WaitlistOfferResponse> response = waitlistOfferService.offerNextEligibleEntry(
+                "ticket-type-1",
+                expiresAt
+        );
+
+        assertThat(response).isPresent();
+        assertThat(response.get().getId()).isEqualTo("waitlist-offer-1");
+        assertThat(response.get().getQuantity()).isEqualTo(1);
+        assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.OFFERED);
+        verify(waitlistEntryRepository).save(entry);
     }
 
     private WaitlistOffer createOffer(

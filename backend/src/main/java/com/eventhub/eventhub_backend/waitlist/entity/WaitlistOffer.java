@@ -37,4 +37,6 @@ public class WaitlistOffer extends BaseEntity {
     Instant expiresAt;
 
     Instant acceptedAt;
+
+    String convertedBookingId;
 }
