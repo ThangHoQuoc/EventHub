@@ -474,6 +474,7 @@ Possible APIs:
 ```http
 POST /api/v1/ticket-types/{ticketTypeId}/waitlist
 GET  /api/v1/me/waitlist
+GET  /api/v1/me/waitlist-offers
 POST /api/v1/waitlist-offers/{offerId}/accept
 POST /api/v1/waitlist-offers/{offerId}/skip
 ```
@@ -991,7 +992,7 @@ Rules:
 
 ## WaitlistOffer
 
-Planned entity representing a time-limited chance to reserve a newly available ticket.
+Implemented foundation entity representing a time-limited chance to reserve a newly available ticket.
 
 Possible fields:
 
@@ -1018,6 +1019,10 @@ CONVERTED_TO_BOOKING
 
 Rules:
 
+- offers are created only for `WAITING` waitlist entries
+- a waitlist entry with an active `CREATED` offer cannot receive another active offer
+- creating an offer moves the waitlist entry to `OFFERED`
+- customer can view their own waitlist offers
 - accept/skip/expire operations must be idempotent
 - expiration should be handled by a scheduled job or event-driven worker
 - accepting an offer must still respect inventory consistency
@@ -1239,11 +1244,12 @@ Important:
 
 ## Waitlist APIs
 
-Status: **IN PROGRESS / PR12 implemented**
+Status: **IN PROGRESS / PR12-PR13 implemented**
 
 ```http
 POST /api/v1/ticket-types/{ticketTypeId}/waitlist
 GET  /api/v1/me/waitlist
+GET  /api/v1/me/waitlist-offers
 ```
 
 Planned:
@@ -1689,7 +1695,7 @@ Deferred:
 
 # 20. Phase 8 — Smart Waitlist
 
-Status: **IN PROGRESS / PR12 implemented**
+Status: **IN PROGRESS / PR12-PR13 implemented**
 
 Smart Waitlist should be implemented after Booking, Payment, and Ticket inventory rules are stable.
 
@@ -1717,10 +1723,14 @@ Implemented:
 - duplicate active-entry prevention
 - customer waitlist list API
 - customer-only waitlist ownership boundary
+- WaitlistOffer entity
+- WaitlistOffer status
+- internal offer creation service
+- duplicate active-offer prevention
+- customer waitlist offer list API
 
 Deferred:
 
-- WaitlistOffer entity
 - fair queue ordering
 - offer expiration
 - idempotent accept/skip/expire

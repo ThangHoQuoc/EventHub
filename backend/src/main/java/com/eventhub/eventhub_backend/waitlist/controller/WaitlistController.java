@@ -5,6 +5,8 @@ import com.eventhub.eventhub_backend.common.response.ApiResponse;
 import com.eventhub.eventhub_backend.common.response.PageResponse;
 import com.eventhub.eventhub_backend.waitlist.dto.request.JoinWaitlistRequest;
 import com.eventhub.eventhub_backend.waitlist.dto.response.WaitlistEntryResponse;
+import com.eventhub.eventhub_backend.waitlist.dto.response.WaitlistOfferResponse;
+import com.eventhub.eventhub_backend.waitlist.service.WaitlistOfferService;
 import com.eventhub.eventhub_backend.waitlist.service.WaitlistService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class WaitlistController {
 
     private final WaitlistService waitlistService;
+    private final WaitlistOfferService waitlistOfferService;
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/ticket-types/{ticketTypeId}/waitlist")
@@ -45,6 +48,18 @@ public class WaitlistController {
         return ApiResponse.<PageResponse<WaitlistEntryResponse>>builder()
                 .code(ErrorCode.SUCCESS.getCode())
                 .message("Waitlist entries retrieved successfully")
+                .result(response)
+                .build();
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/me/waitlist-offers")
+    public ApiResponse<PageResponse<WaitlistOfferResponse>> getMyWaitlistOffers(Pageable pageable) {
+        PageResponse<WaitlistOfferResponse> response = waitlistOfferService.getMyOffers(pageable);
+
+        return ApiResponse.<PageResponse<WaitlistOfferResponse>>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Waitlist offers retrieved successfully")
                 .result(response)
                 .build();
     }
