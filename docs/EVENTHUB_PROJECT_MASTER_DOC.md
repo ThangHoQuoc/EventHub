@@ -3,7 +3,7 @@
 > **Purpose:** Source of truth for AI assistants working on EventHub.
 > AI must read this document before modifying code. Do not invent architecture, entities, business rules, endpoints, or technologies that conflict with this document.
 >
-> **Current phase:** Phase 7 — Ticket + QR.
+> **Current phase:** Phase 8 — Smart Waitlist.
 >
 > **Status rule:** `DONE` means implemented/substantially implemented. `IN PROGRESS` and `TODO` are planned/pending and must not be assumed to exist.
 
@@ -952,7 +952,7 @@ Current rule:
 
 ## WaitlistEntry
 
-Planned entity representing a customer's position in the sold-out demand queue for a TicketType.
+Implemented entity representing a customer's position in the sold-out demand queue for a TicketType.
 
 Possible fields:
 
@@ -960,6 +960,7 @@ Possible fields:
 id
 customer
 ticketType
+quantity
 status
 position / createdAt
 createdAt
@@ -980,6 +981,8 @@ CANCELLED
 Rules:
 
 - one active waitlist entry per customer per TicketType
+- customer can join only when the TicketType is sold out
+- customer can view their own waitlist entries
 - queue ordering must be deterministic
 - customer must not bypass normal booking/payment rules
 - waitlist does not guarantee a ticket
@@ -1236,11 +1239,16 @@ Important:
 
 ## Waitlist APIs
 
-Status: **PLANNED AFTER BOOKING/PAYMENT**
+Status: **IN PROGRESS / PR12 implemented**
 
 ```http
 POST /api/v1/ticket-types/{ticketTypeId}/waitlist
 GET  /api/v1/me/waitlist
+```
+
+Planned:
+
+```http
 POST /api/v1/waitlist-offers/{offerId}/accept
 POST /api/v1/waitlist-offers/{offerId}/skip
 ```
@@ -1255,7 +1263,8 @@ time-limited reservation offers when inventory returns.
 Important:
 
 - waitlist operations must be customer-owned
-- duplicate active entries must be rejected or treated idempotently
+- customer can join only sold-out published TicketTypes
+- duplicate active entries are rejected
 - offer accept/skip/expire must be idempotent
 - accepting an offer must reuse booking/inventory consistency rules
 
@@ -1680,7 +1689,7 @@ Deferred:
 
 # 20. Phase 8 — Smart Waitlist
 
-Status: **NOT IMPLEMENTED**
+Status: **IN PROGRESS / PR12 implemented**
 
 Smart Waitlist should be implemented after Booking, Payment, and Ticket inventory rules are stable.
 
@@ -1700,11 +1709,18 @@ Customer accepts
 Continue Booking/Payment
 ```
 
-Planned:
+Implemented:
 
 - WaitlistEntry entity
-- WaitlistOffer entity
+- WaitlistEntry status
+- join waitlist for sold-out TicketType
 - duplicate active-entry prevention
+- customer waitlist list API
+- customer-only waitlist ownership boundary
+
+Deferred:
+
+- WaitlistOffer entity
 - fair queue ordering
 - offer expiration
 - idempotent accept/skip/expire
