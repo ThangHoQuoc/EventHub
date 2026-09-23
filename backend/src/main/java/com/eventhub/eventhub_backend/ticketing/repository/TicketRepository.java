@@ -15,4 +15,6 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     Page<Ticket> findByCustomerId(String customerId, Pageable pageable);
 
     Optional<Ticket> findByTicketCode(String ticketCode);
+
+    Optional<Ticket> findByQrPayload(String qrPayload);
 }
