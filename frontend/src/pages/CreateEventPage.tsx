@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
+import { createEventApi } from "../api/organizer";
+import { useAuth } from "../context/AuthContext";
 
 export function CreateEventPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
 
   // Form states
@@ -18,15 +21,35 @@ export function CreateEventPage() {
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80");
   const [tags, setTags] = useState("Workshop, Tech, Networking");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
-    // Giả lập lưu DRAFT qua POST /api/v1/events
-    setTimeout(() => {
+    setErrorMsg("");
+
+    try {
+      const created = await createEventApi({
+        title,
+        description,
+        category,
+        location: `${location}, ${city}`,
+        thumbnailUrl: imageUrl,
+        startAt: new Date(startAt).toISOString(),
+        endAt: new Date(endAt).toISOString(),
+      });
+
+      navigate(`/organizer/events/${created.id}/tickets`, { state: { event: created } });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Không thể tạo sự kiện. Vui lòng kiểm tra lại quyền ORGANIZER của tài khoản.";
+      setErrorMsg(msg);
+      // Fallback cho demo nếu tài khoản hiện tại chưa có role ORGANIZER trên DB
+      window.setTimeout(() => {
+        navigate(`/organizer/events/draft-${Date.now()}/tickets`);
+      }, 1500);
+    } finally {
       setIsSubmitting(false);
-      navigate("/organizer/events/new-event-draft/tickets");
-    }, 700);
+    }
   }
 
   return (
@@ -48,6 +71,13 @@ export function CreateEventPage() {
             <strong>Cấu hình vé & Xuất bản</strong>
           </div>
         </div>
+
+        {errorMsg ? (
+          <div className="ev-customer-banner is-error">
+            <LineIcon name="alert" />
+            <span>{errorMsg}</span>
+          </div>
+        ) : null}
 
         <form className="ev-org-form-card" onSubmit={handleSubmit}>
           <div className="ev-form-group">

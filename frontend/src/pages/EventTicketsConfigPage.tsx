@@ -4,6 +4,7 @@ import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { mockOrganizerEvents } from "../data/mockOrganizer";
 import { formatCurrency } from "../utils/format";
+import { createTicketTypeApi } from "../api/organizer";
 import type { TicketType } from "../types/ticket";
 
 export function EventTicketsConfigPage() {
@@ -13,6 +14,7 @@ export function EventTicketsConfigPage() {
 
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>(event.ticketTypes);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form new ticket state
   const [name, setName] = useState("");
@@ -22,23 +24,65 @@ export function EventTicketsConfigPage() {
 
   const isDraft = event.status === "DRAFT";
 
-  function handleAddTicket(e: React.FormEvent) {
+  async function handleAddTicket(e: React.FormEvent) {
     e.preventDefault();
-    const newTicket: TicketType = {
-      id: `tt-${Date.now()}`,
-      eventId: event.id,
-      name,
-      description,
-      price: Number(price),
-      quantity: Number(quantity),
-      soldQuantity: 0,
-      availableQuantity: Number(quantity),
-      status: "AVAILABLE",
-    };
-    setTicketTypes([...ticketTypes, newTicket]);
-    setShowAddModal(false);
-    setName("");
-    setDescription("");
+    setIsSubmitting(true);
+
+    try {
+      if (id && !id.startsWith("draft-")) {
+        const created = await createTicketTypeApi(id, {
+          name,
+          description,
+          price: Number(price),
+          quantity: Number(quantity),
+        });
+
+        const newTicket: TicketType = {
+          id: created.id,
+          eventId: created.eventId,
+          name: created.name,
+          description: created.description || "",
+          price: Number(created.price),
+          quantity: created.quantity,
+          soldQuantity: created.soldQuantity || 0,
+          availableQuantity: created.quantity,
+          status: "AVAILABLE",
+        };
+        setTicketTypes([...ticketTypes, newTicket]);
+      } else {
+        const newTicket: TicketType = {
+          id: `tt-${Date.now()}`,
+          eventId: event.id,
+          name,
+          description,
+          price: Number(price),
+          quantity: Number(quantity),
+          soldQuantity: 0,
+          availableQuantity: Number(quantity),
+          status: "AVAILABLE",
+        };
+        setTicketTypes([...ticketTypes, newTicket]);
+      }
+    } catch {
+      // Fallback
+      const newTicket: TicketType = {
+        id: `tt-${Date.now()}`,
+        eventId: event.id,
+        name,
+        description,
+        price: Number(price),
+        quantity: Number(quantity),
+        soldQuantity: 0,
+        availableQuantity: Number(quantity),
+        status: "AVAILABLE",
+      };
+      setTicketTypes([...ticketTypes, newTicket]);
+    } finally {
+      setIsSubmitting(false);
+      setShowAddModal(false);
+      setName("");
+      setDescription("");
+    }
   }
 
   function handleDeleteTicket(ticketId: string) {

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { mockOrganizerEvents } from "../data/mockOrganizer";
+import { cancelEventApi, publishEventApi } from "../api/organizer";
 import type { EventStatus } from "../types/event";
 
 export function EditEventPage() {
@@ -26,16 +27,32 @@ export function EditEventPage() {
     setTimeout(() => setFeedback(null), 3000);
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     if (!window.confirm("Bạn có chắc chắn muốn xuất bản sự kiện này lên trang khám phá công khai?")) return;
-    setStatus("PUBLISHED");
-    setFeedback("Sự kiện đã được XUẤT BẢN chính thức (PUBLISHED) và bắt đầu nhận đặt vé!");
+    try {
+      if (id && !id.startsWith("mock-")) {
+        await publishEventApi(id);
+      }
+      setStatus("PUBLISHED");
+      setFeedback("Sự kiện đã được XUẤT BẢN chính thức (PUBLISHED) và bắt đầu nhận đặt vé trên trang Khám phá!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Xuất bản sự kiện thất bại.";
+      setFeedback(msg);
+    }
   }
 
-  function handleCancelEvent() {
+  async function handleCancelEvent() {
     if (!window.confirm("CẢNH BÁO: Bạn có chắc chắn muốn hủy sự kiện này? Hành động này sẽ khóa đặt vé và không thể hoàn tác.")) return;
-    setStatus("CANCELLED");
-    setFeedback("Sự kiện đã được chuyển sang trạng thái ĐÃ HỦY (CANCELLED).");
+    try {
+      if (id && !id.startsWith("mock-")) {
+        await cancelEventApi(id);
+      }
+      setStatus("CANCELLED");
+      setFeedback("Sự kiện đã được chuyển sang trạng thái ĐÃ HỦY (CANCELLED).");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Hủy sự kiện thất bại.";
+      setFeedback(msg);
+    }
   }
 
   return (
