@@ -2,11 +2,15 @@ import { useState } from "react";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { mockRecentCheckIns } from "../data/mockOrganizer";
+import { checkInTicketApi } from "../api/organizer";
+import { useAuth } from "../context/AuthContext";
 import type { CheckInRecord } from "../types/organizer";
 
 export function CheckInStationPage() {
+  const { user } = useAuth();
   const [ticketInput, setTicketInput] = useState("");
   const [records, setRecords] = useState<CheckInRecord[]>(mockRecentCheckIns);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [currentResult, setCurrentResult] = useState<{
     status: "SUCCESS" | "ALREADY_CHECKED_IN" | "INVALID";
     message: string;
@@ -14,81 +18,79 @@ export function CheckInStationPage() {
     ticketType?: string;
   } | null>(null);
 
-  function processCode(code: string) {
+  async function processCode(code: string) {
     const cleanCode = code.trim().toUpperCase();
     if (!cleanCode) return;
+    setIsProcessing(true);
 
-    if (cleanCode.includes("EH-TECH-98214")) {
-      const isAlready = records.some((r) => r.ticketCode === cleanCode && r.status === "SUCCESS");
-      if (isAlready) {
+    try {
+      const ticket = await checkInTicketApi({ ticketCode: cleanCode });
+      setCurrentResult({
+        status: "SUCCESS",
+        message: "CHECK-IN HỢP LỆ! Chào mừng quý khách tham dự sự kiện.",
+        holderName: "Khách tham dự",
+        ticketType: ticket.ticketTypeName || "Vé sự kiện",
+      });
+      setRecords((prev) => [
+        {
+          id: `ck-${Date.now()}`,
+          ticketCode: ticket.ticketCode,
+          eventTitle: ticket.eventTitle || "Sự kiện EventHub",
+          holderName: "Khách tham dự",
+          ticketTypeName: ticket.ticketTypeName || "Vé sự kiện",
+          checkedInAt: new Date().toLocaleTimeString("vi-VN"),
+          status: "SUCCESS",
+          staffName: user?.fullName || "Nhân viên soát vé",
+        },
+        ...prev,
+      ]);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "";
+      const isAlreadyUsed = errMsg.toLowerCase().includes("used") || errMsg.toLowerCase().includes("đã");
+
+      if (isAlreadyUsed || cleanCode.includes("USED")) {
         setCurrentResult({
           status: "ALREADY_CHECKED_IN",
-          message: "CẢNH BÁO: Vé này đã được check-in vào lúc 18:42:10!",
-          holderName: "Nguyễn Minh Anh",
-          ticketType: "Vé Tiêu Chuẩn (Standard)",
+          message: "CẢNH BÁO: Vé này đã được check-in trước đó!",
+          holderName: "Khách tham dự",
+          ticketType: "Vé Tiêu Chuẩn",
         });
-        setRecords([
+        setRecords((prev) => [
           {
             id: `ck-${Date.now()}`,
             ticketCode: cleanCode,
-            eventTitle: "Vietnam Tech Meetup 2026",
-            holderName: "Nguyễn Minh Anh",
-            ticketTypeName: "Vé Tiêu Chuẩn (Standard)",
+            eventTitle: "Sự kiện EventHub",
+            holderName: "Khách tham dự",
+            ticketTypeName: "Vé Tiêu Chuẩn",
             checkedInAt: new Date().toLocaleTimeString("vi-VN"),
             status: "ALREADY_CHECKED_IN",
-            staffName: "Trần Bảo An",
+            staffName: user?.fullName || "Nhân viên soát vé",
           },
-          ...records,
+          ...prev,
         ]);
       } else {
         setCurrentResult({
-          status: "SUCCESS",
-          message: "CHECK-IN HỢP LỆ! Chào mừng quý khách tham dự sự kiện.",
-          holderName: "Nguyễn Minh Anh",
-          ticketType: "Vé Tiêu Chuẩn (Standard)",
+          status: "INVALID",
+          message: errMsg || "MÃ VÉ KHÔNG HỢP LỆ HOẶC KHÔNG TỒN TẠI TRÊN HỆ THỐNG!",
         });
-        setRecords([
+        setRecords((prev) => [
           {
             id: `ck-${Date.now()}`,
             ticketCode: cleanCode,
-            eventTitle: "Vietnam Tech Meetup 2026",
-            holderName: "Nguyễn Minh Anh",
-            ticketTypeName: "Vé Tiêu Chuẩn (Standard)",
+            eventTitle: "Không xác định",
+            holderName: "Không xác định",
+            ticketTypeName: "N/A",
             checkedInAt: new Date().toLocaleTimeString("vi-VN"),
-            status: "SUCCESS",
-            staffName: "Trần Bảo An",
+            status: "INVALID",
+            staffName: user?.fullName || "Nhân viên soát vé",
           },
-          ...records,
+          ...prev,
         ]);
       }
-    } else if (cleanCode.startsWith("EH-")) {
-      setCurrentResult({
-        status: "SUCCESS",
-        message: "CHECK-IN THÀNH CÔNG! Mã vé hợp lệ.",
-        holderName: "Khách mời EventHub",
-        ticketType: "Hạng vé tiêu chuẩn",
-      });
-      setRecords([
-        {
-          id: `ck-${Date.now()}`,
-          ticketCode: cleanCode,
-          eventTitle: "Sự kiện được chọn",
-          holderName: "Khách mời",
-          ticketTypeName: "Hạng vé tiêu chuẩn",
-          checkedInAt: new Date().toLocaleTimeString("vi-VN"),
-          status: "SUCCESS",
-          staffName: "Trần Bảo An",
-        },
-        ...records,
-      ]);
-    } else {
-      setCurrentResult({
-        status: "INVALID",
-        message: "LỖI: Mã vé không tồn tại hoặc không thuộc sự kiện này!",
-      });
+    } finally {
+      setIsProcessing(false);
+      setTicketInput("");
     }
-
-    setTicketInput("");
   }
 
   function handleManualSubmit(e: React.FormEvent) {
