@@ -1,15 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CustomerLayout } from "../components/customer/CustomerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { QRCode } from "../components/ui/QRCode";
 import { mockIssuedTickets } from "../data/mockCustomer";
+import { mockEvents } from "../data/mockEvents";
 import { formatDate } from "../utils/format";
+import { getMyTicketsApi, type TicketDto } from "../api/tickets";
+import { useAuth } from "../context/AuthContext";
 import type { IssuedTicket } from "../types/customer";
 
 export function MyTicketsPage() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState<"ALL" | "VALID" | "USED">("VALID");
-  const [tickets] = useState<IssuedTicket[]>(mockIssuedTickets);
+  const [tickets, setTickets] = useState<IssuedTicket[]>(mockIssuedTickets);
+
+  useEffect(() => {
+    if (!user) return;
+    getMyTicketsApi({ size: 20 })
+      .then((res) => {
+        if (res.content && res.content.length > 0) {
+          const mapped: IssuedTicket[] = res.content.map((t: TicketDto) => {
+            const matchedEvent = mockEvents.find((e) => e.id === t.eventId) || {
+              ...mockEvents[0],
+              id: t.eventId || mockEvents[0].id,
+              title: t.eventTitle || mockEvents[0].title,
+            };
+
+            return {
+              id: t.id,
+              ticketCode: t.ticketCode,
+              qrPayload: t.qrPayload || t.ticketCode,
+              status: t.status,
+              price: 350000,
+              ticketTypeName: t.ticketTypeName || "Vé tham dự",
+              purchasedAt: t.issuedAt,
+              checkInAt: t.checkedInAt,
+              holderName: user.fullName || "Khách hàng",
+              holderEmail: user.email,
+              holderPhone: user.phone || "0912345678",
+              orderCode: `ORD-${t.bookingId?.substring(0, 6).toUpperCase() || "EH"}`,
+              event: matchedEvent,
+            };
+          });
+          setTickets(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback to mock
+      });
+  }, [user]);
 
   const filteredTickets = tickets.filter((t) => {
     if (filter === "ALL") return true;
