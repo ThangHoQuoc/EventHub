@@ -1,46 +1,30 @@
 import { useEffect, useState } from "react";
 import { CityDiscovery } from "../components/marketing/CityDiscovery";
-import { EventMatchShowcase } from "../components/marketing/EventMatchShowcase";
 import { FeaturedEditorial } from "../components/marketing/FeaturedEditorial";
 import { LandingHero } from "../components/marketing/LandingHero";
 import { TicketBanner } from "../components/marketing/TicketBanner";
-import { WaitlistShowcase } from "../components/marketing/WaitlistShowcase";
-import { mockEvents } from "../data/mockEvents";
+import { RequestState } from "../components/ui/RequestState";
 import { getPublicEvents, mapDtoToEvent } from "../api/events";
 import type { Event } from "../types/event";
 
 export function LandingPage() {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
-
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    let isMounted = true;
-    getPublicEvents({ size: 6 })
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.content && res.content.length > 0) {
-          const mapped = res.content.map((dto) => mapDtoToEvent(dto, 250000));
-          setEvents(mapped);
-        }
-      })
-      .catch(() => {
-        // Fallback to mock
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const heroEvent = events[0] || mockEvents[0];
-
-  return (
-    <div className="ev-editorial-page ev-home-page">
-      <LandingHero event={heroEvent} />
-      <FeaturedEditorial events={events} />
-      <EventMatchShowcase events={events} />
-      <WaitlistShowcase />
-      <CityDiscovery />
-      <TicketBanner />
-    </div>
-  );
+    let active = true;
+    setLoading(true); setError("");
+    getPublicEvents({ size: 6 }).then(res => { if (active) setEvents(res.content.map(dto => mapDtoToEvent(dto))); })
+      .catch(err => { if (active) setError(err.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
+  return <div className="ev-editorial-page ev-home-page">
+    <LandingHero event={events[0]} />
+    <RequestState loading={loading} error={error} onRetry={() => setRetry(n => n + 1)} />
+    {!loading && !error && !events.length && <p className="notice" role="status">Chưa có sự kiện được công bố.</p>}
+    {events.length > 0 && <FeaturedEditorial events={events} />}
+    <CityDiscovery /><TicketBanner />
+  </div>;
 }

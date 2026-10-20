@@ -61,24 +61,18 @@ export async function getPublicEventById(eventId: string): Promise<EventDto> {
 }
 
 export async function getEventTicketTypes(eventId: string): Promise<TicketTypeDto[]> {
-  try {
-    return await fetchApi<TicketTypeDto[]>(`/api/v1/events/${eventId}/ticket-types`, {
-      method: "GET",
-    });
-  } catch {
-    // Nếu chưa đăng nhập hoặc endpoint yêu cầu authenticated, trả về mảng rỗng để UI fallback
-    return [];
-  }
+  return fetchApi<TicketTypeDto[]>(`/api/v1/events/${eventId}/ticket-types`);
 }
 
 import type { Event } from "../types/event";
 
-export function mapDtoToEvent(dto: EventDto, minPrice = 0): Event {
-  let detectedCity: Event["city"] = "TP.HCM";
+export function mapDtoToEvent(dto: EventDto, minPrice?: number): Event {
+  let detectedCity: Event["city"] = "";
   const loc = dto.location || "";
   if (loc.includes("Hà Nội")) detectedCity = "Hà Nội";
   else if (loc.includes("Đà Nẵng")) detectedCity = "Đà Nẵng";
   else if (loc.includes("Cần Thơ")) detectedCity = "Cần Thơ";
+  else if (loc.includes("TP.HCM") || loc.includes("Hồ Chí Minh")) detectedCity = "TP.HCM";
 
   return {
     id: dto.id,
@@ -91,8 +85,9 @@ export function mapDtoToEvent(dto: EventDto, minPrice = 0): Event {
     imageUrl: dto.thumbnailUrl || "",
     category: dto.category || "Sự kiện",
     tags: [dto.category || "Sự kiện", detectedCity],
-    minPrice,
+    minPrice: minPrice ?? 0,
+    priceKnown: minPrice !== undefined,
     status: dto.status,
-    ticketAvailability: "AVAILABLE",
+    ticketAvailability: "UNKNOWN",
   };
 }

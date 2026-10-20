@@ -28,7 +28,7 @@ export function EventCard({ event, variant = "featured" }: EventCardProps) {
         <p><LineIcon name="clock" />{new Date(event.startAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</p>
         {variant === "match" && event.matchReason ? <small>{event.matchReason}</small> : null}
         <div className="ev-event-card-footer">
-          <strong>{event.minPrice === 0 ? "Miễn phí" : `Từ ${formatCurrency(event.minPrice)}`}</strong>
+          <strong>{event.priceKnown === false ? "Xem giá vé" : event.minPrice === 0 ? "Miễn phí" : `Từ ${formatCurrency(event.minPrice)}`}</strong>
           <StatusBadge status={event.ticketAvailability} />
         </div>
         <Link className="ev-event-card-link" to={`/events/${event.id}`} aria-label={`Xem chi tiết ${event.title}`} />
