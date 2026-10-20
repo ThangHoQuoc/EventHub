@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { NavLink, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { LineIcon } from "../ui/LineIcon";
 
 type OrganizerLayoutProps = PropsWithChildren<{
@@ -16,6 +17,7 @@ export function OrganizerLayout({
   activeNav = "dashboard",
   actionButton,
 }: OrganizerLayoutProps) {
+  const { user } = useAuth();
   return (
     <div className="ev-editorial-page ev-organizer-page">
       <div className="ev-organizer-shell">
@@ -27,8 +29,8 @@ export function OrganizerLayout({
             </div>
             <div>
               <span className="ev-organizer-kicker">Cổng Nhà Tổ Chức (Organizer Portal)</span>
-              <h1>Saigon Tech & Indie Community</h1>
-              <p>Đối tác tổ chức sự kiện uy tín tại TP.HCM & Hà Nội</p>
+              <h1>{user?.fullName || user?.email}</h1>
+              <p>{user?.email} · {user?.role}</p>
             </div>
           </div>
 
