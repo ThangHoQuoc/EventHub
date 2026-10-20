@@ -1,29 +1,135 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CustomerLayout } from "../components/customer/CustomerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { mockWaitlistOffers, mockWaitlistEntries } from "../data/mockCustomer";
+import { mockEvents } from "../data/mockEvents";
 import { formatCurrency, formatDate } from "../utils/format";
+import {
+  acceptOfferApi,
+  getMyOffersApi,
+  getMyWaitlistApi,
+  skipOfferApi,
+  type WaitlistEntryDto,
+  type WaitlistOfferDto,
+} from "../api/waitlist";
+import { useAuth } from "../context/AuthContext";
 import type { WaitlistOfferItem, WaitlistEntryItem } from "../types/customer";
 
 export function MyWaitlistPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [offers, setOffers] = useState<WaitlistOfferItem[]>(mockWaitlistOffers);
   const [entries, setEntries] = useState<WaitlistEntryItem[]>(mockWaitlistEntries);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isActing, setIsActing] = useState(false);
 
-  function handleAcceptOffer(offer: WaitlistOfferItem) {
-    setActionMessage(`Đang chuyển hướng đến thanh toán cho sự kiện: ${offer.event.title}`);
-    setTimeout(() => {
-      navigate(`/checkout?eventId=${offer.event.id}&fromWaitlist=true`);
-    }, 700);
+  useEffect(() => {
+    if (!user) return;
+
+    // Lấy danh sách hàng chờ
+    getMyWaitlistApi({ size: 20 })
+      .then((res) => {
+        if (res.content && res.content.length > 0) {
+          const mappedEntries: WaitlistEntryItem[] = res.content.map((dto: WaitlistEntryDto, idx: number) => {
+            const matchedEvent = mockEvents.find((e) => e.id === dto.eventId) || {
+              ...mockEvents[0],
+              id: dto.eventId || mockEvents[0].id,
+              title: dto.eventTitle || mockEvents[0].title,
+            };
+
+            return {
+              entryId: dto.id,
+              ticketTypeId: dto.ticketTypeId,
+              ticketTypeName: dto.ticketTypeName || "Hạng vé tiêu chuẩn",
+              event: matchedEvent,
+              quantity: dto.quantity || 1,
+              queuePosition: idx + 1,
+              status: dto.status === "WAITING" ? "WAITING" : dto.status === "OFFERED" ? "OFFERED" : "CONVERTED",
+              createdAt: dto.createdAt,
+            };
+          });
+          setEntries(mappedEntries);
+        }
+      })
+      .catch(() => {
+        // Fallback
+      });
+
+    // Lấy danh sách suất ưu đãi
+    getMyOffersApi({ size: 20 })
+      .then((res) => {
+        if (res.content && res.content.length > 0) {
+          const mappedOffers: WaitlistOfferItem[] = res.content.map((dto: WaitlistOfferDto) => {
+            const matchedEvent = mockEvents.find((e) => e.id === dto.eventId) || {
+              ...mockEvents[0],
+              id: dto.eventId || mockEvents[0].id,
+              title: dto.eventTitle || mockEvents[0].title,
+            };
+
+            return {
+              offerId: dto.id,
+              entryId: dto.waitlistEntryId,
+              ticketTypeId: dto.ticketTypeId,
+              ticketTypeName: dto.ticketTypeName || "Vé VIP Ưu đãi",
+              event: matchedEvent,
+              quantity: dto.quantity || 1,
+              price: 350000,
+              status: dto.status === "CREATED" ? "OFFERED" : dto.status === "ACCEPTED" ? "CONVERTED" : "SKIPPED",
+              expiresAt: dto.expiresAt,
+              createdAt: dto.createdAt,
+            };
+          });
+          setOffers(mappedOffers);
+        }
+      })
+      .catch(() => {
+        // Fallback
+      });
+  }, [user]);
+
+  async function handleAcceptOffer(offer: WaitlistOfferItem) {
+    setIsActing(true);
+    setActionMessage(`Đang xác nhận chấp nhận suất vé cho: ${offer.event.title}...`);
+
+    try {
+      if (offer.offerId && !offer.offerId.startsWith("off-")) {
+        const accepted = await acceptOfferApi(offer.offerId);
+        if (accepted.bookingId) {
+          navigate(`/payment?bookingId=${accepted.bookingId}&method=vnpay`);
+          return;
+        }
+      }
+      setTimeout(() => {
+        navigate(`/checkout?eventId=${offer.event.id}&fromWaitlist=true`);
+      }, 700);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Chấp nhận suất vé thất bại.";
+      setActionMessage(msg);
+      setTimeout(() => setActionMessage(null), 3500);
+    } finally {
+      setIsActing(false);
+    }
   }
 
-  function handleSkipOffer(offerId: string) {
-    if (!window.confirm("Bạn có chắc chắn muốn bỏ qua suất vé này? Suất vé sẽ được nhường cho người tiếp theo.")) return;
-    setOffers((prev) => prev.filter((o) => o.offerId !== offerId));
-    setActionMessage("Đã bỏ qua suất ưu đãi. Cảm ơn bạn.");
-    setTimeout(() => setActionMessage(null), 3000);
+  async function handleSkipOffer(offerId: string) {
+    if (!window.confirm("Bạn có chắc chắn muốn bỏ qua suất vé này? Suất vé sẽ được tự động nhường cho người tiếp theo trong hàng chờ.")) return;
+    setIsActing(true);
+
+    try {
+      if (offerId && !offerId.startsWith("off-")) {
+        await skipOfferApi(offerId);
+      }
+      setOffers((prev) => prev.filter((o) => o.offerId !== offerId));
+      setActionMessage("Đã bỏ qua suất ưu đãi. Quyền mua đã được nhường cho người kế tiếp.");
+      setTimeout(() => setActionMessage(null), 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Bỏ qua suất vé thất bại.";
+      setActionMessage(msg);
+      setTimeout(() => setActionMessage(null), 3500);
+    } finally {
+      setIsActing(false);
+    }
   }
 
   function handleLeaveWaitlist(entryId: string) {
