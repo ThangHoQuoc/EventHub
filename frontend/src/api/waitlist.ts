@@ -1,8 +1,8 @@
 import { fetchApi } from "./client";
 import type { PageResponse } from "./events";
 
-export type WaitlistEntryStatus = "WAITING" | "OFFERED" | "CONVERTED" | "EXPIRED";
-export type WaitlistOfferStatus = "CREATED" | "ACCEPTED" | "SKIPPED" | "EXPIRED";
+export type WaitlistEntryStatus = "WAITING" | "OFFERED" | "CONVERTED" | "EXPIRED" | "SKIPPED" | "CANCELLED";
+export type WaitlistOfferStatus = "CREATED" | "ACCEPTED" | "SKIPPED" | "EXPIRED" | "CONVERTED_TO_BOOKING";
 
 export interface WaitlistEntryDto {
   id: string;
