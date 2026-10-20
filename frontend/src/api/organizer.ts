@@ -1,5 +1,5 @@
 import { fetchApi } from "./client";
-import type { EventDto, TicketTypeDto } from "./events";
+import type { EventDto, TicketTypeDto, PageResponse } from "./events";
 import type { TicketDto } from "./tickets";
 
 export interface CreateEventPayload {
@@ -58,4 +58,22 @@ export async function checkInTicketApi(payload: CheckInPayload): Promise<TicketD
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+// API danh sách hiện chỉ tìm các sự kiện PUBLISHED, không phải danh sách bản nháp của organizer.
+export function searchEventsApi(page = 0, keyword = "") {
+  const params = new URLSearchParams({page:String(page),size:"10",sort:"createdAt,desc",keyword});
+  return fetchApi<PageResponse<EventDto>>(`/api/v1/events?${params}`);
+}
+export function getEventApi(id: string) {
+  return fetchApi<EventDto>(`/api/v1/events/${encodeURIComponent(id)}`);
+}
+export function updateEventApi(id: string, payload: Partial<CreateEventPayload>) {
+  return fetchApi<EventDto>(`/api/v1/events/${encodeURIComponent(id)}`, {method:"PATCH",body:JSON.stringify(payload)});
+}
+export function updateTicketTypeApi(id: string, payload: Partial<CreateTicketTypePayload>) {
+  return fetchApi<TicketTypeDto>(`/api/v1/events/ticket-types/${encodeURIComponent(id)}`, {method:"PATCH",body:JSON.stringify(payload)});
+}
+export function deleteTicketTypeApi(id: string) {
+  return fetchApi<void>(`/api/v1/events/ticket-types/${encodeURIComponent(id)}`, {method:"DELETE"});
 }

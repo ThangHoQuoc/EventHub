@@ -13,6 +13,7 @@ export function DateBadge({ date }: { date: string }) {
 }
 
 const statusCopy: Record<TicketAvailability, string> = {
+  UNKNOWN: "Xem chi tiết vé",
   AVAILABLE: "Còn vé",
   LOW_STOCK: "Sắp hết vé",
   SOLD_OUT: "Hết vé",

@@ -1,6 +1,7 @@
 export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
 
 export type TicketAvailability =
+  | "UNKNOWN"
   | "AVAILABLE"
   | "LOW_STOCK"
   | "SOLD_OUT"
@@ -10,7 +11,7 @@ export type Event = {
   id: string;
   title: string;
   description: string;
-  city: "TP.HCM" | "Hà Nội" | "Đà Nẵng" | "Cần Thơ";
+  city: "" | "TP.HCM" | "Hà Nội" | "Đà Nẵng" | "Cần Thơ" | "Đà Lạt";
   location: string;
   startAt: string;
   endAt: string;
@@ -18,6 +19,7 @@ export type Event = {
   category: string;
   tags: string[];
   minPrice: number;
+  priceKnown?: boolean;
   status: EventStatus;
   ticketAvailability: TicketAvailability;
   matchScore?: number;

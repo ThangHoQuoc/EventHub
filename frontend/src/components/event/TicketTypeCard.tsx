@@ -6,15 +6,17 @@ type TicketTypeCardProps = {
   ticketType: TicketType;
   selected: boolean;
   onSelect: () => void;
+  disabled?: boolean;
 };
 
-export function TicketTypeCard({ ticketType, selected, onSelect }: TicketTypeCardProps) {
+export function TicketTypeCard({ ticketType, selected, onSelect, disabled }: TicketTypeCardProps) {
   const isSoldOut = ticketType.status === "SOLD_OUT";
 
   return (
     <button
       className={selected ? "ticket-type ticket-type-selected" : "ticket-type"}
-      disabled={isSoldOut}
+      aria-pressed={selected}
+      disabled={disabled}
       onClick={onSelect}
       type="button"
     >

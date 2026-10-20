@@ -1,278 +1,53 @@
-import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useRef, useState, type FormEvent } from "react";
+import { Link, useParams } from "react-router-dom";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
-import { LineIcon } from "../components/ui/LineIcon";
-import { mockOrganizerEvents } from "../data/mockOrganizer";
+import { RequestState } from "../components/ui/RequestState";
+import { createTicketTypeApi, deleteTicketTypeApi, getEventApi, updateTicketTypeApi } from "../api/organizer";
+import { getEventTicketTypes, type TicketTypeDto } from "../api/events";
+import { useApiResource } from "../hooks/useApiResource";
 import { formatCurrency } from "../utils/format";
-import { createTicketTypeApi } from "../api/organizer";
-import type { TicketType } from "../types/ticket";
 
 export function EventTicketsConfigPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const event = mockOrganizerEvents.find((e) => e.id === id) ?? mockOrganizerEvents[3]; // mặc định lấy draft
-
-  const [ticketTypes, setTicketTypes] = useState<TicketType[]>(event.ticketTypes);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form new ticket state
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState(150000);
-  const [quantity, setQuantity] = useState(50);
-  const [description, setDescription] = useState("");
-
-  const isDraft = event.status === "DRAFT";
-
-  async function handleAddTicket(e: React.FormEvent) {
-    e.preventDefault();
-    setIsSubmitting(true);
-
+  const {id} = useParams();
+  const resource = useApiResource(async () => {
+    const [event,types] = await Promise.all([getEventApi(id!),getEventTicketTypes(id!)]);return {event,types};
+  }, [id]);
+  const [editing,setEditing] = useState<TicketTypeDto>();
+  const [busy,setBusy] = useState(false);
+  const lock = useRef(false);
+  const [error,setError] = useState("");
+  const [message,setMessage] = useState("");
+  const isDraft = resource.data?.event.status === "DRAFT";
+  async function save(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); if (lock.current || !isDraft) return;
+    const form = new FormData(e.currentTarget);
+    const payload = {name:String(form.get("name")).trim(),description:String(form.get("description") ?? ""),price:Number(form.get("price")),quantity:Number(form.get("quantity"))};
+    if (!Number.isInteger(payload.quantity) || payload.quantity < 1 || payload.price <= 0) {setError("Giá vé phải lớn hơn 0 và số lượng là số nguyên dương.");return;}
+    lock.current = true;setBusy(true);setError("");setMessage("");
     try {
-      if (id && !id.startsWith("draft-")) {
-        const created = await createTicketTypeApi(id, {
-          name,
-          description,
-          price: Number(price),
-          quantity: Number(quantity),
-        });
-
-        const newTicket: TicketType = {
-          id: created.id,
-          eventId: created.eventId,
-          name: created.name,
-          description: created.description || "",
-          price: Number(created.price),
-          quantity: created.quantity,
-          soldQuantity: created.soldQuantity || 0,
-          availableQuantity: created.quantity,
-          status: "AVAILABLE",
-        };
-        setTicketTypes([...ticketTypes, newTicket]);
-      } else {
-        const newTicket: TicketType = {
-          id: `tt-${Date.now()}`,
-          eventId: event.id,
-          name,
-          description,
-          price: Number(price),
-          quantity: Number(quantity),
-          soldQuantity: 0,
-          availableQuantity: Number(quantity),
-          status: "AVAILABLE",
-        };
-        setTicketTypes([...ticketTypes, newTicket]);
-      }
-    } catch {
-      // Fallback
-      const newTicket: TicketType = {
-        id: `tt-${Date.now()}`,
-        eventId: event.id,
-        name,
-        description,
-        price: Number(price),
-        quantity: Number(quantity),
-        soldQuantity: 0,
-        availableQuantity: Number(quantity),
-        status: "AVAILABLE",
-      };
-      setTicketTypes([...ticketTypes, newTicket]);
-    } finally {
-      setIsSubmitting(false);
-      setShowAddModal(false);
-      setName("");
-      setDescription("");
-    }
+      if (editing) await updateTicketTypeApi(editing.id,payload); else await createTicketTypeApi(id!,payload);
+      setEditing(undefined);resource.reload();setMessage("Đã lưu loại vé trên hệ thống.");
+    } catch(err) {setError(err instanceof Error ? err.message : "Không thể lưu loại vé.");}
+    finally {lock.current = false;setBusy(false);}
   }
-
-  function handleDeleteTicket(ticketId: string) {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa hạng vé này?")) return;
-    setTicketTypes(ticketTypes.filter((t) => t.id !== ticketId));
+  async function remove(ticket: TicketTypeDto) {
+    if (lock.current || !isDraft || !window.confirm(`Xóa loại vé ${ticket.name}?`)) return;
+    lock.current = true;setBusy(true);setError("");setMessage("");
+    try {await deleteTicketTypeApi(ticket.id);if (editing?.id === ticket.id) setEditing(undefined);resource.reload();setMessage("Đã xóa loại vé trên hệ thống.");}
+    catch(err) {setError(err instanceof Error ? err.message : "Không thể xóa loại vé.");}
+    finally {lock.current = false;setBusy(false);}
   }
-
-  return (
-    <OrganizerLayout
-      activeNav="dashboard"
-      description={`Cấu hình các hạng vé cho sự kiện: ${event.title}.`}
-      title="Cấu hình loại vé (Ticket Types)"
-    >
-      <div className="ev-org-tickets-config-shell">
-        <div className="ev-ticket-detail-back">
-          <Link to="/organizer/dashboard">
-            <span style={{ display: "inline-block", transform: "rotate(180deg)" }}>
-              <LineIcon name="arrow-right" />
-            </span>
-            Quay lại danh sách sự kiện
-          </Link>
-        </div>
-
-        {/* Event Summary Banner */}
-        <div className="ev-org-event-banner">
-          <div>
-            <span className="ev-eyebrow">
-              {isDraft ? "Bản nháp (DRAFT)" : "Đang mở bán (PUBLISHED)"}
-            </span>
-            <h2>{event.title}</h2>
-            <p>{event.location}, {event.city}</p>
-          </div>
-          {isDraft && (
-            <button
-              className="ev-btn-primary"
-              onClick={() => setShowAddModal(true)}
-              type="button"
-            >
-              <LineIcon name="plus" />
-              Thêm hạng vé
-            </button>
-          )}
-        </div>
-
-        {!isDraft && (
-          <div className="ev-customer-banner" style={{ background: "#f8f9fb", border: "1px solid var(--eh-border)" }}>
-            <LineIcon name="info" />
-            <span>
-              Sự kiện đã được <strong>PUBLISHED</strong>. Theo quy tắc nghiệp vụ BR07, loại vé chỉ có thể chỉnh sửa/xóa khi sự kiện ở trạng thái <strong>DRAFT</strong>.
-            </span>
-          </div>
-        )}
-
-        {/* Ticket Types List */}
-        <div className="ev-org-ticket-types-grid">
-          {ticketTypes.map((ticket) => (
-            <article className="ev-org-ticket-card" key={ticket.id}>
-              <div className="ev-org-ticket-card-header">
-                <div>
-                  <h3>{ticket.name}</h3>
-                  <p>{ticket.description || "Không có mô tả bổ sung"}</p>
-                </div>
-                <strong>{formatCurrency(ticket.price)}</strong>
-              </div>
-
-              <div className="ev-org-ticket-metrics">
-                <div>
-                  <small>Tổng số lượng</small>
-                  <strong>{ticket.quantity} vé</strong>
-                </div>
-                <div>
-                  <small>Đã bán</small>
-                  <span>{ticket.soldQuantity} vé</span>
-                </div>
-                <div>
-                  <small>Còn khả dụng</small>
-                  <strong style={{ color: "var(--eh-green)" }}>{ticket.availableQuantity} vé</strong>
-                </div>
-              </div>
-
-              {isDraft && (
-                <div className="ev-org-ticket-card-actions">
-                  <button
-                    className="ev-org-btn-danger"
-                    onClick={() => handleDeleteTicket(ticket.id)}
-                    type="button"
-                  >
-                    <LineIcon name="trash" />
-                    Xóa hạng vé
-                  </button>
-                </div>
-              )}
-            </article>
-          ))}
-        </div>
-
-        <div className="ev-org-bottom-nav">
-          <Link className="ev-btn-outline" to="/organizer/dashboard">
-            Quay lại Dashboard
-          </Link>
-          <Link
-            className="ev-btn-primary"
-            to={`/organizer/events/${event.id}/edit`}
-          >
-            Chuyển sang bước Duyệt & Xuất bản sự kiện →
-          </Link>
-        </div>
-
-        {/* Modal Thêm Hạng Vé */}
-        {showAddModal && (
-          <div className="checkout-expired" role="dialog" aria-modal="true">
-            <div style={{ maxWidth: "480px", textAlign: "left", width: "100%" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h3 style={{ margin: 0, fontSize: "18px" }}>Thêm hạng vé mới</h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  style={{ background: "transparent", border: 0, cursor: "pointer" }}
-                  type="button"
-                >
-                  <LineIcon name="x" />
-                </button>
-              </div>
-
-              <form onSubmit={handleAddTicket}>
-                <div className="ev-form-group" style={{ marginBottom: "12px" }}>
-                  <label htmlFor="tName">Tên hạng vé *</label>
-                  <input
-                    id="tName"
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="VD: VIP Pass, Early Bird"
-                    required
-                    type="text"
-                    value={name}
-                  />
-                </div>
-
-                <div className="ev-form-grid-2" style={{ marginBottom: "12px" }}>
-                  <div className="ev-form-group">
-                    <label htmlFor="tPrice">Giá vé (VNĐ) *</label>
-                    <input
-                      id="tPrice"
-                      min={0}
-                      onChange={(e) => setPrice(Number(e.target.value))}
-                      required
-                      type="number"
-                      value={price}
-                    />
-                  </div>
-
-                  <div className="ev-form-group">
-                    <label htmlFor="tQuantity">Số lượng mở bán *</label>
-                    <input
-                      id="tQuantity"
-                      min={1}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      required
-                      type="number"
-                      value={quantity}
-                    />
-                  </div>
-                </div>
-
-                <div className="ev-form-group" style={{ marginBottom: "20px" }}>
-                  <label htmlFor="tDesc">Mô tả quyền lợi</label>
-                  <input
-                    id="tDesc"
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Bao gồm đồ uống, tài liệu workshop..."
-                    type="text"
-                    value={description}
-                  />
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                  <button
-                    className="ev-btn-outline"
-                    onClick={() => setShowAddModal(false)}
-                    type="button"
-                  >
-                    Hủy
-                  </button>
-                  <button className="ev-btn-primary" type="submit">
-                    Lưu hạng vé
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-    </OrganizerLayout>
-  );
+  return <OrganizerLayout title="Cấu hình loại vé" description="Thêm, sửa hoặc xóa loại vé khi sự kiện còn là bản nháp.">
+    <RequestState loading={resource.loading} error={resource.error || error} onRetry={resource.reload} />{message && <p role="status">{message}</p>}
+    {resource.data && <><div className="ev-org-event-banner"><div><h2>{resource.data.event.title}</h2><p>{resource.data.event.status}</p><p>Mã sự kiện: {id}</p></div><Link className="btn btn-primary" to={`/organizer/events/${id}/edit`}>Biên tập & Xuất bản</Link></div>
+      {!isDraft && <p>Loại vé chỉ được chỉnh sửa khi sự kiện ở trạng thái DRAFT.</p>}
+      <div className="ev-org-ticket-types-grid">{resource.data.types.map(ticket => <article className="ev-org-ticket-card" key={ticket.id}><h3>{ticket.name}</h3><p>{ticket.description}</p><strong>{formatCurrency(ticket.price)}</strong><div className="ev-org-ticket-metrics"><p>Tổng: {ticket.quantity}</p><p>Đã giữ/đã bán: {ticket.soldQuantity}</p><p>Còn lại: {Math.max(0,ticket.quantity-ticket.soldQuantity)}</p></div>{isDraft && <div className="ev-org-ticket-card-actions"><button disabled={busy} onClick={() => setEditing(ticket)}>Sửa</button><button disabled={busy} onClick={() => remove(ticket)}>Xóa</button></div>}</article>)}</div>
+      {!resource.data.types.length && <p role="status">Chưa có loại vé.</p>}
+      {isDraft && <form className="ev-org-form-card" onSubmit={save} key={editing?.id ?? "new"}><h3>{editing ? `Sửa: ${editing.name}` : "Thêm loại vé"}</h3><fieldset disabled={busy} style={{border:0,padding:0}}>
+        <div className="ev-form-group"><label htmlFor="ticket-name">Tên loại vé</label><input id="ticket-name" name="name" required maxLength={100} defaultValue={editing?.name ?? ""} /></div><div className="ev-form-group"><label htmlFor="ticket-description">Mô tả</label><textarea id="ticket-description" name="description" defaultValue={editing?.description ?? ""} /></div>
+        <div className="ev-form-grid-2"><div className="ev-form-group"><label htmlFor="ticket-price">Giá vé (VNĐ)</label><input id="ticket-price" name="price" required type="number" min="0.01" step="0.01" defaultValue={editing?.price ?? ""} /></div><div className="ev-form-group"><label htmlFor="ticket-quantity">Số lượng</label><input id="ticket-quantity" name="quantity" required type="number" min={1} step={1} defaultValue={editing?.quantity ?? ""} /></div></div>
+        <button className="btn btn-primary" disabled={busy}>{busy ? "Đang lưu…" : "Lưu loại vé"}</button>{editing && <button type="button" onClick={() => setEditing(undefined)}>Hủy sửa</button>}
+      </fieldset></form>}
+    </>}
+  </OrganizerLayout>;
 }

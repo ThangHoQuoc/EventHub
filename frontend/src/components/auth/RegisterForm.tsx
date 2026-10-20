@@ -1,11 +1,10 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthCheckbox, PrimaryButton, RoleSwitch } from "./AuthActions";
+import { AuthCheckbox, PrimaryButton } from "./AuthActions";
 import { PasswordField, TextField } from "./AuthFields";
 import { useAuth } from "../../context/AuthContext";
 
 export function RegisterForm() {
-  const [role, setRole] = useState<"CUSTOMER" | "ORGANIZER">("CUSTOMER");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -69,7 +68,7 @@ export function RegisterForm() {
 
   return (
     <form className="eh-auth-form eh-auth-form--register" noValidate onSubmit={handleSubmit}>
-      <RoleSwitch onChange={setRole} value={role} />
+      <p>Đăng ký hiện chỉ tạo tài khoản khách hàng.</p>
 
       <div className="eh-auth-field-grid">
         <TextField

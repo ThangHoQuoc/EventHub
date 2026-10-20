@@ -1,7 +1,7 @@
 import { fetchApi } from "./client";
 import type { PageResponse } from "./events";
 
-export type BookingStatus = "PENDING" | "PAID" | "CANCELLED" | "EXPIRED";
+export type BookingStatus = "PENDING_PAYMENT" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
 
 export interface BookingItemPayload {
   ticketTypeId: string;

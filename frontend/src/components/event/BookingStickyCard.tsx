@@ -30,7 +30,7 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
 
   async function handleJoinWaitlist() {
     if (!user) {
-      setWaitlistError("Vui lòng đăng nhập để nhận thông báo và ưu tiên giữ vé khi có suất mở lại.");
+      setWaitlistError("Vui lòng đăng nhập để tham gia danh sách chờ.");
       window.setTimeout(() => navigate("/login"), 1500);
       return;
     }
@@ -40,15 +40,12 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
     setWaitlistSuccess(false);
 
     try {
-      if (selectedId && !selectedId.startsWith("mock-")) {
-        await joinWaitlistApi(selectedId, quantity);
-      }
+      if (!selected) throw new Error("Vui lòng chọn loại vé.");
+      await joinWaitlistApi(selected.id, quantity);
       setWaitlistSuccess(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Chưa thể tham gia danh sách chờ.";
       setWaitlistError(msg);
-      // Fallback cho trải nghiệm demo
-      setWaitlistSuccess(true);
     } finally {
       setIsJoiningWaitlist(false);
     }
@@ -66,8 +63,9 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
         {ticketTypes.map((ticketType) => (
           <TicketTypeCard
             key={ticketType.id}
-            onSelect={() => setSelectedId(ticketType.id)}
-            selected={ticketType.id === selectedId}
+            disabled={isJoiningWaitlist}
+            onSelect={() => { setSelectedId(ticketType.id); setQuantity(1); setWaitlistSuccess(false); setWaitlistError(""); }}
+            selected={ticketType.id === selected?.id}
             ticketType={ticketType}
           />
         ))}
@@ -77,8 +75,9 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
         <span>Số lượng</span>
         <input
           min={1}
-          max={showWaitlist ? 4 : Math.max(1, selected?.availableQuantity || 1)}
-          onChange={(event) => setQuantity(Math.max(1, Number(event.target.value)))}
+          disabled={isJoiningWaitlist || waitlistSuccess}
+          max={showWaitlist ? undefined : Math.max(1, selected?.availableQuantity || 1)}
+          onChange={(event) => setQuantity(Math.max(1, Math.min(showWaitlist ? 2147483647 : selected?.availableQuantity || 1, Math.floor(Number(event.target.value) || 1))))}
           type="number"
           value={quantity}
         />
@@ -87,7 +86,7 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
       {waitlistSuccess ? (
         <div style={{ background: "var(--eh-green-50)", border: "1px solid var(--eh-green-100)", borderRadius: "var(--radius-md)", padding: 14, color: "var(--eh-green)" }}>
           <strong style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Đã tham gia hàng chờ thành công!</strong>
-          <small style={{ display: "block", color: "var(--eh-text)", fontSize: 11, marginBottom: 8 }}>Hệ thống sẽ giữ vé và gửi ưu đãi ngay khi có người nhượng lại.</small>
+          <small style={{ display: "block", color: "var(--eh-text)", fontSize: 11, marginBottom: 8 }}>Theo dõi lời mời trong danh sách chờ. Lời mời chưa giữ chỗ; số lượng được kiểm tra khi bạn chấp nhận.</small>
           <Link to="/my-waitlist" style={{ fontSize: 12, fontWeight: 700, textDecoration: "underline" }}>Xem danh sách chờ của tôi →</Link>
         </div>
       ) : null}
@@ -102,7 +101,7 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
             <span>Tổng tiền</span>
             <strong>{formatCurrency(total)}</strong>
           </div>
-          <Button onClick={() => navigate("/checkout", { state: { eventId: event.id, ticketTypeId: selected?.id, quantity } })}>Đặt vé</Button>
+          <Button disabled={!selected || quantity > selected.availableQuantity} onClick={() => navigate(`/checkout?eventId=${encodeURIComponent(event.id)}&ticketTypeId=${encodeURIComponent(selected!.id)}&quantity=${quantity}`)}>Đặt vé</Button>
         </>
       ) : (
         <Button disabled={isJoiningWaitlist || waitlistSuccess} onClick={handleJoinWaitlist}>
@@ -110,9 +109,6 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
         </Button>
       )}
 
-      <button className="secondary-action" type="button">
-        Thêm vào yêu thích
-      </button>
     </aside>
   );
 }

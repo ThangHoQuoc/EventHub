@@ -1,212 +1,40 @@
-import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
-import { LineIcon } from "../components/ui/LineIcon";
-import { mockOrganizerEvents } from "../data/mockOrganizer";
-import { cancelEventApi, publishEventApi } from "../api/organizer";
-import type { EventStatus } from "../types/event";
+import { EventForm } from "../components/organizer/EventForm";
+import { RequestState } from "../components/ui/RequestState";
+import { cancelEventApi, getEventApi, publishEventApi, updateEventApi } from "../api/organizer";
+import { useApiResource } from "../hooks/useApiResource";
+import { eventUpdatePayload, rememberEvent } from "../utils/organizerState";
+import { useAuth } from "../context/AuthContext";
 
 export function EditEventPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const event = mockOrganizerEvents.find((e) => e.id === id) ?? mockOrganizerEvents[3];
-
-  const [title, setTitle] = useState(event.title);
-  const [description, setDescription] = useState(event.description);
-  const [location, setLocation] = useState(event.location);
-  const [status, setStatus] = useState<EventStatus>(event.status);
-  const [feedback, setFeedback] = useState<string | null>(null);
-
-  const isDraft = status === "DRAFT";
-  const isPublished = status === "PUBLISHED";
-  const isCancelled = status === "CANCELLED";
-
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    setFeedback("Đã lưu các thông tin chỉnh sửa thành công!");
-    setTimeout(() => setFeedback(null), 3000);
+  const {id} = useParams();
+  const {user} = useAuth();
+  const resource = useApiResource(() => getEventApi(id!), [id]);
+  const event = resource.data;
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const [dirty, setDirty] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  async function transition(action: "publish" | "cancel") {
+    if (!event || lock.current || dirty || !window.confirm(action === "publish" ? "Xuất bản phiên bản đã lưu của sự kiện?" : "Hủy sự kiện này? Thao tác không thể hoàn tác qua ứng dụng.")) return;
+    lock.current = true; setBusy(true); setError(""); setMessage("");
+    try {resource.setData(await (action === "publish" ? publishEventApi(event.id) : cancelEventApi(event.id)));setMessage("Trạng thái đã được cập nhật từ hệ thống.");}
+    catch(err) {setError(err instanceof Error ? err.message : "Không thể cập nhật trạng thái.");}
+    finally {lock.current = false;setBusy(false);}
   }
-
-  async function handlePublish() {
-    if (!window.confirm("Bạn có chắc chắn muốn xuất bản sự kiện này lên trang khám phá công khai?")) return;
-    try {
-      if (id && !id.startsWith("mock-")) {
-        await publishEventApi(id);
-      }
-      setStatus("PUBLISHED");
-      setFeedback("Sự kiện đã được XUẤT BẢN chính thức (PUBLISHED) và bắt đầu nhận đặt vé trên trang Khám phá!");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Xuất bản sự kiện thất bại.";
-      setFeedback(msg);
-    }
-  }
-
-  async function handleCancelEvent() {
-    if (!window.confirm("CẢNH BÁO: Bạn có chắc chắn muốn hủy sự kiện này? Hành động này sẽ khóa đặt vé và không thể hoàn tác.")) return;
-    try {
-      if (id && !id.startsWith("mock-")) {
-        await cancelEventApi(id);
-      }
-      setStatus("CANCELLED");
-      setFeedback("Sự kiện đã được chuyển sang trạng thái ĐÃ HỦY (CANCELLED).");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Hủy sự kiện thất bại.";
-      setFeedback(msg);
-    }
-  }
-
-  return (
-    <OrganizerLayout
-      activeNav="dashboard"
-      description="Quản lý thông tin và các bước chuyển trạng thái (DRAFT → PUBLISHED → CANCELLED) theo vòng đời sự kiện."
-      title="Biên tập & Quản lý vòng đời sự kiện"
-    >
-      <div className="ev-org-edit-shell">
-        <div className="ev-ticket-detail-back">
-          <Link to="/organizer/dashboard">
-            <span style={{ display: "inline-block", transform: "rotate(180deg)" }}>
-              <LineIcon name="arrow-right" />
-            </span>
-            Quay lại danh sách sự kiện
-          </Link>
-        </div>
-
-        {feedback && (
-          <div className="ev-customer-banner is-success">
-            <LineIcon name="check" />
-            <span>{feedback}</span>
-          </div>
-        )}
-
-        <div className="ev-org-edit-grid">
-          {/* Main Edit Form */}
-          <form className="ev-org-form-card" onSubmit={handleSave}>
-            <div className="ev-profile-card-head">
-              <h3>Thông tin sự kiện</h3>
-              <p>
-                {isPublished
-                  ? "Sự kiện đang mở bán: Theo quy tắc BR06, bạn chỉ có thể cập nhật Tiêu đề, Mô tả và Địa điểm."
-                  : "Bản nháp: Bạn có thể chỉnh sửa mọi trường trước khi xuất bản."}
-              </p>
-            </div>
-
-            <div className="ev-form-group">
-              <label htmlFor="eTitle">Tên sự kiện</label>
-              <input
-                disabled={isCancelled}
-                id="eTitle"
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                type="text"
-                value={title}
-              />
-            </div>
-
-            <div className="ev-form-group">
-              <label htmlFor="eLocation">Địa điểm tổ chức</label>
-              <input
-                disabled={isCancelled}
-                id="eLocation"
-                onChange={(e) => setLocation(e.target.value)}
-                required
-                type="text"
-                value={location}
-              />
-            </div>
-
-            <div className="ev-form-group">
-              <label htmlFor="eDesc">Mô tả sự kiện</label>
-              <textarea
-                disabled={isCancelled}
-                id="eDesc"
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                rows={5}
-                value={description}
-              />
-            </div>
-
-            {!isCancelled && (
-              <button className="ev-btn-primary" type="submit">
-                Lưu cập nhật
-              </button>
-            )}
-          </form>
-
-          {/* Lifecycle Actions Panel */}
-          <aside className="ev-org-lifecycle-card">
-            <h3>Vòng đời sự kiện</h3>
-            <p>Trạng thái hiện tại: <strong>{status}</strong></p>
-
-            <div className="ev-org-lifecycle-steps">
-              <div className={`ev-lifecycle-step ${isDraft ? "is-current" : "is-passed"}`}>
-                <div className="ev-step-dot" />
-                <div>
-                  <strong>1. Khởi tạo bản nháp (DRAFT)</strong>
-                  <small>Chỉnh sửa nội dung & tạo các hạng vé</small>
-                </div>
-              </div>
-
-              <div className={`ev-lifecycle-step ${isPublished ? "is-current" : isCancelled ? "is-passed" : ""}`}>
-                <div className="ev-step-dot" />
-                <div>
-                  <strong>2. Xuất bản chính thức (PUBLISHED)</strong>
-                  <small>Mở bán vé trên trang chủ và tìm kiếm</small>
-                </div>
-              </div>
-
-              <div className={`ev-lifecycle-step ${isCancelled ? "is-current" : ""}`}>
-                <div className="ev-step-dot" />
-                <div>
-                  <strong>3. Hủy bỏ sự kiện (CANCELLED)</strong>
-                  <small>Đóng bán vé khi có sự cố bất khả kháng</small>
-                </div>
-              </div>
-            </div>
-
-            <div className="ev-org-lifecycle-buttons">
-              {isDraft && (
-                <button
-                  className="ev-btn-primary"
-                  onClick={handlePublish}
-                  style={{ width: "100%", justifyContent: "center" }}
-                  type="button"
-                >
-                  <LineIcon name="check" />
-                  Xuất bản sự kiện (PUBLISH)
-                </button>
-              )}
-
-              {isPublished && (
-                <>
-                  <Link
-                    className="ev-btn-outline"
-                    style={{ width: "100%", justifyContent: "center" }}
-                    to={`/events/${event.id}`}
-                  >
-                    Xem trang hiển thị công khai
-                  </Link>
-                  <button
-                    className="ev-org-btn-danger"
-                    onClick={handleCancelEvent}
-                    style={{ width: "100%", justifyContent: "center" }}
-                    type="button"
-                  >
-                    <LineIcon name="alert" />
-                    Hủy sự kiện (CANCEL)
-                  </button>
-                </>
-              )}
-
-              {isCancelled && (
-                <p style={{ color: "var(--eh-error)", fontSize: "12px", margin: 0 }}>
-                  Sự kiện này đã bị hủy bỏ và không thể chỉnh sửa thêm.
-                </p>
-              )}
-            </div>
-          </aside>
-        </div>
-      </div>
-    </OrganizerLayout>
-  );
+  return <OrganizerLayout title="Biên tập & Quản lý sự kiện" description="Nội dung và trạng thái được tải bằng API quản lý sự kiện.">
+    <Link to="/organizer">Về quản lý sự kiện</Link><RequestState loading={resource.loading} error={resource.error || error} onRetry={resource.reload} />{message && <p role="status">{message}</p>}
+    {event && <div className="ev-org-edit-grid"><EventForm key={`${event.id}:${event.updatedAt}:${event.status}`} initial={event} disabled={busy} onDirty={() => setDirty(true)} onSave={async payload => {
+      const updated = await updateEventApi(event.id,eventUpdatePayload(event,payload));
+      resource.setData(updated);setDirty(false);setMessage("Đã lưu cập nhật trên hệ thống.");rememberEvent(user!.id,event.id);
+    }} /><aside className="ev-org-lifecycle-card"><h3>{event.title}</h3><p>Mã: {event.id}</p><p>Trạng thái: <strong>{event.status}</strong></p><Link to={`/organizer/events/${event.id}/tickets`}>Cấu hình loại vé</Link>
+      {event.status === "PUBLISHED" && <><p>Chỉ sửa tiêu đề, mô tả và địa điểm khi đã công bố.</p><Link to={`/events/${event.id}`}>Xem trang công khai</Link></>}
+      {dirty && <p>Lưu thay đổi trước khi chuyển trạng thái.</p>}
+      <div className="ev-org-lifecycle-buttons">{event.status === "DRAFT" && <button className="btn btn-primary" disabled={busy || dirty} onClick={() => transition("publish")}>Xuất bản</button>}
+      {(event.status === "DRAFT" || event.status === "PUBLISHED") && <button className="btn btn-secondary" disabled={busy || dirty} onClick={() => transition("cancel")}>Hủy sự kiện</button>}</div>
+    </aside></div>}
+  </OrganizerLayout>;
 }

@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { NavLink } from "react-router-dom";
 import { LineIcon } from "../ui/LineIcon";
-import { mockUserProfile } from "../../data/mockCustomer";
 import { useAuth } from "../../context/AuthContext";
 
 type CustomerLayoutProps = PropsWithChildren<{
@@ -17,8 +16,8 @@ export function CustomerLayout({
   activeNav = "tickets",
 }: CustomerLayoutProps) {
   const { user } = useAuth();
-  const displayName = user?.fullName || mockUserProfile.fullName;
-  const displayEmail = user?.email || mockUserProfile.email;
+  const displayName = user?.fullName || user?.email || "Tài khoản";
+  const displayEmail = user?.email || "";
   const displayRole = user?.role === "ORGANIZER" ? "Ban tổ chức" : user?.role === "ADMIN" ? "Quản trị viên" : "Tài khoản cá nhân";
   const avatarInitials = displayName.split(" ").map((n) => n[0]).join("").slice(-2);
 
@@ -34,23 +33,14 @@ export function CustomerLayout({
             <div>
               <span className="ev-customer-role">{displayRole}</span>
               <h1>{displayName}</h1>
-              <p>{displayEmail} · {mockUserProfile.city}</p>
-            </div>
-          </div>
-          <div className="ev-customer-stats">
-            <div>
-              <small>Vé đang sở hữu</small>
-              <strong>2 vé</strong>
-            </div>
-            <div>
-              <small>Đơn đã đặt</small>
-              <strong>{mockUserProfile.totalBookings} đơn</strong>
+              <p>{displayEmail}</p>
             </div>
           </div>
         </header>
 
         {/* Customer sub-nav tabs */}
         <nav className="ev-customer-nav" aria-label="Điều hướng tài khoản">
+          {user?.role === "CUSTOMER" && <>
           <NavLink
             className={({ isActive }) => (isActive || activeNav === "tickets" ? "is-active" : "")}
             to="/my-tickets"
@@ -71,8 +61,9 @@ export function CustomerLayout({
           >
             <LineIcon name="clock" />
             <span>Danh sách chờ</span>
-            <em className="ev-nav-badge">1 ưu đãi</em>
+
           </NavLink>
+          </>}
           <NavLink
             className={({ isActive }) => (isActive || activeNav === "profile" ? "is-active" : "")}
             to="/profile"

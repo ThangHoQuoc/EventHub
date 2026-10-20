@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthCheckbox, GoogleButton, PrimaryButton } from "./AuthActions";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { PrimaryButton } from "./AuthActions";
 import { PasswordField, TextField } from "./AuthFields";
 import { useAuth } from "../../context/AuthContext";
 
@@ -9,6 +9,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +27,8 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      navigate("/");
+      const redirect = params.get("redirect") ?? "/";
+      navigate(redirect.startsWith("/") && !redirect.startsWith("//") && !redirect.includes("\\") ? redirect : "/", { replace: true });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại email hoặc mật khẩu.";
       setError(message);
@@ -37,12 +39,6 @@ export function LoginForm() {
 
   return (
     <form className="eh-auth-form" noValidate onSubmit={handleSubmit}>
-      <GoogleButton />
-
-      <div className="eh-auth-divider">
-        <span>hoặc đăng nhập bằng email</span>
-      </div>
-
       <TextField
         autoComplete="email"
         label="Email"
@@ -57,10 +53,7 @@ export function LoginForm() {
         placeholder="Nhập mật khẩu"
       />
 
-      <div className="eh-auth-form-row">
-        <AuthCheckbox>Ghi nhớ đăng nhập</AuthCheckbox>
-        <a href="#forgot">Quên mật khẩu?</a>
-      </div>
+      <p className="checkout-helper">Đăng nhập bằng email. Google và khôi phục mật khẩu chưa khả dụng.</p>
 
       {error ? <p className="eh-auth-error" role="alert">{error}</p> : null}
 

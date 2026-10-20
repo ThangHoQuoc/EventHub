@@ -3,11 +3,11 @@ import { LineIcon } from "../ui/LineIcon";
 import { SectionHeader } from "./SectionHeader";
 
 const cities = [
-  { name: "Hà Nội", count: 42, theme: "hanoi" },
-  { name: "TP.HCM", count: 56, theme: "saigon" },
-  { name: "Đà Nẵng", count: 24, theme: "danang" },
-  { name: "Đà Lạt", count: 18, theme: "dalat" },
-  { name: "Cần Thơ", count: 15, theme: "cantho" },
+  { name: "Hà Nội", theme: "hanoi" },
+  { name: "TP.HCM", theme: "saigon" },
+  { name: "Đà Nẵng", theme: "danang" },
+  { name: "Đà Lạt", theme: "dalat" },
+  { name: "Cần Thơ", theme: "cantho" },
 ];
 
 function CityGraphic({ theme }: { theme: string }) {
@@ -26,7 +26,7 @@ export function CityDiscovery() {
         {cities.map((city) => (
           <Link className={`ev-city-tile ev-city-tile--${city.theme}`} key={city.name} to={`/explore?city=${encodeURIComponent(city.name)}`}>
             <CityGraphic theme={city.theme} />
-            <span><small>{city.count} sự kiện</small><strong>{city.name}</strong></span>
+            <span><small>Khám phá sự kiện</small><strong>{city.name}</strong></span>
             <LineIcon name="arrow-right" />
           </Link>
         ))}
