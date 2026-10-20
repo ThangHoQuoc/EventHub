@@ -8,12 +8,13 @@ import {
   type RegisterResult,
   type UserProfile,
 } from "../api/auth";
-import { getToken, removeToken, setToken } from "../api/client";
+import { ApiError, getToken, removeToken, setToken } from "../api/client";
 
 interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   isLoading: boolean;
+  profileError: string;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<RegisterResult>;
   logout: () => void;
@@ -26,16 +27,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setTokenState] = useState<string | null>(getToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [profileError, setProfileError] = useState("");
 
   const fetchProfile = async () => {
+    setIsLoading(true); setProfileError("");
     try {
       const profile = await getCurrentUserApi();
       setUser(profile);
-    } catch {
-      // Token invalid or expired
-      removeToken();
-      setTokenState(null);
-      setUser(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        removeToken(); setTokenState(null); setUser(null);
+      } else {
+        setProfileError(error instanceof Error ? error.message : "Không thể tải thông tin tài khoản.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await loginApi(payload);
       setToken(result.accessToken);
       setTokenState(result.accessToken);
+      setProfileError("");
       const profile = await getCurrentUserApi();
       setUser(profile);
     } finally {
@@ -84,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         token,
         isLoading,
+        profileError,
         login,
         register,
         logout,

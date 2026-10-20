@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCheckbox, GoogleButton, PrimaryButton } from "./AuthActions";
 import { PasswordField, TextField } from "./AuthFields";
 import { useAuth } from "../../context/AuthContext";
@@ -9,6 +9,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +27,8 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      navigate("/");
+      const redirect = params.get("redirect") ?? "/";
+      navigate(redirect.startsWith("/") && !redirect.startsWith("//") && !redirect.includes("\\") ? redirect : "/", { replace: true });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại email hoặc mật khẩu.";
       setError(message);

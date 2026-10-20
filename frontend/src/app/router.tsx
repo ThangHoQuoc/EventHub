@@ -1,4 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
+import { RequireAuth } from "../components/auth/RequireAuth";
+import { AdminPaymentPage } from "../pages/AdminPaymentPage";
 import { App } from "./App";
 import { EventDetailPage } from "../pages/EventDetailPage";
 import { EventMatchPage } from "../pages/EventMatchPage";
@@ -31,23 +33,23 @@ export const router = createBrowserRouter([
       { path: "eventmatch", element: <EventMatchPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegisterPage /> },
-      { path: "checkout", element: <CheckoutPage /> },
-      { path: "payment", element: <PaymentPage /> },
-      { path: "payment/result", element: <PaymentResultPage /> },
-      // Customer Portal (Phần 2)
-      { path: "my-tickets", element: <MyTicketsPage /> },
-      { path: "my-tickets/:ticketId", element: <TicketDetailPage /> },
-      { path: "my-bookings", element: <MyBookingsPage /> },
-      { path: "my-waitlist", element: <MyWaitlistPage /> },
-      { path: "profile", element: <ProfilePage /> },
+      { path: "checkout", element: <RequireAuth roles={["CUSTOMER"]}><CheckoutPage /></RequireAuth> },
+      { path: "payment", element: <RequireAuth roles={["CUSTOMER"]}><PaymentPage /></RequireAuth> },
+      { path: "payment/result", element: <RequireAuth roles={["CUSTOMER"]}><PaymentResultPage /></RequireAuth> },
+      { path: "admin/payments", element: <RequireAuth roles={["ADMIN"]}><AdminPaymentPage /></RequireAuth> },
+      // Customer Portal
+      { path: "my-tickets", element: <RequireAuth roles={["CUSTOMER"]}><MyTicketsPage /></RequireAuth> },
+      { path: "my-tickets/:ticketId", element: <RequireAuth roles={["CUSTOMER"]}><TicketDetailPage /></RequireAuth> },
+      { path: "my-bookings", element: <RequireAuth roles={["CUSTOMER"]}><MyBookingsPage /></RequireAuth> },
+      { path: "my-waitlist", element: <RequireAuth roles={["CUSTOMER"]}><MyWaitlistPage /></RequireAuth> },
+      { path: "profile", element: <RequireAuth><ProfilePage /></RequireAuth> },
       // Organizer Portal (Phần 3)
-      { path: "organizer", element: <OrganizerDashboardPage /> },
-      { path: "organizer/dashboard", element: <OrganizerDashboardPage /> },
-      { path: "organizer/events/new", element: <CreateEventPage /> },
-      { path: "organizer/events/:id/tickets", element: <EventTicketsConfigPage /> },
-      { path: "organizer/events/:id/edit", element: <EditEventPage /> },
-      { path: "organizer/check-in", element: <CheckInStationPage /> },
+      { path: "organizer", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><OrganizerDashboardPage /></RequireAuth> },
+      { path: "organizer/dashboard", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><OrganizerDashboardPage /></RequireAuth> },
+      { path: "organizer/events/new", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><CreateEventPage /></RequireAuth> },
+      { path: "organizer/events/:id/tickets", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><EventTicketsConfigPage /></RequireAuth> },
+      { path: "organizer/events/:id/edit", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><EditEventPage /></RequireAuth> },
+      { path: "organizer/check-in", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><CheckInStationPage /></RequireAuth> },
     ],
   },
 ]);
-
