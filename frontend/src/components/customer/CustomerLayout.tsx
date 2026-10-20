@@ -40,6 +40,7 @@ export function CustomerLayout({
 
         {/* Customer sub-nav tabs */}
         <nav className="ev-customer-nav" aria-label="Điều hướng tài khoản">
+          {user?.role === "CUSTOMER" && <>
           <NavLink
             className={({ isActive }) => (isActive || activeNav === "tickets" ? "is-active" : "")}
             to="/my-tickets"
@@ -62,6 +63,7 @@ export function CustomerLayout({
             <span>Danh sách chờ</span>
 
           </NavLink>
+          </>}
           <NavLink
             className={({ isActive }) => (isActive || activeNav === "profile" ? "is-active" : "")}
             to="/profile"

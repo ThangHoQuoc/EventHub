@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   getCurrentUserApi,
   loginApi,
@@ -28,20 +28,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(getToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profileError, setProfileError] = useState("");
+  const requestVersion = useRef(0);
 
   const fetchProfile = async () => {
+    const version = ++requestVersion.current;
     setIsLoading(true); setProfileError("");
     try {
       const profile = await getCurrentUserApi();
+      if (version !== requestVersion.current) return;
       setUser(profile);
     } catch (error) {
+      if (version !== requestVersion.current) return;
       if (error instanceof ApiError && error.status === 401) {
         removeToken(); setTokenState(null); setUser(null);
       } else {
         setProfileError(error instanceof Error ? error.message : "Không thể tải thông tin tài khoản.");
       }
     } finally {
-      setIsLoading(false);
+      if (version === requestVersion.current) setIsLoading(false);
     }
   };
 
@@ -54,16 +58,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   const login = async (payload: LoginPayload) => {
+    const version = ++requestVersion.current;
     setIsLoading(true);
     try {
       const result = await loginApi(payload);
+      if (version !== requestVersion.current) return;
       setToken(result.accessToken);
       setTokenState(result.accessToken);
       setProfileError("");
       const profile = await getCurrentUserApi();
+      if (version !== requestVersion.current) return;
       setUser(profile);
     } finally {
-      setIsLoading(false);
+      if (version === requestVersion.current) setIsLoading(false);
     }
   };
 
@@ -72,6 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    ++requestVersion.current;
+    setProfileError(""); setIsLoading(false);
     removeToken();
     setTokenState(null);
     setUser(null);

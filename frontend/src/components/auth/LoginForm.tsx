@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AuthCheckbox, GoogleButton, PrimaryButton } from "./AuthActions";
+import { PrimaryButton } from "./AuthActions";
 import { PasswordField, TextField } from "./AuthFields";
 import { useAuth } from "../../context/AuthContext";
 
@@ -39,12 +39,6 @@ export function LoginForm() {
 
   return (
     <form className="eh-auth-form" noValidate onSubmit={handleSubmit}>
-      <GoogleButton />
-
-      <div className="eh-auth-divider">
-        <span>hoặc đăng nhập bằng email</span>
-      </div>
-
       <TextField
         autoComplete="email"
         label="Email"
@@ -59,10 +53,7 @@ export function LoginForm() {
         placeholder="Nhập mật khẩu"
       />
 
-      <div className="eh-auth-form-row">
-        <AuthCheckbox>Ghi nhớ đăng nhập</AuthCheckbox>
-        <a href="#forgot">Quên mật khẩu?</a>
-      </div>
+      <p className="checkout-helper">Đăng nhập bằng email. Google và khôi phục mật khẩu chưa khả dụng.</p>
 
       {error ? <p className="eh-auth-error" role="alert">{error}</p> : null}
 

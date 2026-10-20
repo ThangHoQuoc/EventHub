@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { QrMark } from "../auth/AuthVisualPrimitives";
 import { LineIcon } from "../ui/LineIcon";
 
 export function TicketBanner() {
@@ -9,9 +8,9 @@ export function TicketBanner() {
         <div className="ev-ticket-banner-copy">
           <span>EVENTHUB · VIỆT NAM</span>
           <h2>Sự kiện tiếp theo của bạn đang ở đây.</h2>
-          <div><Link to="/explore">Khám phá ngay<LineIcon name="arrow-right" /></Link><Link to="/eventmatch">Để EventMatch gợi ý</Link></div>
+          <div><Link to="/explore">Khám phá ngay<LineIcon name="arrow-right" /></Link><Link to="/my-tickets">Vé của tôi</Link></div>
         </div>
-        <div className="ev-ticket-banner-stub"><QrMark /><span><small>MÃ VÉ</small><strong>EH-NEXT-26</strong></span></div>
+        <div className="ev-ticket-banner-stub"><LineIcon name="ticket" /><span><small>VÉ ĐIỆN TỬ</small><strong>EVENTHUB</strong></span></div>
       </div>
     </section>
   );

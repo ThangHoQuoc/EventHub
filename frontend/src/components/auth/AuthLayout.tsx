@@ -18,6 +18,7 @@ export function AuthLayout({ children, description, mode, title }: PropsWithChil
           className="eh-auth-visual"
           aria-label={mode === "login" ? "Khám phá EventMatch" : "Lợi ích khi tham gia EventHub"}
         >
+          <p className="notice">Minh họa thiết kế · EventMatch đang được phát triển</p>
           {mode === "login" ? <LoginVisual /> : <RegisterVisual />}
         </aside>
 
