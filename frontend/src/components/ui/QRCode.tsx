@@ -1,27 +1,7 @@
-const qrCells = [
-  1, 1, 1, 0, 1, 0, 1, 1, 1,
-  1, 0, 1, 0, 1, 0, 1, 0, 1,
-  1, 1, 1, 0, 0, 0, 1, 1, 1,
-  0, 0, 0, 1, 1, 0, 0, 0, 0,
-  1, 1, 0, 1, 0, 1, 1, 0, 1,
-  0, 1, 1, 0, 1, 1, 0, 1, 0,
-  1, 1, 1, 0, 1, 0, 1, 1, 1,
-  1, 0, 1, 1, 0, 1, 1, 0, 1,
-  1, 1, 1, 0, 1, 0, 1, 1, 1,
-];
+import { QRCodeSVG } from "qrcode.react";
 
-type QRCodeProps = {
-  label?: string;
-  className?: string;
-};
-
-export function QRCode({ className = "", label = "Mã QR" }: QRCodeProps) {
-  return (
-    <span className={`eh-qr-code ${className}`.trim()} aria-label={label} role="img">
-      {qrCells.map((filled, index) => (
-        <i className={filled ? "is-filled" : ""} key={index} />
-      ))}
-    </span>
-  );
+type QRCodeProps = { value?: string; label?: string; className?: string };
+export function QRCode({ value, className = "", label = "Mã QR vé" }: QRCodeProps) {
+  if (!value) return <span>Chưa có mã QR.</span>;
+  return <QRCodeSVG value={value} size={240} level="M" marginSize={4} role="img" aria-label={label} className={className} style={{ width: "100%", maxWidth: 280, height: "auto", display: "block", background: "white" }} />;
 }
-
