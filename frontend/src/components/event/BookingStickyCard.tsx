@@ -63,8 +63,9 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
         {ticketTypes.map((ticketType) => (
           <TicketTypeCard
             key={ticketType.id}
-            onSelect={() => setSelectedId(ticketType.id)}
-            selected={ticketType.id === selectedId}
+            disabled={isJoiningWaitlist}
+            onSelect={() => { setSelectedId(ticketType.id); setQuantity(1); setWaitlistSuccess(false); setWaitlistError(""); }}
+            selected={ticketType.id === selected?.id}
             ticketType={ticketType}
           />
         ))}
@@ -74,8 +75,9 @@ export function BookingStickyCard({ event, ticketTypes }: BookingStickyCardProps
         <span>Số lượng</span>
         <input
           min={1}
-          max={showWaitlist ? 4 : Math.max(1, selected?.availableQuantity || 1)}
-          onChange={(event) => setQuantity(Math.max(1, Math.min(showWaitlist ? 4 : selected?.availableQuantity || 1, Math.floor(Number(event.target.value) || 1))))}
+          disabled={isJoiningWaitlist || waitlistSuccess}
+          max={showWaitlist ? undefined : Math.max(1, selected?.availableQuantity || 1)}
+          onChange={(event) => setQuantity(Math.max(1, Math.min(showWaitlist ? 2147483647 : selected?.availableQuantity || 1, Math.floor(Number(event.target.value) || 1))))}
           type="number"
           value={quantity}
         />

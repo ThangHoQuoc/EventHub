@@ -6,7 +6,7 @@ import { RequestState } from "../components/ui/RequestState";
 import { acceptOfferApi, getMyOffersApi, getMyWaitlistApi, skipOfferApi, type WaitlistOfferDto } from "../api/waitlist";
 import { useApiResource } from "../hooks/useApiResource";
 import { canActOnOffer, entryStatusLabel, offerStatusLabel } from "../utils/waitlistState";
-import { formatDate } from "../utils/format";
+import { formatDateTime } from "../utils/format";
 
 export function MyWaitlistPage() {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export function MyWaitlistPage() {
     <section className="ev-waitlist-section-block"><div className="ev-waitlist-head"><h2>Lời mời mua vé</h2><button onClick={offers.reload} disabled={offers.loading || !!busy}>Làm mới lời mời</button></div>
       <RequestState loading={offers.loading} error={offers.error} onRetry={offers.reload} />
       <div className="ev-offers-list">{offers.data?.content.map(offer => <article className="ev-offer-card" key={offer.id}>
-        <div className="ev-offer-topline"><span>{offerStatusLabel(offer.status)}</span><span>Hết hạn: {formatDate(offer.expiresAt)}</span></div>
+        <div className="ev-offer-topline"><span>{offerStatusLabel(offer.status)}</span><span>Hết hạn: {formatDateTime(offer.expiresAt)}</span></div>
         <div className="ev-offer-content"><div><h3>{offer.eventTitle}</h3><p>{offer.ticketTypeName} × {offer.quantity}</p><Link to={`/events/${offer.eventId}`}>Xem sự kiện và giá vé</Link></div><div className="ev-offer-actions">
           {canActOnOffer(offer, now) && <><button className="ev-offer-btn-accept" disabled={!!busy} onClick={() => act(offer,"accept")}>{busy === offer.id ? "Đang xử lý…" : "Chấp nhận và tạo đơn"}</button><button className="ev-offer-btn-skip" disabled={!!busy} onClick={() => act(offer,"skip")}>Bỏ qua</button></>}
           {offer.status === "CREATED" && !canActOnOffer(offer,now) && <p>Lời mời đã quá hạn. Làm mới để cập nhật trạng thái.</p>}
@@ -50,7 +50,7 @@ export function MyWaitlistPage() {
     </section>
     <section className="ev-waitlist-section-block"><div className="ev-waitlist-head"><h2>Đăng ký hàng chờ</h2><button onClick={entries.reload} disabled={entries.loading || !!busy}>Làm mới hàng chờ</button></div>
       <RequestState loading={entries.loading} error={entries.error} onRetry={entries.reload} />
-      <div className="ev-entries-grid">{entries.data?.content.map(entry => <article className="ev-entry-card" key={entry.id}><div className="ev-entry-body"><h3>{entry.eventTitle}</h3><p>{entry.ticketTypeName} × {entry.quantity}</p><p>{entryStatusLabel(entry.status)}</p><small>Đăng ký: {formatDate(entry.createdAt)}</small></div></article>)}</div>
+      <div className="ev-entries-grid">{entries.data?.content.map(entry => <article className="ev-entry-card" key={entry.id}><div className="ev-entry-body"><h3>{entry.eventTitle}</h3><p>{entry.ticketTypeName} × {entry.quantity}</p><p>{entryStatusLabel(entry.status)}</p><small>Đăng ký: {formatDateTime(entry.createdAt)}</small></div></article>)}</div>
       {entries.data && !entries.data.content.length && <p role="status">Bạn chưa đăng ký hàng chờ nào.</p>}
       <PageNav page={entryPage} totalPages={entries.data?.totalPages ?? 0} onChange={setEntryPage} disabled={entries.loading || !!busy} />
     </section>

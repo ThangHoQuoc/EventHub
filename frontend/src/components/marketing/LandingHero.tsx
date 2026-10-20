@@ -5,7 +5,7 @@ import { EventSearchBar } from "../event/EventSearchBar";
 import { EventPoster } from "../event/EventPoster";
 import { LineIcon } from "../ui/LineIcon";
 
-const quickTopics = ["Âm nhạc", "Workshop", "Công nghệ", "Nghệ thuật", "Cuối tuần"];
+const quickTopics = ["Âm nhạc", "Workshop", "Công nghệ", "Nghệ thuật", "Cuối tuần này"];
 
 export function LandingHero({ event }: { event?: Event }) {
   const navigate = useNavigate();

@@ -5,7 +5,7 @@ import { EventPoster } from "../components/event/EventPoster";
 import { RequestState } from "../components/ui/RequestState";
 import { getEventTicketTypes, getPublicEventById, mapDtoToEvent } from "../api/events";
 import { useAuth } from "../context/AuthContext";
-import { formatDate } from "../utils/format";
+import { formatDateTime } from "../utils/format";
 import type { Event } from "../types/event";
 import type { TicketType } from "../types/ticket";
 
@@ -17,6 +17,7 @@ export function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [ticketError, setTicketError] = useState("");
+  const [ticketLoading, setTicketLoading] = useState(false);
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
@@ -30,14 +31,15 @@ export function EventDetailPage() {
 
   useEffect(() => {
     let active = true;
-    setTicketTypes([]); setTicketError("");
+    setTicketTypes([]); setTicketError(""); setTicketLoading(!!user);
     if (user) getEventTicketTypes(id!).then(types => {
       if (active) setTicketTypes(types.map(t => {
         const availableQuantity = Math.max(0, t.quantity - t.soldQuantity);
         return { ...t, description: t.description ?? "", availableQuantity,
           status: availableQuantity === 0 ? "SOLD_OUT" : availableQuantity < 10 ? "LOW_STOCK" : "AVAILABLE" };
       }));
-    }).catch(err => { if (active) setTicketError(err.message); });
+    }).catch(err => { if (active) setTicketError(err.message); })
+      .finally(() => { if (active) setTicketLoading(false); });
     return () => { active = false; };
   }, [id, user, retry]);
 
@@ -48,14 +50,15 @@ export function EventDetailPage() {
         <nav className="ev-detail-breadcrumb" aria-label="Breadcrumb"><Link to="/explore">Khám phá</Link><span>/</span><strong>{event.category}</strong></nav>
         <div className="ev-detail-hero-grid"><div className="ev-detail-hero-copy">
           <span className="ev-eyebrow">{event.category}</span><h1>{event.title}</h1><p>{event.description}</p>
-          <div className="ev-detail-meta"><span>{formatDate(event.startAt)}</span><span>{event.location}</span></div>
+          <div className="ev-detail-meta"><span>{formatDateTime(event.startAt)}</span><span>{event.location}</span></div>
         </div><div className="ev-detail-hero-poster"><EventPoster event={event} variant="hero" /></div></div>
       </div></section>
       <section className="ev-detail-layout"><div className="ev-detail-content">
         <div className="ev-detail-block"><h2>Về sự kiện</h2><p style={{ whiteSpace: "pre-wrap" }}>{event.description || "Ban tổ chức chưa cung cấp mô tả."}</p></div>
-        <div className="ev-detail-block"><h2>Thời gian và địa điểm</h2><p>{formatDate(event.startAt)} – {formatDate(event.endAt)}</p><p>{event.location}</p></div>
+        <div className="ev-detail-block"><h2>Thời gian và địa điểm</h2><p>{formatDateTime(event.startAt)} – {formatDateTime(event.endAt)}</p><p>{event.location}</p></div>
       </div>
       {!user ? <aside className="booking-card"><h2>Chọn vé</h2><p>Đăng nhập để xem loại vé và số lượng còn lại.</p><Link className="btn btn-primary" to={`/login?redirect=${encodeURIComponent(`/events/${id}`)}`}>Đăng nhập</Link></aside>
+        : ticketLoading ? <RequestState loading />
         : ticketError ? <RequestState error={ticketError} onRetry={() => setRetry(n => n + 1)} />
         : ticketTypes.length ? <BookingStickyCard key={id} event={event} ticketTypes={ticketTypes} />
         : <aside className="booking-card"><p role="status">Chưa có loại vé để đặt.</p></aside>}

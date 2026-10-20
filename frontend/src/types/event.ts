@@ -11,7 +11,7 @@ export type Event = {
   id: string;
   title: string;
   description: string;
-  city: "" | "TP.HCM" | "Hà Nội" | "Đà Nẵng" | "Cần Thơ";
+  city: "" | "TP.HCM" | "Hà Nội" | "Đà Nẵng" | "Cần Thơ" | "Đà Lạt";
   location: string;
   startAt: string;
   endAt: string;

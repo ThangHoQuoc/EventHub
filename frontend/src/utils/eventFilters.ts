@@ -1,6 +1,6 @@
 import type { Event } from "../types/event";
 
-export const cities = ["TP.HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"];
+export const cities = ["TP.HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ", "Đà Lạt"];
 export const dates = ["Hôm nay", "Cuối tuần này", "Tuần này", "Tháng này"];
 
 function matchesDate(startAt: string, filter: string, now: Date) {

@@ -3,7 +3,7 @@ import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { RequestState } from "../components/ui/RequestState";
 import { checkInTicketApi } from "../api/organizer";
 import type { TicketDto } from "../api/tickets";
-import { formatDate } from "../utils/format";
+import { formatDateTime } from "../utils/format";
 
 export function CheckInStationPage() {
   const [input, setInput] = useState("");
@@ -28,7 +28,7 @@ export function CheckInStationPage() {
         <label htmlFor="ticketCodeInput">{mode === "ticketCode" ? "Mã vé" : "QR payload"}</label><div className="ev-manual-input-row"><input id="ticketCodeInput" required autoComplete="off" value={input} disabled={busy} onChange={e => setInput(e.target.value)} /><button className="btn btn-primary" disabled={busy || !input.trim()}>{busy ? "Đang kiểm tra…" : "Check-in"}</button></div>
         <p>Giữ nguyên chữ hoa/thường của mã. Quét trực tiếp bằng camera chưa khả dụng.</p></form><RequestState error={error} />
     </section><section className="ev-checkin-log-card"><h2>Kết quả trong phiên này</h2><p>Hiển thị tối đa 30 lượt thành công gần nhất trong phiên; đây chưa phải lịch sử toàn hệ thống.</p>
-      {records.map(ticket => <article className="ev-checkin-log-item is-success" key={`${ticket.id}-${ticket.checkedInAt}`} role="status"><div><strong>Check-in thành công · {ticket.eventTitle}</strong><p>{ticket.ticketTypeName} · {ticket.ticketCode}</p><p>{ticket.checkedInAt && formatDate(ticket.checkedInAt)}</p></div></article>)}
+      {records.map(ticket => <article className="ev-checkin-log-item is-success" key={`${ticket.id}-${ticket.checkedInAt}`} role="status"><div><strong>Check-in thành công · {ticket.eventTitle}</strong><p>{ticket.ticketTypeName} · {ticket.ticketCode}</p><p>{ticket.checkedInAt && formatDateTime(ticket.checkedInAt)}</p></div></article>)}
       {!records.length && <p>Chưa có lượt check-in thành công trong phiên này.</p>}
     </section></div>
   </OrganizerLayout>;

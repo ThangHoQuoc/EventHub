@@ -19,7 +19,7 @@ export function AdminPaymentPage() {
     } catch (err) { setError(err instanceof Error ? err.message : "Không thể xác nhận thanh toán."); }
     finally { lock.current = false; setBusy(false); }
   }
-  return <main className="result-main"><h1>Xác nhận thanh toán · ADMIN</h1><p>Chỉ xác nhận sau khi đã đối chiếu giao dịch thực tế. Số tiền do backend tính từ đơn. API hiện chưa có danh sách đơn chờ dành cho ADMIN.</p>
+  return <main className="result-main"><h1>Xác nhận thanh toán · ADMIN</h1><p>Chỉ xác nhận sau khi đã đối chiếu giao dịch thực tế. Số tiền được tính từ đơn. Danh sách đơn chờ chưa khả dụng; nhập mã đơn đã đối chiếu.</p>
     <form className="checkout-form-card" onSubmit={submit}><label>Mã đơn<input required name="bookingId" disabled={busy} /></label><label>Đơn vị thanh toán<input required name="provider" placeholder="Ví dụ: MANUAL" disabled={busy} /></label><label>Mã giao dịch đã đối chiếu<input required name="reference" disabled={busy} /></label><button className="btn btn-primary" disabled={busy}>{busy ? "Đang xác nhận…" : "Xác nhận thanh toán"}</button></form>
     <RequestState error={error} />
     {payment && <section className="checkout-form-card" role="status"><h2>Kết quả từ hệ thống</h2><p>Mã đơn: {payment.bookingId}</p><p>Số tiền: {formatCurrency(payment.amount)}</p><p>Thanh toán: {payment.status} · Đơn: {payment.bookingStatus}</p><p>Mã giao dịch: {payment.providerTransactionId}</p></section>}

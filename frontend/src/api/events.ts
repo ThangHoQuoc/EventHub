@@ -51,13 +51,13 @@ export async function getPublicEvents(params: {
 
   return fetchApi<PageResponse<EventDto>>(endpoint, {
     method: "GET",
-  });
+  }, false);
 }
 
 export async function getPublicEventById(eventId: string): Promise<EventDto> {
   return fetchApi<EventDto>(`/api/v1/events/public/${eventId}`, {
     method: "GET",
-  });
+  }, false);
 }
 
 export async function getEventTicketTypes(eventId: string): Promise<TicketTypeDto[]> {
@@ -72,6 +72,7 @@ export function mapDtoToEvent(dto: EventDto, minPrice?: number): Event {
   if (loc.includes("Hà Nội")) detectedCity = "Hà Nội";
   else if (loc.includes("Đà Nẵng")) detectedCity = "Đà Nẵng";
   else if (loc.includes("Cần Thơ")) detectedCity = "Cần Thơ";
+  else if (loc.includes("Đà Lạt")) detectedCity = "Đà Lạt";
   else if (loc.includes("TP.HCM") || loc.includes("Hồ Chí Minh")) detectedCity = "TP.HCM";
 
   return {

@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RequireAuth } from "../components/auth/RequireAuth";
+import { EmptyState } from "../components/ui/EmptyState";
 import { AdminPaymentPage } from "../pages/AdminPaymentPage";
 import { App } from "./App";
 import { EventDetailPage } from "../pages/EventDetailPage";
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "organizer/events/:id/tickets", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><EventTicketsConfigPage /></RequireAuth> },
       { path: "organizer/events/:id/edit", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><EditEventPage /></RequireAuth> },
       { path: "organizer/check-in", element: <RequireAuth roles={["ADMIN", "ORGANIZER"]}><CheckInStationPage /></RequireAuth> },
+      { path: "*", element: <EmptyState title="Không tìm thấy trang" description="Đường dẫn này không còn tồn tại." actionLabel="Khám phá sự kiện" actionTo="/explore" /> },
     ],
   },
 ]);
