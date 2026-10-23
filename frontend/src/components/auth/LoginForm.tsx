@@ -47,23 +47,8 @@ export function LoginForm() {
     }
   }
 
-  function handleDemoLogin(role: "customer" | "admin") {
-    setLoading(true);
-    setError("");
-    const credentials =
-      role === "customer"
-        ? { email: "testuser1@example.com", password: "Password123!" }
-        : { email: "admin@example.com", password: "Password123!" };
-
-    login(credentials)
-      .then(() => {
-        const redirect = params.get("redirect") ?? (role === "admin" ? "/admin/payments" : "/");
-        navigate(redirect, { replace: true });
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Đăng nhập nhanh thất bại.");
-      })
-      .finally(() => setLoading(false));
+  function handleDemoLogin(_role: "customer" | "admin") {
+    setError("Đăng nhập demo chưa được cấu hình. Vui lòng dùng tài khoản của bạn.");
   }
 
   return (

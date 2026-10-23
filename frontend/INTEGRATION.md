@@ -1,5 +1,18 @@
 # Tích hợp API EventHub với frontend
 
+## Tích hợp giao diện ngày 23/10/2026
+
+Nhánh `feat/fe-polish-phase3-organizer-portal` kế thừa toàn bộ phase 1 và 2 của đợt polish frontend. Khi chuẩn bị merge vào main, đã rà soát và sửa các hồi quy:
+
+- Giữ thanh toán thủ công; không mở form thẻ/cổng thanh toán chưa có backend.
+- Checkout không áp dụng mã giảm giá giả; số tiền cuối cùng vẫn do backend quyết định.
+- Xác nhận booking dẫn tới ví vé; không dùng QR tạo từ bookingId làm mã vào cổng.
+- Các form cập nhật hồ sơ/mật khẩu chưa có API được vô hiệu hóa; không báo lưu thành công.
+- Không nhúng thông tin đăng nhập demo vào form đăng nhập.
+- EventMatch và camera được ghi rõ là minh họa, chưa phải AI hay camera hoạt động thật.
+
+Kiểm tra trong lượt merge: 18 test frontend và build TypeScript/Vite; chưa kiểm thử lại toàn bộ giao diện trên trình duyệt hoặc PostgreSQL. Kết quả runtime ngày 20/10 ở dưới là bằng chứng của phiên bản trước đợt polish, không phải nghiệm thu runtime cho mọi thay đổi mới. Backend/config/docs chưa commit có sẵn không thuộc PR frontend.
+
 ## Phạm vi và nhánh
 
 Nhánh làm việc: `feat/connect-remaining-backend-apis`.

@@ -46,22 +46,7 @@ export function CheckoutPage() {
   const finalTotal = Math.max(0, rawSubtotal - appliedDiscount);
 
   function applyPromo(e: React.FormEvent) {
-    e.preventDefault();
-    setPromoError("");
-    setPromoMessage("");
-
-    const code = promoCode.trim().toUpperCase();
-    if (!code) return;
-
-    if (code === "EVENTHUB50") {
-      setAppliedDiscount(50000);
-      setPromoMessage("Áp dụng mã EVENTHUB50 thành công: Giảm 50.000đ!");
-    } else if (code === "WELCOME2026") {
-      setAppliedDiscount(30000);
-      setPromoMessage("Áp dụng mã WELCOME2026 thành công: Giảm 30.000đ!");
-    } else {
-      setPromoError("Mã ưu đãi không hợp lệ hoặc đã hết lượt áp dụng.");
-    }
+    e.preventDefault(); setAppliedDiscount(0); setPromoMessage(""); setPromoError("Mã ưu đãi chưa được hỗ trợ; tổng tiền không giảm.");
   }
 
   async function submit(e: FormEvent) {

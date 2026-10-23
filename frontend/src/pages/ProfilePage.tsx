@@ -34,7 +34,7 @@ export function ProfilePage() {
 
   function handleSaveInfo(e: React.FormEvent) {
     e.preventDefault();
-    setInfoSuccess(true);
+    setInfoSuccess(false);
     setTimeout(() => setInfoSuccess(false), 3000);
   }
 
@@ -52,7 +52,7 @@ export function ProfilePage() {
       return;
     }
 
-    setSecurityMessage("Yêu cầu đổi mật khẩu đã được ghi nhận. Phiên đăng nhập được bảo vệ an toàn.");
+    setSecurityError("Đổi mật khẩu chưa khả dụng. Chưa có thay đổi nào được lưu.");
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
@@ -60,7 +60,7 @@ export function ProfilePage() {
   }
 
   function handleSavePreferences() {
-    setPrefSaved(true);
+    setPrefSaved(false);
     setTimeout(() => setPrefSaved(false), 3000);
   }
 
@@ -177,7 +177,7 @@ export function ProfilePage() {
         </aside>
 
         {/* Cột phải: Tabs nội dung */}
-        <main className="ev-profile-content">
+        <main className="ev-profile-content"><p className="notice" role="status">Hồ sơ hiện chỉ đọc. Các form sửa hồ sơ, mật khẩu và thông báo là bản xem trước, chưa khả dụng.</p>
           {/* Header tabs */}
           <div
             style={{
@@ -271,7 +271,7 @@ export function ProfilePage() {
                 </div>
               )}
 
-              <form className="ev-profile-form" onSubmit={handleSaveInfo}>
+              <form className="ev-profile-form" onSubmit={handleSaveInfo}><fieldset disabled style={{border:0,padding:0}}>
                 <div className="ev-form-group">
                   <label htmlFor="pf-email">Địa chỉ Email (Đăng nhập)</label>
                   <input
@@ -326,7 +326,7 @@ export function ProfilePage() {
                     Lưu thông tin cá nhân
                   </button>
                 </div>
-              </form>
+              </fieldset></form>
             </section>
           )}
 
@@ -372,7 +372,7 @@ export function ProfilePage() {
                 </div>
               )}
 
-              <form className="ev-profile-form" onSubmit={handleChangePassword}>
+              <form className="ev-profile-form" onSubmit={handleChangePassword}><fieldset disabled style={{border:0,padding:0}}>
                 <div className="ev-form-group">
                   <label htmlFor="sec-current">Mật khẩu hiện tại</label>
                   <input
@@ -415,7 +415,7 @@ export function ProfilePage() {
                     Cập nhật mật khẩu mới
                   </button>
                 </div>
-              </form>
+              </fieldset></form>
             </section>
           )}
 
@@ -497,7 +497,7 @@ export function ProfilePage() {
                 </label>
 
                 <div style={{ paddingTop: "10px" }}>
-                  <button className="ev-btn-primary" onClick={handleSavePreferences} type="button">
+                  <button disabled className="ev-btn-primary" onClick={handleSavePreferences} type="button">
                     Lưu tùy chọn thông báo
                   </button>
                 </div>

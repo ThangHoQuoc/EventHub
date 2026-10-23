@@ -80,7 +80,7 @@ export function CheckInStationPage() {
   return (
     <OrganizerLayout
       activeNav="checkin"
-      description="Trạm kiểm soát vé tại cổng: Quét mã QR laser tự động hoặc nhập mã soát vé để xác thực khách vào cửa."
+      description="Trạm kiểm soát vé tại cổng: Nhập mã soát vé hoặc payload từ thiết bị đọc QR để xác thực khách vào cửa."
       title="Trạm soát vé Check-in trực tiếp"
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "28px", alignItems: "start" }}>
@@ -143,7 +143,7 @@ export function CheckInStationPage() {
               <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.6)" }}>
                 <LineIcon name="search" />
                 <p style={{ fontSize: "11px", margin: "6px 0 0" }}>
-                  {cameraActive ? "Đang hướng camera tìm mã QR..." : "Camera đang tạm dừng"}
+                  {cameraActive ? "Minh họa camera · chưa hỗ trợ quét trực tiếp" : "Camera đang tạm dừng"}
                 </p>
               </div>
             </div>

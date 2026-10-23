@@ -97,7 +97,7 @@ export function EventMatchPage() {
   }
 
   return (
-    <div className="ev-editorial-page ev-eventmatch-page">
+    <div className="ev-editorial-page ev-eventmatch-page"><p className="notice" role="status">BẢN MINH HỌA: EventMatch chưa kết nối AI hoặc dữ liệu thật. Các kết quả bên dưới là dữ liệu mẫu.</p>
       {/* Hero section */}
       <section className="ev-em-hero">
         <div className="ev-em-hero-inner">

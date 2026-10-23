@@ -3,7 +3,7 @@ import { CheckoutHeader } from "../components/checkout/CheckoutHeader";
 import { BookingDetails } from "../components/customer/BookingDetails";
 import { RequestState } from "../components/ui/RequestState";
 import { ResultHero, NextStepsList, AnimatedCheck } from "../components/checkout/ResultComponents";
-import { QRCode } from "../components/ui/QRCode";
+
 import { LineIcon } from "../components/ui/LineIcon";
 import { getBookingDetailApi } from "../api/booking";
 import { useApiResource } from "../hooks/useApiResource";
@@ -85,12 +85,12 @@ export function PaymentResultPage() {
                       <LineIcon name="check" /> Đã xác nhận
                     </span>
                     <div style={{ margin: "14px 0 8px" }}>
-                      <QRCode label={`Mã QR vé đơn ${booking.id}`} value={`EVENTHUB:BOOKING:${booking.id}`} />
+                      <Link to="/my-tickets">Mở QR trên vé đã phát hành</Link>
                     </div>
                     <strong style={{ fontSize: "12px", letterSpacing: "0.05em", fontFamily: "monospace" }}>
                       {booking.id.slice(0, 10).toUpperCase()}
                     </strong>
-                    <small style={{ fontSize: "10px", color: "var(--eh-placeholder)" }}>Mã quét cổng</small>
+                    <small style={{ fontSize: "10px", color: "var(--eh-placeholder)" }}>Mã tham chiếu đơn hàng</small>
                   </div>
                 </article>
 
@@ -104,7 +104,7 @@ export function PaymentResultPage() {
                     onClick={() => window.print()}
                     type="button"
                   >
-                    <LineIcon name="download" /> In / Tải vé PDF
+                    <LineIcon name="download" /> In xác nhận đơn hàng
                   </button>
                   <div>
                     <button onClick={resource.reload} type="button">
