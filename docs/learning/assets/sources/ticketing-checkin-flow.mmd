@@ -1,0 +1,22 @@
+%% Check-in: tìm vé, kiểm quyền rồi đổi trạng thái
+%% checkInTicket · khóa Ticket trước kiểm tra VALID, giữ đến commit
+flowchart TD
+    N0{"Có ticketCode hoặc qrPayload?"}
+    N0 -->|"Có"| N1
+    B0["INVALID_REQUEST"]
+    N0 -->|"Không"| B0
+    N1["Khóa Ticket theo code/payload; ưu tiên code"]
+    N1 -->|"Tiếp"| N2
+    B1["TICKET_NOT_FOUND"]
+    N1 -->|"Thiếu"| B1
+    N2{"ADMIN hoặc ORGANIZER chủ Event?"}
+    N2 -->|"Có quyền"| N3
+    B2["UNAUTHORIZED"]
+    N2 -->|"Không"| B2
+    N3{"Ticket đang VALID?"}
+    N3 -->|"Đúng"| N4
+    B3["INVALID_REQUEST"]
+    N3 -->|"Không"| B3
+    N4["set USED; checkedInAt=now → save"]
+    N4 -->|"Tiếp"| N5
+    N5["TicketResponse; không có guard giờ Event ở method này"]

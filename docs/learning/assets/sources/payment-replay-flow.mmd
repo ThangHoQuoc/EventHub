@@ -1,0 +1,18 @@
+%% Payment: chọn replay hay xác nhận mới
+%% confirmPayment · key = provider + providerTransactionId
+flowchart TD
+    N0["ADMIN/@Valid → validateRequest"]
+    N0 -->|"Tiếp"| N1
+    N1["Khóa Booking theo bookingId"]
+    N1 -->|"Tiếp"| N2
+    B1["BOOKING_NOT_FOUND"]
+    N1 -->|"Thiếu"| B1
+    N2{"Đã có Payment theo provider/ref?"}
+    N2 -->|"Chưa có"| N3
+    B2["Cùng booking + SUCCESS → trả cũ; khác → lỗi"]
+    N2 -->|"Đã có"| B2
+    N3{"Booking PENDING_PAYMENT?"}
+    N3 -->|"Đúng"| N4
+    B3["INVALID_REQUEST"]
+    N3 -->|"Không"| B3
+    N4["Sang nhóm confirm + Payment + phát vé"]

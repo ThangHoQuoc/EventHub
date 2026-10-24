@@ -1,0 +1,158 @@
+[
+  {
+    "lesson": "auth/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/auth/service/Impl/AuthServiceImpl.java",
+    "code": "        user.setPassword(passwordEncoder.encode(request.getPassword()));",
+    "line": 41
+  },
+  {
+    "lesson": "auth/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/auth/security/Impl/JwtAuthenticationFilter.java",
+    "code": "        SecurityContextHolder\n                .getContext()\n                .setAuthentication(authentication);",
+    "line": 72
+  },
+  {
+    "lesson": "auth/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/user/entity/User.java",
+    "code": "    @Column(nullable = false, unique = true)\n    String email;",
+    "line": 20
+  },
+  {
+    "lesson": "user/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/user/service/Impl/CurrentUserServiceImpl.java",
+    "code": "    public String getCurrentUserId() {\n\n        Authentication authentication =\n                SecurityContextHolder\n                        .getContext()\n                        .getAuthentication();\n\n        return authentication.getName();\n    }",
+    "line": 41
+  },
+  {
+    "lesson": "user/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/user/repository/UserRepository.java",
+    "code": "public interface UserRepository extends JpaRepository<User, String> {\n    Optional<User> findByEmail(String email);\n    boolean existsByEmail(String email);\n\n}",
+    "line": 8
+  },
+  {
+    "lesson": "event/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/event/service/Impl/EventServiceImpl.java",
+    "code": "        event.setStatus(EventStatus.PUBLISHED);\n\n        eventRepository.save(event);\n\n        return eventMapper.toResponse(event);",
+    "line": 168
+  },
+  {
+    "lesson": "event/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/event/mapper/EventMapper.java",
+    "code": "    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)\n    void updateEntity(UpdateEventRequest request, @MappingTarget Event event);",
+    "line": 18
+  },
+  {
+    "lesson": "event/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/event/repository/Impl/EventSpecification.java",
+    "code": "        if (request.getStartAt() != null) {\n\n            predicates.add(\n                    cb.greaterThanOrEqualTo(\n                            event.get(\"startAt\"),\n                            request.getStartAt()\n                    )\n            );\n        }",
+    "line": 81
+  },
+  {
+    "lesson": "ticket/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticket/dto/request/UpdateTicketTypeRequest.java",
+    "code": "    @Positive\n    Integer quantity;",
+    "line": 26
+  },
+  {
+    "lesson": "ticket/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticket/mapper/TicketTypeMapper.java",
+    "code": "    default Integer calculateAvailableQuantity(TicketType ticketType) {\n        if (ticketType.getQuantity() == null || ticketType.getSoldQuantity() == null) {\n            return null;\n        }\n\n        return ticketType.getQuantity() - ticketType.getSoldQuantity();\n    }",
+    "line": 22
+  },
+  {
+    "lesson": "ticket/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticket/entity/TicketType.java",
+    "code": "    @ManyToOne\n    @JoinColumn(name = \"event_id\")\n    Event event;",
+    "line": 31
+  },
+  {
+    "lesson": "booking/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java",
+    "code": "            requestedQuantities.merge(item.getTicketTypeId(), item.getQuantity(), Integer::sum);",
+    "line": 189
+  },
+  {
+    "lesson": "booking/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticket/repository/TicketTypeRepository.java",
+    "code": "    @Modifying(flushAutomatically = true)\n    @Query(\"\"\"\n            update TicketType ticketType\n            set ticketType.soldQuantity = COALESCE(ticketType.soldQuantity, 0) + :quantity\n            where ticketType.id = :ticketTypeId\n              and ticketType.quantity is not null\n              and COALESCE(ticketType.soldQuantity, 0) + :quantity <= ticketType.quantity\n            \"\"\")\n    int reserveAvailableQuantity(@Param(\"ticketTypeId\") String ticketTypeId, @Param(\"quantity\") int quantity);",
+    "line": 22
+  },
+  {
+    "lesson": "booking/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java",
+    "code": "            int updatedRows = ticketTypeRepository.reserveAvailableQuantity(ticketTypeId, requestedQuantity);\n\n            if (updatedRows != 1) {\n                throw new AppException(ErrorCode.INVALID_REQUEST);\n            }",
+    "line": 223
+  },
+  {
+    "lesson": "payment/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/payment/service/Impl/PaymentServiceImpl.java",
+    "code": "        if (existingPayment.isPresent()) {\n            return handleExistingPayment(existingPayment.get(), request);\n        }",
+    "line": 45
+  },
+  {
+    "lesson": "payment/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/payment/service/Impl/PaymentServiceImpl.java",
+    "code": "        Payment savedPayment = paymentRepository.save(payment);\n        ticketService.issueTicketsForBooking(booking);\n\n        return toResponse(savedPayment);",
+    "line": 58
+  },
+  {
+    "lesson": "payment/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/payment/service/Impl/PaymentServiceImpl.java",
+    "code": "        Payment payment = Payment.builder().booking(booking).amount(booking.getTotalAmount()).status(PaymentStatus.SUCCESS).provider(request.getProvider()).providerTransactionId(request.getProviderTransactionId()).paidAt(Instant.now()).build();",
+    "line": 56
+  },
+  {
+    "lesson": "ticketing/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java",
+    "code": "        return \"EVH-\" + bookingId + \"-\" + sequence;",
+    "line": 173
+  },
+  {
+    "lesson": "ticketing/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java",
+    "code": "        if (ticket.getStatus() != TicketStatus.VALID) {\n            throw new AppException(ErrorCode.INVALID_REQUEST);\n        }",
+    "line": 116
+  },
+  {
+    "lesson": "ticketing/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java",
+    "code": "        return \"EVENTHUB|TICKET|\" + ticketCode;",
+    "line": 177
+  },
+  {
+    "lesson": "waitlist/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/repository/WaitlistEntryRepository.java",
+    "code": "    Optional<WaitlistEntry> findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAscIdAsc(\n            String ticketTypeId,\n            WaitlistEntryStatus status,\n            Integer quantity\n    );",
+    "line": 31
+  },
+  {
+    "lesson": "waitlist/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/service/Impl/WaitlistOfferServiceImpl.java",
+    "code": "        BookingResponse booking = bookingService.createBooking(CreateBookingRequest.builder()\n                .items(List.of(BookingItemRequest.builder()\n                        .ticketTypeId(offer.getTicketType().getId())\n                        .quantity(offer.getQuantity())\n                        .build()))\n                .build());",
+    "line": 133
+  },
+  {
+    "lesson": "waitlist/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/service/Impl/WaitlistOfferServiceImpl.java",
+    "code": "        if (!offer.getExpiresAt().isAfter(Instant.now())) {\n            expireOffer(offer);\n            eventPublisher.publishEvent(new TicketAvailabilityChangedEvent(offer.getTicketType().getId()));\n            throw new WaitlistOfferExpiredException();\n        }",
+    "line": 127
+  },
+  {
+    "lesson": "common-config/02-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/common/exception/AppException.java",
+    "code": "public class AppException extends RuntimeException {\n\n    private final ErrorCode errorCode;\n\n    public AppException(ErrorCode errorCode) {",
+    "line": 6
+  },
+  {
+    "lesson": "common-config/03-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/common/entity/BaseEntity.java",
+    "code": "@MappedSuperclass\n@EntityListeners(AuditingEntityListener.class)   // ← thêm dòng này\npublic class BaseEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.UUID)\n    String id;\n\n    @CreatedDate\n    @Column(nullable = false, updatable = false)\n    Instant createdAt;\n\n    @LastModifiedDate\n    @Column(nullable = false)\n    Instant updatedAt;\n}",
+    "line": 17
+  },
+  {
+    "lesson": "common-config/04-co-che.md",
+    "source": "backend/src/main/java/com/eventhub/eventhub_backend/config/BookingScheduler.java",
+    "code": "    @Scheduled(fixedRate = 60000)\n    public void expirePendingBookings() {\n        bookingService.expirePendingBookings(Instant.now().minusSeconds(PAYMENT_TIMEOUT_SECONDS));\n    }\n}",
+    "line": 18
+  }
+]

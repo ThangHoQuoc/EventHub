@@ -1,0 +1,22 @@
+%% Booking: kiểm dữ liệu trước khi reserve
+%% createBooking · giai đoạn chuẩn bị trong transaction
+flowchart TD
+    N0["MVC @Valid items → createBooking"]
+    N0 -->|"Tiếp"| N1
+    N1{"CUSTOMER, items và User hợp lệ?"}
+    N1 -->|"Đạt"| N2
+    B1["Từ chối quyền/input; User thiếu → lỗi"]
+    N1 -->|"Không"| B1
+    N2["Gộp ID trùng → load TicketType theo ID đã sort"]
+    N2 -->|"Tiếp"| N3
+    N3{"Các type thuộc cùng Event PUBLISHED?"}
+    N3 -->|"Đúng"| N4
+    B3["AppException; type thiếu cũng dừng"]
+    N3 -->|"Không"| B3
+    N4{"quantity yêu cầu ≤ khả dụng?"}
+    N4 -->|"Đủ"| N5
+    B4["AppException → rollback"]
+    N4 -->|"Thiếu"| B4
+    N5["BigDecimal snapshot → gán booking/items hai chiều"]
+    N5 -->|"Tiếp"| N6
+    N6["Sang reserveInventory → save Booking"]

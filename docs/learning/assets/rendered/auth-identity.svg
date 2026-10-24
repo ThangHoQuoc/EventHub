@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="578" viewBox="0 0 880 578" role="img">
+<title>Token hợp lệ chưa phải quyền thao tác tài nguyên</title><desc>Đọc từng hàng từ trái sang phải. Cột giữa giải thích vì sao role claim không là authority cuối. Policy URL/method và ownership là các quyết định tiếp sau xác thực.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="578" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Token hợp lệ chưa phải quyền thao tác tài nguyên</tspan>
+</text>
+<rect x="28.0" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-0"/>
+<text x="42.0" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-0">
+<tspan x="42.0" dy="0">Token / JWT</tspan>
+</text>
+<rect x="302.6666666666667" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-1"/>
+<text x="316.6666666666667" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-1">
+<tspan x="316.6666666666667" dy="0">User trong DB</tspan>
+</text>
+<rect x="577.3333333333334" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-2"/>
+<text x="591.3333333333334" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-2">
+<tspan x="591.3333333333334" dy="0">Security / nghiệp vụ</tspan>
+</text>
+<rect x="28.0" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-0"/>
+<text x="42.0" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-0">
+<tspan x="42.0" dy="0">subject U1, claim</tspan>
+<tspan x="42.0" dy="29.700000000000003">ADMIN</tspan>
+</text>
+<rect x="302.6666666666667" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-1"/>
+<text x="316.6666666666667" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-1">
+<tspan x="316.6666666666667" dy="0">U1: ACTIVE, CUSTOMER</tspan>
+</text>
+<rect x="577.3333333333334" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-2"/>
+<text x="591.3333333333334" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-2">
+<tspan x="591.3333333333334" dy="0">verify token rồi tải</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">U1</tspan>
+</text>
+<rect x="28.0" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-0"/>
+<text x="42.0" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-0">
+<tspan x="42.0" dy="0">chữ ký và expiry hợp</tspan>
+<tspan x="42.0" dy="29.700000000000003">lệ</tspan>
+</text>
+<rect x="302.6666666666667" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-1"/>
+<text x="316.6666666666667" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-1">
+<tspan x="316.6666666666667" dy="0">role hiện tại CUSTOMER</tspan>
+</text>
+<rect x="577.3333333333334" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-2"/>
+<text x="591.3333333333334" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-2">
+<tspan x="591.3333333333334" dy="0">principal U1;</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">ROLE_CUSTOMER</tspan>
+</text>
+<rect x="28.0" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-0"/>
+<text x="42.0" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-0">
+<tspan x="42.0" dy="0">request vào admin URL</tspan>
+</text>
+<rect x="302.6666666666667" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-1"/>
+<text x="316.6666666666667" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-1">
+<tspan x="316.6666666666667" dy="0">role claim không quyết</tspan>
+<tspan x="316.6666666666667" dy="29.700000000000003">định</tspan>
+</text>
+<rect x="577.3333333333334" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-2"/>
+<text x="591.3333333333334" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-2">
+<tspan x="591.3333333333334" dy="0">policy từ chối;</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">ownership riêng</tspan>
+</text>
+</svg>

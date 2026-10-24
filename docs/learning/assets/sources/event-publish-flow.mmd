@@ -1,0 +1,22 @@
+%% Publish Event: state, dữ liệu rồi quyền
+%% EventServiceImpl.publishEvent · thứ tự guard thực tế
+flowchart TD
+    N0["POST publish → role → findById"]
+    N0 -->|"Tiếp"| N1
+    B0["Không thấy → EVENT_NOT_FOUND"]
+    N0 -->|"Thiếu"| B0
+    N1{"Event đang DRAFT?"}
+    N1 -->|"Đúng"| N2
+    B1["INVALID_REQUEST"]
+    N1 -->|"Không"| B1
+    N2{"Nội dung và startAt/endAt hợp lệ?"}
+    N2 -->|"Đạt"| N3
+    B2["INVALID_REQUEST"]
+    N2 -->|"Không"| B2
+    N3{"ADMIN hoặc ORGANIZER sở hữu Event?"}
+    N3 -->|"Có quyền"| N4
+    B3["UNAUTHORIZED"]
+    N3 -->|"Không"| B3
+    N4["setStatus(PUBLISHED) → repository.save"]
+    N4 -->|"Tiếp"| N5
+    N5["EventMapper.toResponse → EventResponse"]

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="660" viewBox="0 0 920 660" role="img" aria-labelledby="title desc">
+<title id="title">Phụ thuộc module đáng chú ý</title>
+<desc id="desc">Mũi tên là phụ thuộc source, không phải giao tiếp qua mạng. Payment gọi TicketService; WaitlistOffer gọi BookingService; Booking dùng TicketTypeRepository.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#526579"/></marker></defs>
+<rect width="100%" height="100%" fill="#f6f8fc"/>
+<g font-family="Segoe UI, Arial, sans-serif">
+<text x="460.0" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#142c46">Phụ thuộc module đáng chú ý</text>
+<path d="M230.0,170 L230.0,220.0 L230.0,220.0 L230.0,262" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="230" y="228" text-anchor="middle" font-size="14" fill="#334d68">BookingService</text>
+<path d="M690.0,170 L690.0,220.0 L690.0,220.0 L690.0,262" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="690" y="228" text-anchor="middle" font-size="14" fill="#334d68">TicketService</text>
+<path d="M230.0,350 L230.0,400.0 L460.0,400.0 L460.0,442" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M690.0,350 L690.0,400.0 L460.0,400.0 L460.0,442" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="50" y="90" width="360" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="230.0" y="136.0" text-anchor="middle" font-size="17" fill="#18334e">waitlist</text>
+<rect x="510" y="90" width="360" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="690.0" y="136.0" text-anchor="middle" font-size="17" fill="#18334e">payment</text>
+<rect x="50" y="270" width="360" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="230.0" y="316.0" text-anchor="middle" font-size="17" fill="#18334e">booking</text>
+<rect x="510" y="270" width="360" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="690.0" y="316.0" text-anchor="middle" font-size="17" fill="#18334e">ticketing</text>
+<rect x="110" y="450" width="700" height="100" rx="12" fill="#e0f4ed" stroke="#24836d" stroke-width="1.6"/>
+<text x="460.0" y="495.0" text-anchor="middle" font-size="17" fill="#18334e">ticket / event / user</text>
+<text x="460.0" y="517.0" text-anchor="middle" font-size="17" fill="#18334e">Entity và repository dùng chéo</text>
+<text x="460.0" y="642" text-anchor="middle" font-size="13" fill="#53667b">Working tree 09/10/2026 · Mũi tên theo quan hệ/luồng được ghi trong bài</text>
+</g></svg>

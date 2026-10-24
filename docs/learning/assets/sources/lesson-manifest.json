@@ -1,0 +1,253 @@
+[
+  {
+    "module": "auth",
+    "path": "modules/auth/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "auth",
+    "path": "modules/auth/02-co-che.md",
+    "title": "Mật khẩu: so khớp mà không giải mã",
+    "question": "Vì sao băm lại cùng mật khẩu rồi so chuỗi lại sai?"
+  },
+  {
+    "module": "auth",
+    "path": "modules/auth/03-co-che.md",
+    "title": "Từ token đến danh tính trong request",
+    "question": "Một JWT hợp lệ trở thành người dùng hiện tại bằng cách nào?"
+  },
+  {
+    "module": "auth",
+    "path": "modules/auth/04-co-che.md",
+    "title": "Ba hàng rào khi đăng ký",
+    "question": "Vì sao @Valid và existsByEmail vẫn cần UNIQUE ở database?"
+  },
+  {
+    "module": "auth",
+    "path": "modules/auth/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "booking",
+    "path": "modules/booking/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "booking",
+    "path": "modules/booking/02-co-che.md",
+    "title": "Gộp yêu cầu, đóng băng giá",
+    "question": "Vì sao phải gộp ID trùng trước khi tính tồn kho và tiền?"
+  },
+  {
+    "module": "booking",
+    "path": "modules/booking/03-co-che.md",
+    "title": "Ai thắng vé cuối?",
+    "question": "Vì sao precheck trong Java chưa bảo vệ được vé cuối?"
+  },
+  {
+    "module": "booking",
+    "path": "modules/booking/04-co-che.md",
+    "title": "Một operation, một lần giải phóng",
+    "question": "Transaction bảo vệ nhóm dữ liệu nào, và chưa bảo vệ điều gì?"
+  },
+  {
+    "module": "booking",
+    "path": "modules/booking/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "common-config",
+    "path": "modules/common-config/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "common-config",
+    "path": "modules/common-config/02-co-che.md",
+    "title": "Lỗi đi ra bằng đường nào?",
+    "question": "Vì sao cùng request sai nhưng có thể dùng hai handler khác nhau?"
+  },
+  {
+    "module": "common-config",
+    "path": "modules/common-config/03-co-che.md",
+    "title": "Object đổi lúc nào, DB đổi lúc nào?",
+    "question": "Set field, flush và commit khác nhau ở đâu?"
+  },
+  {
+    "module": "common-config",
+    "path": "modules/common-config/04-co-che.md",
+    "title": "Đồng hồ và tác vụ nền",
+    "question": "Timeout 900 giây có nghĩa đúng giây thứ 900 không?"
+  },
+  {
+    "module": "common-config",
+    "path": "modules/common-config/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "event",
+    "path": "modules/event/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "event",
+    "path": "modules/event/02-co-che.md",
+    "title": "Trạng thái quyết định thao tác",
+    "question": "Vì sao có role ORGANIZER vẫn chưa đủ để publish Event?"
+  },
+  {
+    "module": "event",
+    "path": "modules/event/03-co-che.md",
+    "title": "PATCH: giữ cũ hay xóa đi?",
+    "question": "Vắng field và gửi null có ý nghĩa gì với mapper hiện tại?"
+  },
+  {
+    "module": "event",
+    "path": "modules/event/04-co-che.md",
+    "title": "Tìm kiếm là tổ hợp điều kiện",
+    "question": "Vì sao lọc theo khoảng thời gian có thể loại Event giao nhau với khoảng tìm?"
+  },
+  {
+    "module": "event",
+    "path": "modules/event/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "payment",
+    "path": "modules/payment/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "payment",
+    "path": "modules/payment/02-co-che.md",
+    "title": "Nhận lại cùng xác nhận",
+    "question": "Một idempotency key bảo vệ phạm vi nào?"
+  },
+  {
+    "module": "payment",
+    "path": "modules/payment/03-co-che.md",
+    "title": "Phát vé nằm trong giao dịch nào?",
+    "question": "TicketService lỗi sau khi lưu Payment thì dữ liệu nào bị rollback?"
+  },
+  {
+    "module": "payment",
+    "path": "modules/payment/04-co-che.md",
+    "title": "Xác nhận tiền là ranh giới tin cậy",
+    "question": "Vì sao amount lấy từ booking mà không lấy từ request?"
+  },
+  {
+    "module": "payment",
+    "path": "modules/payment/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "ticket",
+    "path": "modules/ticket/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "ticket",
+    "path": "modules/ticket/02-co-che.md",
+    "title": "Dữ liệu hợp lệ chưa chắc được phép",
+    "question": "Vì sao quantity dương vẫn có thể bị từ chối?"
+  },
+  {
+    "module": "ticket",
+    "path": "modules/ticket/03-co-che.md",
+    "title": "Khả dụng là một phép suy ra",
+    "question": "Có cần lưu thêm availableQuantity vào DB để trả response không?"
+  },
+  {
+    "module": "ticket",
+    "path": "modules/ticket/04-co-che.md",
+    "title": "Quan hệ object và khóa ngoại",
+    "question": "Gán Event.ticketTypes có đủ để ghi event_id không?"
+  },
+  {
+    "module": "ticket",
+    "path": "modules/ticket/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "ticketing",
+    "path": "modules/ticketing/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "ticketing",
+    "path": "modules/ticketing/02-co-che.md",
+    "title": "Từ số lượng thành vé cá nhân",
+    "question": "Vì sao mua ba vé cần ba identity thay vì một counter?"
+  },
+  {
+    "module": "ticketing",
+    "path": "modules/ticketing/03-co-che.md",
+    "title": "Quét vé hai lần",
+    "question": "Vì sao test check-in tuần tự chưa chứng minh chỉ một người được vào?"
+  },
+  {
+    "module": "ticketing",
+    "path": "modules/ticketing/04-co-che.md",
+    "title": "QR mang mã tra cứu",
+    "question": "Có QR payload có đồng nghĩa được phép check-in không?"
+  },
+  {
+    "module": "ticketing",
+    "path": "modules/ticketing/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "user",
+    "path": "modules/user/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "user",
+    "path": "modules/user/02-co-che.md",
+    "title": "“Tôi” được xác định ở đâu?",
+    "question": "Vì sao API me không cần userId trong body?"
+  },
+  {
+    "module": "user",
+    "path": "modules/user/03-co-che.md",
+    "title": "Entity, DTO và hợp đồng kiểu",
+    "question": "Vì sao User lưu password nhưng response không được mang password?"
+  },
+  {
+    "module": "user",
+    "path": "modules/user/04-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "waitlist",
+    "path": "modules/waitlist/01-bai-toan.md",
+    "title": "Bài toán, actor và trace"
+  },
+  {
+    "module": "waitlist",
+    "path": "modules/waitlist/02-co-che.md",
+    "title": "Ai là người tiếp theo?",
+    "question": "“Sớm nhất đủ chỗ” có phải FIFO tuyệt đối không?"
+  },
+  {
+    "module": "waitlist",
+    "path": "modules/waitlist/03-co-che.md",
+    "title": "Lời mời chưa giữ chỗ",
+    "question": "Vì sao có offer vẫn có thể không tạo được booking?"
+  },
+  {
+    "module": "waitlist",
+    "path": "modules/waitlist/04-co-che.md",
+    "title": "Hết hạn rồi throw",
+    "question": "Vì sao gọi save(EXPIRED) trước exception vẫn có thể không lưu EXPIRED?"
+  },
+  {
+    "module": "waitlist",
+    "path": "modules/waitlist/05-tu-kiem-chung.md",
+    "title": "Debug, test và bài thiết kế độc lập"
+  },
+  {
+    "module": "intro",
+    "path": "start-here.md",
+    "title": "Theo mot lan mua ve"
+  }
+]

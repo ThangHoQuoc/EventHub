@@ -1,0 +1,22 @@
+%% Filter: từ Bearer token đến Authentication
+%% JwtAuthenticationFilter.doFilterInternal · chưa bao gồm ownership
+flowchart TD
+    N0["HTTP request vào JWT filter"]
+    N0 -->|"Tiếp"| N1
+    N1{"Có header bắt đầu bằng Bearer?"}
+    N1 -->|"Có"| N2
+    B1["chain.doFilter; không đặt auth mới"]
+    N1 -->|"Không"| B1
+    N2{"JwtService.isValid(token)?"}
+    N2 -->|"Hợp lệ"| N3
+    B2["chain.doFilter; không đặt auth mới"]
+    N2 -->|"Sai/hết hạn"| B2
+    N3["extractUserId → UserRepository.findById"]
+    N3 -->|"Tiếp"| N4
+    N4{"User tồn tại và ACTIVE?"}
+    N4 -->|"Đúng"| N5
+    B4["clearContext → chain.doFilter"]
+    N4 -->|"Không"| B4
+    N5["setAuthentication: principal=userId; ROLE từ DB"]
+    N5 -->|"Tiếp"| N6
+    N6["chain.doFilter → URL/method policy → nghiệp vụ"]

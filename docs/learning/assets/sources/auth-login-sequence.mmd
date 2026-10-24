@@ -1,0 +1,14 @@
+%% Login: kiểm credentials rồi mới cấp token
+%% AuthServiceImpl.login · đường thành công
+sequenceDiagram
+    autonumber
+    participant P0 as AuthServiceImpl
+    participant P1 as UserRepository
+    participant P2 as JwtServiceImpl
+    Note over P0,P2: POST login public → MVC bind/@Valid → login(request)
+    P0->>P1: findByEmail(email)
+    P1-->>P0: Optional<User>
+    Note over P0,P2: Service: thiếu User → USER_NOT_FOUND; matches(raw, hash) → ACTIVE
+    P0->>P2: generateToken(user)
+    P2-->>P0: JWT đã ký
+    Note over P0,P2: LoginResponse → ApiResponse; sai password/status dừng trước token

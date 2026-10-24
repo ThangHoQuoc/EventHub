@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="700" viewBox="0 0 920 700" role="img" aria-labelledby="title desc">
+<title id="title">Counter tồn kho trong working tree</title>
+<desc id="desc">Confirm và cancel/expire là các nhánh thay thế của pending, không phải lần lượt confirm rồi cancel. soldQuantity đang đếm chỗ chiếm, gồm pending.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#526579"/></marker></defs>
+<rect width="100%" height="100%" fill="#f6f8fc"/>
+<g font-family="Segoe UI, Arial, sans-serif">
+<text x="460.0" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#142c46">Counter tồn kho trong working tree</text>
+<path d="M460.0,160 L460.0,185.0 L460.0,185.0 L460.0,202" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,290 L460.0,330.0 L230.0,330.0 L230.0,362" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="230" y="345" text-anchor="middle" font-size="14" fill="#334d68">Thanh toán</text>
+<path d="M460.0,290 L460.0,330.0 L690.0,330.0 L690.0,362" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="690" y="345" text-anchor="middle" font-size="14" fill="#334d68">Hủy / hết hạn</text>
+<path d="M230.0,460 L230.0,505.0 L460.0,505.0 L460.0,542" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M690.0,460 L690.0,505.0 L460.0,505.0 L460.0,542" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="110" y="80" width="700" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="460.0" y="115.0" text-anchor="middle" font-size="17" fill="#18334e">Khả dụng = quantity - soldQuantity</text>
+<text x="460.0" y="137.0" text-anchor="middle" font-size="17" fill="#18334e">Không có reservedQuantity</text>
+<rect x="110" y="210" width="700" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="460.0" y="245.0" text-anchor="middle" font-size="17" fill="#18334e">Tạo pending: UPDATE tăng soldQuantity nếu đủ</text>
+<text x="460.0" y="267.0" text-anchor="middle" font-size="17" fill="#18334e">Reserve và save booking trong một transaction</text>
+<rect x="30" y="370" width="400" height="90" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="230.0" y="410.0" text-anchor="middle" font-size="17" fill="#18334e">Confirm payment</text>
+<text x="230.0" y="432.0" text-anchor="middle" font-size="17" fill="#18334e">Giữ counter → CONFIRMED</text>
+<rect x="490" y="370" width="400" height="90" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="690.0" y="410.0" text-anchor="middle" font-size="17" fill="#18334e">Cancel / expire pending</text>
+<text x="690.0" y="432.0" text-anchor="middle" font-size="17" fill="#18334e">Khóa type, trừ counter</text>
+<rect x="110" y="550" width="700" height="80" rx="12" fill="#fce8e6" stroke="#b65349" stroke-width="1.6"/>
+<text x="460.0" y="585.0" text-anchor="middle" font-size="17" fill="#18334e">Cần kiểm chứng cạnh tranh state Booking</text>
+<text x="460.0" y="607.0" text-anchor="middle" font-size="17" fill="#18334e">Lock TicketType chưa bảo đảm release chỉ một lần</text>
+<text x="460.0" y="682" text-anchor="middle" font-size="13" fill="#53667b">Working tree 09/10/2026 · Mũi tên theo quan hệ/luồng được ghi trong bài</text>
+</g></svg>

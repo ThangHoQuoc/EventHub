@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="1350" viewBox="0 0 880 1350" role="img">
+<title>Booking: reserve và lưu cùng một transaction</title><desc>Các lời gọi reserve lặp theo ID đã sort. Chỉ row count=1 mới đi tiếp. Lỗi ở bất kỳ item nào rollback cả operation, kể cả reserve đã thành công trước đó.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="1350" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Booking: reserve và lưu cùng một transaction</tspan>
+</text>
+<text x="28" y="92" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="28" dy="0">createBooking → reserveInventory · sau bước chuẩn bị</tspan>
+</text>
+<rect x="20" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-0"/>
+<text x="132" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-0">
+<tspan x="132" dy="0">Booking</tspan>
+<tspan x="132" dy="27.0">ServiceImpl</tspan>
+</text>
+<path d="M132 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="328" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-1"/>
+<text x="440" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-1">
+<tspan x="440" dy="0">TicketType</tspan>
+<tspan x="440" dy="27.0">Repository</tspan>
+</text>
+<path d="M440 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="636" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-2"/>
+<text x="748" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-2">
+<tspan x="748" dy="0">Booking</tspan>
+<tspan x="748" dy="27.0">Repository</tspan>
+</text>
+<path d="M748 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="28" y="258" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-0"/>
+<text x="46" y="288" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-0">
+<tspan x="46" dy="0">Transaction ngoài bao reserve và Booking/items; chưa commit</tspan>
+</text>
+<rect x="28" y="392" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-1"/>
+<text x="46" y="422" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-1">
+<tspan x="46" dy="0">LOOP từng TicketType ID theo thứ tự sort</tspan>
+</text>
+<path d="M132 630 L440 630" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="286.0" y="546" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="286.0" dy="0">reserveAvailableQuantity(id,</tspan>
+<tspan x="286.0" dy="28.35">qty)</tspan>
+</text>
+<path d="M440 764 L132 764" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="286.0" y="680" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="286.0" dy="0">JPQL conditional UPDATE →</tspan>
+<tspan x="286.0" dy="28.35">row count</tspan>
+</text>
+<rect x="28" y="794" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-4"/>
+<text x="46" y="824" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-4">
+<tspan x="46" dy="0">row count ≠ 1 → AppException → rollback; = 1 → item tiếp</tspan>
+</text>
+<path d="M132 1032 L748 1032" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="440.0" y="948" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="440.0" dy="0">save(booking); cascade items</tspan>
+</text>
+<path d="M748 1166 L132 1166" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="440.0" y="1082" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="440.0" dy="0">savedBooking</tspan>
+</text>
+<rect x="28" y="1196" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-7"/>
+<text x="46" y="1226" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-7">
+<tspan x="46" dy="0">Map DTO; transaction proxy hoàn tất thành công mới commit</tspan>
+</text>
+</svg>

@@ -1,0 +1,415 @@
+{
+  "auth-password": {
+    "kind": "compare",
+    "title": "BCrypt: tạo hash và kiểm tra là hai thao tác",
+    "heads": [
+      "Đăng ký: tạo dữ liệu lưu",
+      "Đăng nhập: kiểm một giả thuyết"
+    ],
+    "left": [
+      "raw giả → encode(raw)",
+      "salt/chi phí đi cùng hash",
+      "User.password ← hash"
+    ],
+    "right": [
+      "raw nhập + hash đã lưu",
+      "matches(raw, hash)",
+      "true/false; không giải mã"
+    ],
+    "read": "Nhìn cột trái để biết DB lưu gì, rồi cột phải để biết login dùng gì. Không nối encode mới với phép so chuỗi hash: đó là đường đi sai do salt."
+  },
+  "auth-identity": {
+    "kind": "lanes",
+    "title": "Token hợp lệ chưa phải quyền thao tác tài nguyên",
+    "heads": [
+      "Token / JWT",
+      "User trong DB",
+      "Security / nghiệp vụ"
+    ],
+    "rows": [
+      [
+        "subject U1, claim ADMIN",
+        "U1: ACTIVE, CUSTOMER",
+        "verify token rồi tải U1"
+      ],
+      [
+        "chữ ký và expiry hợp lệ",
+        "role hiện tại CUSTOMER",
+        "principal U1; ROLE_CUSTOMER"
+      ],
+      [
+        "request vào admin URL",
+        "role claim không quyết định",
+        "policy từ chối; ownership riêng"
+      ]
+    ],
+    "read": "Đọc từng hàng từ trái sang phải. Cột giữa giải thích vì sao role claim không là authority cuối. Policy URL/method và ownership là các quyết định tiếp sau xác thực."
+  },
+  "auth-unique": {
+    "kind": "lanes",
+    "title": "Hai lần đọc “chưa tồn tại” vẫn có thể trùng email",
+    "heads": [
+      "Request A",
+      "Request B",
+      "Database"
+    ],
+    "rows": [
+      [
+        "exists(email) → false",
+        "exists(email) → false",
+        "chưa có email"
+      ],
+      [
+        "insert User",
+        "chưa ghi",
+        "A commit: có một User"
+      ],
+      [
+        "đã thành công",
+        "insert cùng email",
+        "UNIQUE chặn B nếu schema đúng"
+      ]
+    ],
+    "read": "Đọc từ trên xuống theo thời gian. Hai ô false cùng hàng là cửa sổ cạnh tranh; hàng cuối là nơi DB bảo vệ. Hình là lịch minh họa, chưa là test đã chạy."
+  },
+  "user-boundary": {
+    "kind": "compare",
+    "title": "User entity và UserResponse có mục đích khác nhau",
+    "heads": [
+      "Persistence: User",
+      "API: UserResponse"
+    ],
+    "left": [
+      "ID, email, fullName",
+      "password để kiểm credentials",
+      "role, status, timestamps"
+    ],
+    "right": [
+      "ID, email, fullName, profile",
+      "không có field password",
+      "role, status, timestamps"
+    ],
+    "read": "So từng dòng theo mục đích. Password tồn tại trong entity không phải lý do serialize entity ra API. Mapper chỉ ánh xạ hợp đồng đã định, không tự quyết quyền xem."
+  },
+  "event-state": {
+    "kind": "state",
+    "title": "Vòng đời Event: enum không tự cho phép chuyển trạng thái",
+    "nodes": [
+      "DRAFT",
+      "PUBLISHED",
+      "CANCELLED",
+      "COMPLETED"
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "publish: data/time + quyền"
+      ],
+      [
+        0,
+        2,
+        "cancel"
+      ],
+      [
+        1,
+        2,
+        "cancel"
+      ],
+      [
+        1,
+        3,
+        "job: endAt trước now"
+      ]
+    ],
+    "read": "Bắt đầu DRAFT ở góc trên trái. Chỉ đi theo cạnh có caller hiện có. CANCELLED/COMPLETED là terminal trong update; không có cạnh reopen hoặc tự refund."
+  },
+  "event-patch": {
+    "kind": "table",
+    "title": "PATCH theo trạng thái: reject khác ignore",
+    "heads": [
+      "Input minh họa",
+      "DRAFT",
+      "PUBLISHED"
+    ],
+    "rows": [
+      [
+        "title=B, field khác vắng",
+        "mapper cập nhật title",
+        "set tay title"
+      ],
+      [
+        "startAt mới không-null",
+        "kiểm lịch kết hợp cũ/mới",
+        "từ chối"
+      ],
+      [
+        "category mới",
+        "mapper cập nhật",
+        "bỏ qua ở nhánh này"
+      ],
+      [
+        "field=null",
+        "mapper giữ giá trị cũ",
+        "không phải lệnh xóa"
+      ]
+    ],
+    "read": "Chọn hàng theo field, rồi chọn cột theo state trước request. Đừng dùng null-ignore để giải thích mọi nhánh: PUBLISHED xử lý tay và từ chối time/thumbnail không-null."
+  },
+  "ticket-relationship": {
+    "kind": "relationship",
+    "title": "Reference Java và khóa ngoại database",
+    "heads": [
+      "Object Java",
+      "Bảng database"
+    ],
+    "left": [
+      "Event E1",
+      "ticketTypes: inverse mappedBy",
+      "TicketType T1 → event E1"
+    ],
+    "right": [
+      "events: id E1",
+      "ticket_types: id T1",
+      "ticket_types.event_id = E1"
+    ],
+    "read": "Nhìn reference T1.event ở bên trái rồi cột event_id ở bên phải. TicketType là owning side. List phía Event hỗ trợ điều hướng, không tự gán reference hay cascade persist."
+  },
+  "booking-inventory": {
+    "kind": "table",
+    "title": "Một loại vé: giữ chỗ nằm trong soldQuantity",
+    "heads": [
+      "Thao tác minh họa",
+      "quantity / sold",
+      "available / booking"
+    ],
+    "rows": [
+      [
+        "Ban đầu",
+        "10 / 3",
+        "7 / chưa có B"
+      ],
+      [
+        "B đặt 2",
+        "10 / 5",
+        "5 / PENDING_PAYMENT"
+      ],
+      [
+        "Nhánh 1: confirm B",
+        "10 / 5",
+        "5 / CONFIRMED"
+      ],
+      [
+        "Nhánh 2: cancel hoặc expire B",
+        "10 / 3",
+        "7 / CANCELLED hoặc EXPIRED"
+      ]
+    ],
+    "read": "Đọc hai hàng đầu chung, rồi chọn một trong hai nhánh cuối. Confirm và cancel/expire là các nhánh thay thế trong ví dụ, không nối tiếp nhau. Counter bao gồm chỗ giữ pending."
+  },
+  "booking-race": {
+    "kind": "lanes",
+    "title": "Vé cuối: precheck và điểm ghi quyết định",
+    "heads": [
+      "Transaction A",
+      "Transaction B",
+      "quantity=1; sold=0"
+    ],
+    "rows": [
+      [
+        "đọc available=1",
+        "đọc available=1",
+        "hai precheck đều qua"
+      ],
+      [
+        "conditional update +1",
+        "chờ/cạnh tranh ghi",
+        "A có thể thắng: sold=1"
+      ],
+      [
+        "commit booking A",
+        "update nếu còn chỗ → 0 rows",
+        "B throw → rollback"
+      ]
+    ],
+    "read": "Nhìn hàng đầu: đọc đúng lúc đó vẫn không giữ được chỗ. Điểm quyết định là UPDATE có điều kiện và row count. Lịch thắng A là minh họa; cơ chế chờ cần test PostgreSQL thật."
+  },
+  "booking-rollback": {
+    "kind": "transaction",
+    "title": "Ranh giới transaction: flush chưa phải commit",
+    "heads": [
+      "Create booking: một transaction",
+      "Confirm payment: transaction khác"
+    ],
+    "left": [
+      "reserve T1; reserve T2",
+      "T2 lỗi RuntimeException",
+      "rollback reserve + booking/items"
+    ],
+    "right": [
+      "Booking CONFIRMED; Payment SUCCESS",
+      "TicketService lỗi RuntimeException",
+      "rollback nhóm confirm; giữ reservation cũ"
+    ],
+    "read": "Hai cột là hai operation khác thời điểm, không cùng một transaction. Đọc đến hàng lỗi rồi lần ngược để xác định nhóm bị rollback. Reservation từ create đã commit trước confirm nên vẫn giữ khi confirm lỗi."
+  },
+  "payment-key": {
+    "kind": "table",
+    "title": "Phạm vi khóa idempotency provider + reference",
+    "heads": [
+      "Request so với payment cũ",
+      "Tuần tự",
+      "Đồng thời"
+    ],
+    "rows": [
+      [
+        "cùng key / cùng booking",
+        "trả SUCCESS cũ",
+        "khóa Booking; chờ rồi replay"
+      ],
+      [
+        "cùng key / khác booking",
+        "từ chối",
+        "UNIQUE không tự chọn response"
+      ],
+      [
+        "khác key / cùng booking",
+        "pending guard có tác dụng",
+        "khóa Booking; chỉ một confirm"
+      ]
+    ],
+    "read": "Đọc key và booking trước. Cùng booking được khóa trước lookup; cùng key khác booking dựa vào unique DB và chưa chuẩn hóa lỗi collision."
+  },
+  "ticketing-race": {
+    "kind": "lanes",
+    "title": "Hai cổng quét: USED cuối cùng chưa đủ",
+    "heads": [
+      "Scanner A",
+      "Scanner B",
+      "Ticket V"
+    ],
+    "rows": [
+      [
+        "khóa Ticket; đọc VALID",
+        "chờ khóa cùng hàng",
+        "PESSIMISTIC_WRITE"
+      ],
+      [
+        "set USED; commit",
+        "lấy khóa; đọc USED",
+        "một transition thành công"
+      ],
+      [
+        "trả success",
+        "INVALID_REQUEST",
+        "DB USED; một admission"
+      ]
+    ],
+    "read": "Đọc A giữ khóa và commit, rồi B lấy khóa thấy USED. Test PostgreSQL đã kiểm cả hai kết quả, không chỉ trạng thái DB cuối."
+  },
+  "waitlist-policy": {
+    "kind": "table",
+    "title": "Chọn sớm nhất trong tập đủ số lượng",
+    "heads": [
+      "Entry / đến lúc",
+      "quantity",
+      "Với budget=2"
+    ],
+    "rows": [
+      [
+        "A / 09:00",
+        "3",
+        "loại trước khi sort"
+      ],
+      [
+        "B / 09:01",
+        "1",
+        "đủ điều kiện → chọn B"
+      ],
+      [
+        "C / 09:02",
+        "2",
+        "đủ điều kiện, đến sau B"
+      ]
+    ],
+    "read": "Lọc theo quantity trước, sau đó xếp createdAt trong tập còn lại. B thắng không có nghĩa query đảo FIFO; policy đang là oldest eligible, có trade-off người xin nhiều chờ lâu."
+  },
+  "waitlist-offer": {
+    "kind": "table",
+    "title": "Offer không reserve: accept vẫn phải tranh chỗ",
+    "heads": [
+      "Thời điểm",
+      "sold / available (capacity=1)",
+      "Lan / Nam"
+    ],
+    "rows": [
+      [
+        "Tạo offer cho Lan",
+        "0 / 1",
+        "Lan CREATED; chưa booking"
+      ],
+      [
+        "Nam tạo booking",
+        "1 / 0",
+        "Nam PENDING_PAYMENT"
+      ],
+      [
+        "Lan accept còn hạn",
+        "1 / 0",
+        "createBooking thất bại"
+      ],
+      [
+        "Sau rollback accept",
+        "1 / 0",
+        "Lan chưa CONVERTED"
+      ]
+    ],
+    "read": "Quan sát counter không đổi ở hàng tạo offer. Chỉ booking của Nam giữ chỗ. Offer của Lan còn hạn không bỏ qua hàng rào tồn kho; skip offer cũng không release counter."
+  },
+  "waitlist-rollback": {
+    "kind": "compare",
+    "title": "EXPIRED: lỗi nghiệp vụ vẫn commit nhánh quá hạn",
+    "heads": [
+      "acceptOffer quá hạn",
+      "job expireCreatedOffers"
+    ],
+    "left": [
+      "set/save offer + entry EXPIRED",
+      "throw WaitlistOfferExpiredException",
+      "dontRollbackOn → commit EXPIRED"
+    ],
+    "right": [
+      "khóa Type → Offer; cutoff <= now",
+      "set/save EXPIRED",
+      "commit → sự kiện cấp offer tiếp"
+    ],
+    "read": "Hai đường cùng commit EXPIRED. Riêng exception hết hạn không rollback; lỗi reserve Booking vẫn rollback toàn bộ accept. Reload DB để kiểm chứng, không chỉ verify save trong mock."
+  },
+  "common-time": {
+    "kind": "timeline",
+    "title": "900 giây + nhịp quét: deadline khác lúc xử lý",
+    "heads": [
+      "12:00:01",
+      "12:15:00",
+      "12:16:00"
+    ],
+    "rows": [
+      [
+        "tạo booking",
+        "cutoff 12:00:00",
+        "cutoff 12:01:00"
+      ],
+      [
+        "PENDING_PAYMENT",
+        "createdAt chưa Before cutoff",
+        "đủ tuổi nếu vẫn pending"
+      ],
+      [
+        "chưa tới deadline",
+        "chưa expire",
+        "job có thể expire/release"
+      ]
+    ],
+    "read": "Đọc mốc từ trái sang phải. Đây là lịch giả định job quét phút tròn, không lỗi. Before là so sánh nghiêm ngặt; job chậm hoặc nhiều instance cần kiểm riêng, không suy ra SLA tuyệt đối."
+  }
+}

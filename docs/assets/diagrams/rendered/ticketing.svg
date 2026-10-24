@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="670" viewBox="0 0 920 670" role="img" aria-labelledby="title desc">
+<title id="title">Phát hành vé và check-in</title>
+<desc id="desc">Hai use case liên tiếp: issuance nội bộ và check-in HTTP; giữa hai use case không có một transaction kéo dài.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#526579"/></marker></defs>
+<rect width="100%" height="100%" fill="#f6f8fc"/>
+<g font-family="Segoe UI, Arial, sans-serif">
+<text x="460.0" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#142c46">Phát hành vé và check-in</text>
+<path d="M460.0,160 L460.0,179.0 L460.0,179.0 L460.0,190" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,278 L460.0,297.0 L460.0,297.0 L460.0,308" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,396 L460.0,415.0 L460.0,415.0 L460.0,426" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,514 L460.0,533.0 L460.0,533.0 L460.0,544" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="110" y="80" width="700" height="80" rx="12" fill="#fff1d9" stroke="#ad791e" stroke-width="1.6"/>
+<text x="460.0" y="115.0" text-anchor="middle" font-size="17" fill="#18334e">Payment gọi issueTicketsForBooking</text>
+<text x="460.0" y="137.0" text-anchor="middle" font-size="17" fill="#18334e">Chỉ Booking CONFIRMED, customer/items hợp lệ</text>
+<rect x="110" y="198" width="700" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="460.0" y="233.0" text-anchor="middle" font-size="17" fill="#18334e">Đã có vé → trả list cũ</text>
+<text x="460.0" y="255.0" text-anchor="middle" font-size="17" fill="#18334e">Chưa có → một Ticket mỗi đơn vị quantity</text>
+<rect x="110" y="316" width="700" height="80" rx="12" fill="#e0f4ed" stroke="#24836d" stroke-width="1.6"/>
+<text x="460.0" y="351.0" text-anchor="middle" font-size="17" fill="#18334e">Ticket VALID + ticketCode + qrPayload</text>
+<text x="460.0" y="373.0" text-anchor="middle" font-size="17" fill="#18334e">SaveAll; QR payload là chuỗi, không phải ảnh</text>
+<rect x="110" y="434" width="700" height="80" rx="12" fill="#fff1d9" stroke="#ad791e" stroke-width="1.6"/>
+<text x="460.0" y="469.0" text-anchor="middle" font-size="17" fill="#18334e">Request check-in: code hoặc payload</text>
+<text x="460.0" y="491.0" text-anchor="middle" font-size="17" fill="#18334e">ADMIN hoặc ORGANIZER sở hữu event</text>
+<rect x="110" y="552" width="700" height="80" rx="12" fill="#fce8e6" stroke="#b65349" stroke-width="1.6"/>
+<text x="460.0" y="587.0" text-anchor="middle" font-size="17" fill="#18334e">Ticket phải VALID → USED + checkedInAt</text>
+<text x="460.0" y="609.0" text-anchor="middle" font-size="17" fill="#18334e">Hiện chưa khóa/version hàng Ticket</text>
+<text x="460.0" y="652" text-anchor="middle" font-size="13" fill="#53667b">Working tree 09/10/2026 · Mũi tên theo quan hệ/luồng được ghi trong bài</text>
+</g></svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="680" viewBox="0 0 880 680" role="img">
+<title>Vòng đời Event: enum không tự cho phép chuyển trạng thái</title><desc>Bắt đầu DRAFT ở góc trên trái. Chỉ đi theo cạnh có caller hiện có. CANCELLED/COMPLETED là terminal trong update; không có cạnh reopen hoặc tự refund.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="680" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Vòng đời Event: enum không tự cho phép chuyển trạng thái</tspan>
+</text>
+<rect x="38" y="148" width="330" height="92" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="state-0"/>
+<text x="203" y="203" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="state-0">
+<tspan x="203" dy="0">DRAFT</tspan>
+</text>
+<rect x="512" y="148" width="330" height="92" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="state-1"/>
+<text x="677" y="203" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="state-1">
+<tspan x="677" dy="0">PUBLISHED</tspan>
+</text>
+<rect x="38" y="470" width="330" height="92" rx="10" fill="#eaf6ef" stroke="#bacdde" stroke-width="1.5" id="state-2"/>
+<text x="203" y="525" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="state-2">
+<tspan x="203" dy="0">CANCELLED</tspan>
+</text>
+<rect x="512" y="470" width="330" height="92" rx="10" fill="#eaf6ef" stroke="#bacdde" stroke-width="1.5" id="state-3"/>
+<text x="677" y="525" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="state-3">
+<tspan x="677" dy="0">COMPLETED</tspan>
+</text>
+<path d="M368 194 L512 194" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="440" y="107" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="440" dy="0">publish: data/time + quyền</tspan>
+</text>
+<path d="M203 240 L203 470" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="218" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start">
+<tspan x="218" dy="0">cancel</tspan>
+</text>
+<path d="M570 240 L368 470" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="435" y="350" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start">
+<tspan x="435" dy="0">cancel</tspan>
+</text>
+<path d="M677 240 L677 470" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="696" y="335" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#172b45" text-anchor="start">
+<tspan x="696" dy="0">job: endAt</tspan>
+<tspan x="696" dy="27.0">trước now</tspan>
+</text>
+</svg>

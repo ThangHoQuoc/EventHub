@@ -1,0 +1,646 @@
+{
+  "auth-login-sequence": {
+    "kind": "sequence",
+    "title": "Login: kiểm credentials rồi mới cấp token",
+    "scope": "AuthServiceImpl.login · đường thành công",
+    "read": "Đọc từ trên xuống. Login dùng credentials; Authentication của request sau được tạo ở filter, không ở bước cấp token này.",
+    "participants": [
+      "AuthServiceImpl",
+      "UserRepository",
+      "JwtServiceImpl"
+    ],
+    "steps": [
+      {
+        "note": "POST login public → MVC bind/@Valid → login(request)"
+      },
+      {
+        "from": 0,
+        "to": 1,
+        "text": "findByEmail(email)"
+      },
+      {
+        "from": 1,
+        "to": 0,
+        "text": "Optional<User>",
+        "reply": true
+      },
+      {
+        "note": "Service: thiếu User → USER_NOT_FOUND; matches(raw, hash) → ACTIVE"
+      },
+      {
+        "from": 0,
+        "to": 2,
+        "text": "generateToken(user)"
+      },
+      {
+        "from": 2,
+        "to": 0,
+        "text": "JWT đã ký",
+        "reply": true
+      },
+      {
+        "note": "LoginResponse → ApiResponse; sai password/status dừng trước token"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/auth/service/Impl/AuthServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/auth/security/Impl/JwtServiceImpl.java"
+    ]
+  },
+  "auth-filter-flow": {
+    "kind": "flow",
+    "title": "Filter: từ Bearer token đến Authentication",
+    "scope": "JwtAuthenticationFilter.doFilterInternal · chưa bao gồm ownership",
+    "read": "Đi xuống theo nhánh hợp lệ; rẽ phải khi điều kiện không đạt. Filter đi tiếp chưa xác thực không đồng nghĩa mọi URL đều trả 401: policy URL quyết định phía sau.",
+    "steps": [
+      {
+        "text": "HTTP request vào JWT filter"
+      },
+      {
+        "text": "Có header bắt đầu bằng Bearer?",
+        "check": true,
+        "branch": "chain.doFilter; không đặt auth mới",
+        "yes": "Có",
+        "no": "Không"
+      },
+      {
+        "text": "JwtService.isValid(token)?",
+        "check": true,
+        "branch": "chain.doFilter; không đặt auth mới",
+        "yes": "Hợp lệ",
+        "no": "Sai/hết hạn"
+      },
+      {
+        "text": "extractUserId → UserRepository.findById"
+      },
+      {
+        "text": "User tồn tại và ACTIVE?",
+        "check": true,
+        "branch": "clearContext → chain.doFilter",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "setAuthentication: principal=userId; ROLE từ DB"
+      },
+      {
+        "text": "chain.doFilter → URL/method policy → nghiệp vụ"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/auth/security/Impl/JwtAuthenticationFilter.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/config/SecurityConfig.java"
+    ]
+  },
+  "booking-validation-flow": {
+    "kind": "flow",
+    "title": "Booking: kiểm dữ liệu trước khi reserve",
+    "scope": "createBooking · giai đoạn chuẩn bị trong transaction",
+    "read": "Theo nhánh dọc đến snapshot; các nhánh phải đều dừng operation. Precheck chưa giữ được vé: điểm ghi quyết định nằm trong hình reserve tiếp theo.",
+    "steps": [
+      {
+        "text": "MVC @Valid items → createBooking"
+      },
+      {
+        "text": "CUSTOMER, items và User hợp lệ?",
+        "check": true,
+        "branch": "Từ chối quyền/input; User thiếu → lỗi",
+        "yes": "Đạt",
+        "no": "Không"
+      },
+      {
+        "text": "Gộp ID trùng → load TicketType theo ID đã sort"
+      },
+      {
+        "text": "Các type thuộc cùng Event PUBLISHED?",
+        "check": true,
+        "branch": "AppException; type thiếu cũng dừng",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "quantity yêu cầu ≤ khả dụng?",
+        "check": true,
+        "branch": "AppException → rollback",
+        "yes": "Đủ",
+        "no": "Thiếu"
+      },
+      {
+        "text": "BigDecimal snapshot → gán booking/items hai chiều"
+      },
+      {
+        "text": "Sang reserveInventory → save Booking"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/controller/BookingController.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java"
+    ]
+  },
+  "booking-reserve-sequence": {
+    "kind": "sequence",
+    "title": "Booking: reserve và lưu cùng một transaction",
+    "scope": "createBooking → reserveInventory · sau bước chuẩn bị",
+    "read": "Các lời gọi reserve lặp theo ID đã sort. Chỉ row count=1 mới đi tiếp. Lỗi ở bất kỳ item nào rollback cả operation, kể cả reserve đã thành công trước đó.",
+    "participants": [
+      "BookingServiceImpl",
+      "TicketTypeRepository",
+      "BookingRepository"
+    ],
+    "steps": [
+      {
+        "note": "Transaction ngoài bao reserve và Booking/items; chưa commit"
+      },
+      {
+        "note": "LOOP từng TicketType ID theo thứ tự sort"
+      },
+      {
+        "from": 0,
+        "to": 1,
+        "text": "reserveAvailableQuantity(id, qty)"
+      },
+      {
+        "from": 1,
+        "to": 0,
+        "text": "JPQL conditional UPDATE → row count",
+        "reply": true
+      },
+      {
+        "note": "row count ≠ 1 → AppException → rollback; = 1 → item tiếp"
+      },
+      {
+        "from": 0,
+        "to": 2,
+        "text": "save(booking); cascade items"
+      },
+      {
+        "from": 2,
+        "to": 0,
+        "text": "savedBooking",
+        "reply": true
+      },
+      {
+        "note": "Map DTO; transaction proxy hoàn tất thành công mới commit"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticket/repository/TicketTypeRepository.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/entity/Booking.java"
+    ]
+  },
+  "event-publish-flow": {
+    "kind": "flow",
+    "title": "Publish Event: state, dữ liệu rồi quyền",
+    "scope": "EventServiceImpl.publishEvent · thứ tự guard thực tế",
+    "read": "Đọc các guard theo thứ tự dọc. Role ở HTTP không thay ownership trong service; save không có transaction service bao cả đoạn read/check/write.",
+    "steps": [
+      {
+        "text": "POST publish → role → findById",
+        "branch": "Không thấy → EVENT_NOT_FOUND",
+        "no": "Thiếu"
+      },
+      {
+        "text": "Event đang DRAFT?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "Nội dung và startAt/endAt hợp lệ?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đạt",
+        "no": "Không"
+      },
+      {
+        "text": "ADMIN hoặc ORGANIZER sở hữu Event?",
+        "check": true,
+        "branch": "UNAUTHORIZED",
+        "yes": "Có quyền",
+        "no": "Không"
+      },
+      {
+        "text": "setStatus(PUBLISHED) → repository.save"
+      },
+      {
+        "text": "EventMapper.toResponse → EventResponse"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/event/controller/EventController.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/event/service/Impl/EventServiceImpl.java"
+    ]
+  },
+  "ticket-create-flow": {
+    "kind": "flow",
+    "title": "TicketType: cấu hình trước khi mở bán",
+    "scope": "TicketTypeServiceImpl.createTicketType · không phát Ticket cá nhân",
+    "read": "Theo các điều kiện trước khi nhìn bước mapper/save. DRAFT và ownership là hai hàng rào riêng; tên được so không phân biệt hoa thường trong danh sách hiện có.",
+    "steps": [
+      {
+        "text": "HTTP role/@Valid → load Event và danh sách type",
+        "branch": "Event thiếu → EVENT_NOT_FOUND",
+        "no": "Thiếu"
+      },
+      {
+        "text": "ADMIN hoặc organizer sở hữu?",
+        "check": true,
+        "branch": "UNAUTHORIZED",
+        "yes": "Có quyền",
+        "no": "Không"
+      },
+      {
+        "text": "Event đang DRAFT?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "Tên chưa trùng trong Event?",
+        "check": true,
+        "branch": "TICKET_TYPE_ALREADY_EXIST",
+        "yes": "Chưa trùng",
+        "no": "Trùng"
+      },
+      {
+        "text": "Mapper tạo type → set Event; soldQuantity=0"
+      },
+      {
+        "text": "save → TicketTypeResponse; không tạo Booking/Ticket"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticket/controller/TicketTypeController.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticket/service/Impl/TicketTypeServiceImpl.java"
+    ]
+  },
+  "payment-replay-flow": {
+    "kind": "flow",
+    "title": "Payment: chọn replay hay xác nhận mới",
+    "scope": "confirmPayment · key = provider + providerTransactionId",
+    "read": "Khóa Booking trước lookup reference. Retry cùng booking chờ transaction trước commit; nhánh replay trả kết quả cũ. Collision cùng key trên hai booking khác vẫn dựa vào unique DB.",
+    "steps": [
+      {
+        "text": "ADMIN/@Valid → validateRequest"
+      },
+      {
+        "text": "Khóa Booking theo bookingId",
+        "branch": "BOOKING_NOT_FOUND",
+        "no": "Thiếu"
+      },
+      {
+        "text": "Đã có Payment theo provider/ref?",
+        "check": true,
+        "branch": "Cùng booking + SUCCESS → trả cũ; khác → lỗi",
+        "branch_tone": "info",
+        "yes": "Chưa có",
+        "no": "Đã có"
+      },
+      {
+        "text": "Booking PENDING_PAYMENT?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "Sang nhóm confirm + Payment + phát vé"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/payment/controller/PaymentController.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/payment/service/Impl/PaymentServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/payment/entity/Payment.java"
+    ]
+  },
+  "payment-commit-sequence": {
+    "kind": "sequence",
+    "title": "Payment: phát vé trước khi transaction hoàn tất",
+    "scope": "confirmPayment · đã khóa Booking, key mới, trạng thái pending",
+    "read": "Nhìn ranh giới transaction ngoài: save Payment chưa phải commit riêng. TicketService bean tham gia transaction; lỗi unchecked rollback nhóm confirm, không rollback reservation đã commit từ createBooking trước đó.",
+    "participants": [
+      "PaymentServiceImpl",
+      "PaymentRepository",
+      "TicketService"
+    ],
+    "steps": [
+      {
+        "note": "Transaction confirm: Booking CONFIRMED → BookingRepository.save"
+      },
+      {
+        "note": "Payment SUCCESS; amount lấy Booking.totalAmount; không tăng tồn"
+      },
+      {
+        "from": 0,
+        "to": 1,
+        "text": "save(payment)"
+      },
+      {
+        "from": 1,
+        "to": 0,
+        "text": "savedPayment; chưa kết luận commit",
+        "reply": true
+      },
+      {
+        "from": 0,
+        "to": 2,
+        "text": "issueTicketsForBooking(booking)"
+      },
+      {
+        "from": 2,
+        "to": 0,
+        "text": "vé được tạo hoặc RuntimeException",
+        "reply": true
+      },
+      {
+        "note": "Thành công → DTO/commit; lỗi unchecked → rollback booking/payment/tickets"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/payment/service/Impl/PaymentServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java"
+    ]
+  },
+  "ticketing-issuance-flow": {
+    "kind": "flow",
+    "title": "Phát hành: từ số lượng thành từng vé",
+    "scope": "TicketServiceImpl.issueTicketsForBooking · payment gọi nội bộ",
+    "read": "Nhánh đã có vé trả list cũ ngay, không kiểm completeness. Nhánh tạo mới duyệt từng item/quantity, sequence tăng xuyên suốt booking, rồi saveAll.",
+    "steps": [
+      {
+        "text": "Booking CONFIRMED, customer/items hợp lệ?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đạt",
+        "no": "Không"
+      },
+      {
+        "text": "findByBookingId: đã có bất kỳ Ticket?",
+        "check": true,
+        "branch": "Trả existing list; chưa kiểm đủ số lượng",
+        "branch_tone": "info",
+        "yes": "Chưa có",
+        "no": "Đã có"
+      },
+      {
+        "text": "LOOP items: validateBookingItem",
+        "branch": "Item sai → AppException",
+        "no": "Sai"
+      },
+      {
+        "text": "LOOP quantity: code EVH-bookingId-sequence; payload; VALID"
+      },
+      {
+        "text": "Gán booking/type/customer → saveAll(tickets)"
+      },
+      {
+        "text": "Map TicketResponse; cùng transaction caller"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java"
+    ]
+  },
+  "ticketing-checkin-flow": {
+    "kind": "flow",
+    "title": "Check-in: tìm vé, kiểm quyền rồi đổi trạng thái",
+    "scope": "checkInTicket · khóa Ticket trước kiểm tra VALID, giữ đến commit",
+    "read": "Theo nhánh dọc để thấy lookup trước permission và status. Nếu có cả code/payload, code được ưu tiên. Nhánh success tuần tự không chứng minh hai scanner chỉ một admission.",
+    "steps": [
+      {
+        "text": "Có ticketCode hoặc qrPayload?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Có",
+        "no": "Không"
+      },
+      {
+        "text": "Khóa Ticket theo code/payload; ưu tiên code",
+        "branch": "TICKET_NOT_FOUND",
+        "no": "Thiếu"
+      },
+      {
+        "text": "ADMIN hoặc ORGANIZER chủ Event?",
+        "check": true,
+        "branch": "UNAUTHORIZED",
+        "yes": "Có quyền",
+        "no": "Không"
+      },
+      {
+        "text": "Ticket đang VALID?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "set USED; checkedInAt=now → save"
+      },
+      {
+        "text": "TicketResponse; không có guard giờ Event ở method này"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/controller/TicketController.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/ticketing/service/Impl/TicketServiceImpl.java"
+    ]
+  },
+  "waitlist-accept-flow": {
+    "kind": "flow",
+    "title": "Accept offer: replay, deadline và cơ hội đặt",
+    "scope": "WaitlistOfferServiceImpl.acceptOffer · offer chưa reserve",
+    "read": "Khóa TicketType rồi Offer trước state check. Converted trả cũ; hết hạn commit EXPIRED bằng exception riêng. Còn hạn phải qua Booking reserve; lỗi Booking rollback accept.",
+    "steps": [
+      {
+        "text": "CUSTOMER; khóa TicketType → Offer; kiểm chủ",
+        "branch": "Thiếu offer/sai chủ → lỗi",
+        "no": "Không đạt"
+      },
+      {
+        "text": "Offer CONVERTED_TO_BOOKING?",
+        "check": true,
+        "branch": "Trả response cũ",
+        "branch_tone": "info",
+        "yes": "Chưa",
+        "no": "Đã converted"
+      },
+      {
+        "text": "Offer đang CREATED?",
+        "check": true,
+        "branch": "INVALID_REQUEST",
+        "yes": "Đúng",
+        "no": "Không"
+      },
+      {
+        "text": "expiresAt còn sau now?",
+        "check": true,
+        "branch": "Commit EXPIRED; trả INVALID_REQUEST",
+        "yes": "Còn hạn",
+        "no": "Hết hạn"
+      },
+      {
+        "text": "BookingService.createBooking(type, quantity)",
+        "branch": "Hết chỗ/Event sai → rollback accept",
+        "no": "Thất bại"
+      },
+      {
+        "text": "Offer CONVERTED_TO_BOOKING; Entry CONVERTED → save"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/service/Impl/WaitlistOfferServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java"
+    ]
+  },
+  "waitlist-booking-sequence": {
+    "kind": "sequence",
+    "title": "Accept: reuse Booking trong transaction đang có",
+    "scope": "acceptOffer · nhánh CREATED còn hạn và caller đúng chủ",
+    "read": "BookingService dùng current customer của request accept. Chỉ sau booking thành công mới ghi convertedBookingId và các state converted; lỗi booking làm operation accept rollback.",
+    "participants": [
+      "WaitlistOfferServiceImpl",
+      "BookingService",
+      "WaitlistOfferRepository"
+    ],
+    "steps": [
+      {
+        "note": "Đã khóa TicketType và Offer; chưa reserve inventory"
+      },
+      {
+        "from": 0,
+        "to": 1,
+        "text": "createBooking(one-item request)"
+      },
+      {
+        "from": 1,
+        "to": 0,
+        "text": "BookingResponse hoặc AppException",
+        "reply": true
+      },
+      {
+        "note": "Thành công: offer converted/acceptedAt/bookingId; entry CONVERTED"
+      },
+      {
+        "note": "WaitlistEntryRepository.save(entry) trong cùng operation"
+      },
+      {
+        "from": 0,
+        "to": 2,
+        "text": "save(offer)"
+      },
+      {
+        "from": 2,
+        "to": 0,
+        "text": "offer → response",
+        "reply": true
+      },
+      {
+        "note": "Proxy ngoài commit khi thành công; lần accept sau trả cùng bookingId"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/service/Impl/WaitlistOfferServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java"
+    ]
+  },
+  "common-request-boundaries": {
+    "kind": "flow",
+    "title": "Request: dừng ở tầng nào, handler nào trả lỗi?",
+    "scope": "Request bảo vệ · những boundary đã có handler",
+    "read": "Rẽ phải ngay ở tầng phát sinh lỗi: request có thể chưa vào service hoặc DB. Hình không hứa mọi lỗi framework/DB đều được chuẩn hóa cùng envelope.",
+    "steps": [
+      {
+        "text": "HTTP request → JwtAuthenticationFilter"
+      },
+      {
+        "text": "Qua xác thực/quyền security?",
+        "check": true,
+        "branch": "EntryPoint 401 / DeniedHandler 403",
+        "yes": "Qua",
+        "no": "Bị chặn"
+      },
+      {
+        "text": "MVC bind/@Valid hợp lệ?",
+        "check": true,
+        "branch": "Advice: HTTP400/code1007, field map",
+        "yes": "Đạt",
+        "no": "Validation"
+      },
+      {
+        "text": "Service qua business guards?",
+        "check": true,
+        "branch": "AppException → advice theo ErrorCode",
+        "yes": "Qua",
+        "no": "Vi phạm"
+      },
+      {
+        "text": "Persistence nếu use case cần; transaction theo service"
+      },
+      {
+        "text": "Controller response; HTTP status riêng với application code"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/config/SecurityConfig.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/common/exception/GlobalExceptionHandler.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/common/exception/JwtAuthenticationEntryPoint.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/common/exception/JwtAccessDeniedHandler.java"
+    ]
+  },
+  "waitlist-runtime-flow": {
+    "kind": "flow",
+    "title": "Trả chỗ đến offer tự động",
+    "scope": "AFTER_COMMIT + transaction mới; job 60 giây đối soát",
+    "read": "Booking rollback không cấp offer. Dispatcher chỉ chạy sau commit hoặc qua job phục hồi, khóa TicketType trước khi tính budget và chọn entry. Offer không reserve.",
+    "steps": [
+      {
+        "text": "Booking cancel/expiry: trả chỗ và commit"
+      },
+      {
+        "text": "Availability event AFTER_COMMIT → dispatcher REQUIRES_NEW"
+      },
+      {
+        "text": "Khóa TicketType; Event PUBLISHED?",
+        "check": true,
+        "yes": "Đúng",
+        "no": "Không",
+        "branch": "Không cấp offer",
+        "branch_tone": "info"
+      },
+      {
+        "text": "Budget = available - CREATED offers > 0?",
+        "check": true,
+        "yes": "Còn",
+        "no": "Hết",
+        "branch": "Kết thúc; chờ thay đổi khác",
+        "branch_tone": "info"
+      },
+      {
+        "text": "WAITING đủ quantity? sort createdAt rồi ID",
+        "check": true,
+        "yes": "Có",
+        "no": "Không",
+        "branch": "Kết thúc; không hứa strict FIFO",
+        "branch_tone": "info"
+      },
+      {
+        "text": "Entry OFFERED; Offer CREATED; deadline = now + TTL"
+      },
+      {
+        "text": "Giảm budget; lặp chọn đến khi không còn entry phù hợp"
+      },
+      {
+        "text": "Commit; customer xem offer → accept qua Booking"
+      }
+    ],
+    "evidence": [
+      "backend/src/main/java/com/eventhub/eventhub_backend/booking/service/Impl/BookingServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/event/WaitlistInventoryListener.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/waitlist/service/Impl/WaitlistOfferServiceImpl.java",
+      "backend/src/main/java/com/eventhub/eventhub_backend/config/WaitlistScheduler.java"
+    ]
+  }
+}

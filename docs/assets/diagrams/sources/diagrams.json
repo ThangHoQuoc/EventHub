@@ -1,0 +1,1628 @@
+{
+  "context": {
+    "title": "Ngữ cảnh runtime EventHub",
+    "description": "Luồng client gọi backend và backend truy cập PostgreSQL. H2 chỉ dùng cho test, không phải database runtime chính.",
+    "size": [
+      920,
+      434
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "Khách / CUSTOMER / ORGANIZER / ADMIN\nClient HTTP, gồm frontend React/Vite",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "Backend Spring Boot\nJWT · nghiệp vụ · JPA · scheduler cùng process",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "2",
+        "text": "PostgreSQL 17\nCompose hiện chỉ triển khai database",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      }
+    ]
+  },
+  "request": {
+    "title": "Hành trình request được bảo vệ",
+    "description": "Response quay ngược ra client; lỗi validation không nhất thiết đi tới service hoặc DB.",
+    "size": [
+      920,
+      788
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "HTTP request\nAuthorization: Bearer, nếu endpoint yêu cầu",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "JwtAuthenticationFilter + SecurityConfig\nXác thực User ACTIVE và quyền URL",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "Spring MVC bind / @Valid DTO\nBody sai có thể bị trả lỗi trước controller",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "3",
+        "text": "Controller / @PreAuthorize\nNhận input, gọi service, đóng gói response",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "4",
+        "text": "Service\nOwnership · trạng thái · transaction khi có annotation",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "5",
+        "text": "Repository / JPA / database\nĐọc, ghi, flush và commit/rollback",
+        "x": 110,
+        "y": 670,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      },
+      {
+        "from": "4",
+        "to": "5"
+      }
+    ]
+  },
+  "auth": {
+    "title": "Đăng nhập và request mang JWT",
+    "description": "Role cuối cùng lấy từ User DB; thiếu/sai token đi tiếp như chưa xác thực.",
+    "size": [
+      920,
+      788
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /auth/login public\nLoginRequest qua MVC validation",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "AuthServiceImpl.login\nfindByEmail → matches → yêu cầu ACTIVE",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "JwtServiceImpl.generateToken\nKý subject=userId, claims và thời hạn",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "3",
+        "text": "Client gửi request tiếp theo với Bearer token\nToken không thay thế resource ownership",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "4",
+        "text": "JwtAuthenticationFilter\nVerify token → tải User ACTIVE từ DB",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "5",
+        "text": "SecurityContext: principal=userId, ROLE từ DB\nURL/method role → service ownership",
+        "x": 110,
+        "y": 670,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      },
+      {
+        "from": "4",
+        "to": "5"
+      }
+    ]
+  },
+  "user": {
+    "title": "GET me: danh tính thành profile",
+    "description": "Luồng chỉ đọc user; helper current user dựa trên SecurityContext của request.",
+    "size": [
+      920,
+      552
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "JWT filter đặt Authentication\nPrincipal là User ID, không phải email",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "GET /api/v1/users/me\nSecurityConfig yêu cầu authenticated",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "CurrentUserServiceImpl.getCurrentUser\nContext → getName → UserRepository.findById",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "3",
+        "text": "UserMapper → UserResponse\nProfile/role/status/timestamps, không có password",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      }
+    ]
+  },
+  "event": {
+    "title": "Công bố một Event DRAFT",
+    "description": "Service publish không có @Transactional bao ngoài; không suy ra an toàn cập nhật đồng thời.",
+    "size": [
+      920,
+      670
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /events/{eventId}/publish\nJWT + role ADMIN hoặc ORGANIZER",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "EventServiceImpl.publishEvent\nLoad Event; status phải DRAFT",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "Nội dung đủ và thời gian hợp lệ\nstartAt < endAt; startAt > now",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "3",
+        "text": "ADMIN hoặc ORGANIZER sở hữu event\nRole và ownership là hai điều kiện riêng",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "4",
+        "text": "setStatus(PUBLISHED) → save → EventResponse\nPublic API từ đây có thể trả sự kiện",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "ticket": {
+    "title": "Tạo một loại vé trong bản nháp",
+    "description": "TicketType là sản phẩm vé, chưa phải Ticket cá nhân; validation DTO không thay DB constraints.",
+    "size": [
+      920,
+      670
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /events/{eventId}/ticket-types\nMVC kiểm name, price, quantity",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "TicketTypeServiceImpl.createTicketType\nLoad Event và danh sách TicketType",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "2",
+        "text": "ADMIN hoặc chủ ORGANIZER; Event DRAFT\nTên loại vé chưa trùng không phân biệt hoa thường",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "3",
+        "text": "Map DTO → TicketType\nGán event và soldQuantity=0",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "4",
+        "text": "save → TicketTypeResponse\navailableQuantity tính từ quantity - soldQuantity",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "booking": {
+    "title": "Tạo booking và giữ tồn kho",
+    "description": "Counter tăng ở booking; payment không tăng lần hai. Diagram mô tả transaction DB, không giữ transaction qua thao tác client.",
+    "size": [
+      920,
+      788
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /bookings · CUSTOMER\nCreateBookingRequest.items qua nested @Valid",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "Gộp ticketTypeId → tổng quantity\nLoad User và các TicketType",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "2",
+        "text": "Event PUBLISHED, cùng một Event\nPrecheck capacity, tính unitPrice/subtotal/totalAmount",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "3",
+        "text": "reserveAvailableQuantity theo ID đã sort\nUPDATE tăng soldQuantity nếu còn đủ capacity",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "4",
+        "text": "Mỗi UPDATE phải sửa đúng 1 hàng\nBất kỳ lỗi → AppException → rollback toàn bộ",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "risk"
+      },
+      {
+        "id": "5",
+        "text": "Save Booking PENDING_PAYMENT + items\nCascade; commit transaction → BookingResponse",
+        "x": 110,
+        "y": 670,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      },
+      {
+        "from": "4",
+        "to": "5"
+      }
+    ]
+  },
+  "payment": {
+    "title": "Xác nhận payment thủ công",
+    "description": "Nhánh replay kết thúc ở payment cũ. Nhánh mới gọi ticket service; concurrency cần integration test.",
+    "size": [
+      920,
+      788
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /payments/confirm · ADMIN\nbookingId, provider, providerTransactionId",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "Tìm Payment theo provider/reference\nĐã SUCCESS cùng booking → trả bản ghi cũ",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "Nhánh mới: Booking phải PENDING_PAYMENT\nset CONFIRMED; không tăng soldQuantity",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "3",
+        "text": "Save Payment SUCCESS\namount từ booking.totalAmount; paidAt=now",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "4",
+        "text": "TicketService.issueTicketsForBooking\nCùng transaction; lỗi unchecked → rollback nhóm DB",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "5",
+        "text": "PaymentResponse\nĐây chưa phải tích hợp ngân hàng/webhook",
+        "x": 110,
+        "y": 670,
+        "w": 700,
+        "h": 80,
+        "kind": "risk"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      },
+      {
+        "from": "4",
+        "to": "5"
+      }
+    ]
+  },
+  "ticketing": {
+    "title": "Phát hành vé và check-in",
+    "description": "Hai use case liên tiếp: issuance nội bộ và check-in HTTP; giữa hai use case không có một transaction kéo dài.",
+    "size": [
+      920,
+      670
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "Payment gọi issueTicketsForBooking\nChỉ Booking CONFIRMED, customer/items hợp lệ",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "Đã có vé → trả list cũ\nChưa có → một Ticket mỗi đơn vị quantity",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "2",
+        "text": "Ticket VALID + ticketCode + qrPayload\nSaveAll; QR payload là chuỗi, không phải ảnh",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "3",
+        "text": "Request check-in: code hoặc payload\nADMIN hoặc ORGANIZER sở hữu event",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "4",
+        "text": "Ticket phải VALID → USED + checkedInAt\nHiện chưa khóa/version hàng Ticket",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "risk"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "waitlist": {
+    "title": "Accept offer thành booking pending",
+    "description": "Expired accept gọi expire rồi throw có thể rollback; sơ đồ chỉ mô tả nhánh accept thành công và replay.",
+    "size": [
+      920,
+      670
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "POST /waitlist-offers/{offerId}/accept\nCUSTOMER phải sở hữu offer",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "1",
+        "text": "Đã CONVERTED_TO_BOOKING → trả cũ\nNhánh mới phải CREATED và còn hạn",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "BookingService.createBooking(type, quantity)\nOffer chưa giữ chỗ; bước này mới atomic reserve",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "3",
+        "text": "Offer CONVERTED_TO_BOOKING\nacceptedAt + convertedBookingId; entry CONVERTED",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "4",
+        "text": "Commit nhóm thay đổi → response có bookingId\nLỗi booking → rollback; chưa có runtime caller cấp offer",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "risk"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "purchase": {
+    "title": "Hành trình mua vé hiện tại",
+    "description": "Thanh toán là xác nhận thủ công, chưa có provider integration trong backend.",
+    "size": [
+      920,
+      670
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "ORGANIZER tạo Event DRAFT và TicketType\nChủ sự kiện hoặc ADMIN publish",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "CUSTOMER tạo Booking PENDING_PAYMENT\nSnapshot giá và giữ chỗ bằng soldQuantity",
+        "x": 110,
+        "y": 198,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      },
+      {
+        "id": "2",
+        "text": "ADMIN xác nhận Payment SUCCESS\nBooking CONFIRMED, không tăng counter thêm",
+        "x": 110,
+        "y": 316,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "3",
+        "text": "TicketService phát Ticket VALID\nMột quyền vào cửa mỗi đơn vị quantity",
+        "x": 110,
+        "y": 434,
+        "w": 700,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "4",
+        "text": "ADMIN / chủ ORGANIZER check-in\nTicket VALID → USED",
+        "x": 110,
+        "y": 552,
+        "w": 700,
+        "h": 80,
+        "kind": "guard"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2"
+      },
+      {
+        "from": "2",
+        "to": "3"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "inventory": {
+    "title": "Counter tồn kho trong working tree",
+    "description": "Confirm và cancel/expire là các nhánh thay thế của pending, không phải lần lượt confirm rồi cancel. soldQuantity đang đếm chỗ chiếm, gồm pending.",
+    "size": [
+      920,
+      700
+    ],
+    "nodes": [
+      {
+        "id": "0",
+        "text": "Khả dụng = quantity - soldQuantity\nKhông có reservedQuantity",
+        "x": 110,
+        "y": 80,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "1",
+        "text": "Tạo pending: UPDATE tăng soldQuantity nếu đủ\nReserve và save booking trong một transaction",
+        "x": 110,
+        "y": 210,
+        "w": 700,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "2",
+        "text": "Confirm payment\nGiữ counter → CONFIRMED",
+        "x": 30,
+        "y": 370,
+        "w": 400,
+        "h": 90,
+        "kind": "normal"
+      },
+      {
+        "id": "3",
+        "text": "Cancel / expire pending\nKhóa type, trừ counter",
+        "x": 490,
+        "y": 370,
+        "w": 400,
+        "h": 90,
+        "kind": "normal"
+      },
+      {
+        "id": "4",
+        "text": "Cần kiểm chứng cạnh tranh state Booking\nLock TicketType chưa bảo đảm release chỉ một lần",
+        "x": 110,
+        "y": 550,
+        "w": 700,
+        "h": 80,
+        "kind": "risk"
+      }
+    ],
+    "edges": [
+      {
+        "from": "0",
+        "to": "1"
+      },
+      {
+        "from": "1",
+        "to": "2",
+        "label": "Thanh toán",
+        "labelAt": [
+          230,
+          345
+        ]
+      },
+      {
+        "from": "1",
+        "to": "3",
+        "label": "Hủy / hết hạn",
+        "labelAt": [
+          690,
+          345
+        ]
+      },
+      {
+        "from": "2",
+        "to": "4"
+      },
+      {
+        "from": "3",
+        "to": "4"
+      }
+    ]
+  },
+  "modules": {
+    "title": "Phụ thuộc module đáng chú ý",
+    "description": "Mũi tên là phụ thuộc source, không phải giao tiếp qua mạng. Payment gọi TicketService; WaitlistOffer gọi BookingService; Booking dùng TicketTypeRepository.",
+    "size": [
+      920,
+      660
+    ],
+    "nodes": [
+      {
+        "id": "w",
+        "text": "waitlist",
+        "x": 50,
+        "y": 90,
+        "w": 360,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "p",
+        "text": "payment",
+        "x": 510,
+        "y": 90,
+        "w": 360,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b",
+        "text": "booking",
+        "x": 50,
+        "y": 270,
+        "w": 360,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "t",
+        "text": "ticketing",
+        "x": 510,
+        "y": 270,
+        "w": 360,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "tt",
+        "text": "ticket / event / user\nEntity và repository dùng chéo",
+        "x": 110,
+        "y": 450,
+        "w": 700,
+        "h": 100,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "w",
+        "to": "b",
+        "label": "BookingService",
+        "labelAt": [
+          230,
+          228
+        ]
+      },
+      {
+        "from": "p",
+        "to": "t",
+        "label": "TicketService",
+        "labelAt": [
+          690,
+          228
+        ]
+      },
+      {
+        "from": "b",
+        "to": "tt"
+      },
+      {
+        "from": "t",
+        "to": "tt"
+      }
+    ]
+  },
+  "entities": {
+    "title": "ER: quan hệ JPA theo từng khóa ngoại",
+    "description": "Bảng cha bên trái, bảng con sở hữu FK bên phải. convertedBookingId không có FK khai báo nên không vẽ cạnh.",
+    "size": [
+      920,
+      1380
+    ],
+    "nodes": [
+      {
+        "id": "a0",
+        "text": "users",
+        "x": 25,
+        "y": 80,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b0",
+        "text": "events",
+        "x": 615,
+        "y": 80,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a1",
+        "text": "events",
+        "x": 25,
+        "y": 180,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b1",
+        "text": "ticket_types",
+        "x": 615,
+        "y": 180,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a2",
+        "text": "users",
+        "x": 25,
+        "y": 280,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b2",
+        "text": "bookings",
+        "x": 615,
+        "y": 280,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a3",
+        "text": "bookings",
+        "x": 25,
+        "y": 380,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b3",
+        "text": "booking_items",
+        "x": 615,
+        "y": 380,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a4",
+        "text": "ticket_types",
+        "x": 25,
+        "y": 480,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b4",
+        "text": "booking_items",
+        "x": 615,
+        "y": 480,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a5",
+        "text": "bookings",
+        "x": 25,
+        "y": 580,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b5",
+        "text": "payments",
+        "x": 615,
+        "y": 580,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a6",
+        "text": "bookings",
+        "x": 25,
+        "y": 680,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b6",
+        "text": "issued_tickets",
+        "x": 615,
+        "y": 680,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a7",
+        "text": "ticket_types",
+        "x": 25,
+        "y": 780,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b7",
+        "text": "issued_tickets",
+        "x": 615,
+        "y": 780,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a8",
+        "text": "users",
+        "x": 25,
+        "y": 880,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b8",
+        "text": "issued_tickets",
+        "x": 615,
+        "y": 880,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a9",
+        "text": "users",
+        "x": 25,
+        "y": 980,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b9",
+        "text": "waitlist_entries",
+        "x": 615,
+        "y": 980,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a10",
+        "text": "ticket_types",
+        "x": 25,
+        "y": 1080,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b10",
+        "text": "waitlist_entries",
+        "x": 615,
+        "y": 1080,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a11",
+        "text": "waitlist_entries",
+        "x": 25,
+        "y": 1180,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b11",
+        "text": "waitlist_offers",
+        "x": 615,
+        "y": 1180,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "a12",
+        "text": "ticket_types",
+        "x": 25,
+        "y": 1280,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      },
+      {
+        "id": "b12",
+        "text": "waitlist_offers",
+        "x": 615,
+        "y": 1280,
+        "w": 280,
+        "h": 65,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a0",
+        "to": "b0",
+        "horizontal": true,
+        "label": "organizer_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          104
+        ]
+      },
+      {
+        "from": "a1",
+        "to": "b1",
+        "horizontal": true,
+        "label": "event_id · 0..1 → 0..N",
+        "labelAt": [
+          460,
+          204
+        ]
+      },
+      {
+        "from": "a2",
+        "to": "b2",
+        "horizontal": true,
+        "label": "customer_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          304
+        ]
+      },
+      {
+        "from": "a3",
+        "to": "b3",
+        "horizontal": true,
+        "label": "booking_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          404
+        ]
+      },
+      {
+        "from": "a4",
+        "to": "b4",
+        "horizontal": true,
+        "label": "ticket_type_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          504
+        ]
+      },
+      {
+        "from": "a5",
+        "to": "b5",
+        "horizontal": true,
+        "label": "booking_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          604
+        ]
+      },
+      {
+        "from": "a6",
+        "to": "b6",
+        "horizontal": true,
+        "label": "booking_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          704
+        ]
+      },
+      {
+        "from": "a7",
+        "to": "b7",
+        "horizontal": true,
+        "label": "ticket_type_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          804
+        ]
+      },
+      {
+        "from": "a8",
+        "to": "b8",
+        "horizontal": true,
+        "label": "customer_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          904
+        ]
+      },
+      {
+        "from": "a9",
+        "to": "b9",
+        "horizontal": true,
+        "label": "customer_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          1004
+        ]
+      },
+      {
+        "from": "a10",
+        "to": "b10",
+        "horizontal": true,
+        "label": "ticket_type_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          1104
+        ]
+      },
+      {
+        "from": "a11",
+        "to": "b11",
+        "horizontal": true,
+        "label": "waitlist_entry_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          1204
+        ]
+      },
+      {
+        "from": "a12",
+        "to": "b12",
+        "horizontal": true,
+        "label": "ticket_type_id · 1 → 0..N",
+        "labelAt": [
+          460,
+          1304
+        ]
+      }
+    ]
+  },
+  "states": {
+    "title": "Các cạnh chuyển trạng thái đã có",
+    "description": "Mỗi dòng là một cạnh của vòng đời. Entry OFFERED thành CONVERTED, SKIPPED hoặc EXPIRED cùng offer; enum chưa có flow không được vẽ.",
+    "size": [
+      920,
+      1165
+    ],
+    "nodes": [
+      {
+        "id": "a0",
+        "text": "Event DRAFT",
+        "x": 20,
+        "y": 85,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b0",
+        "text": "Event PUBLISHED",
+        "x": 600,
+        "y": 85,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a1",
+        "text": "Event DRAFT / PUBLISHED",
+        "x": 20,
+        "y": 205,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b1",
+        "text": "Event CANCELLED",
+        "x": 600,
+        "y": 205,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a2",
+        "text": "Event PUBLISHED",
+        "x": 20,
+        "y": 325,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b2",
+        "text": "Event COMPLETED",
+        "x": 600,
+        "y": 325,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a3",
+        "text": "Booking PENDING_PAYMENT",
+        "x": 20,
+        "y": 445,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b3",
+        "text": "Booking CONFIRMED",
+        "x": 600,
+        "y": 445,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a4",
+        "text": "Booking PENDING_PAYMENT",
+        "x": 20,
+        "y": 565,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b4",
+        "text": "Booking CANCELLED / EXPIRED",
+        "x": 600,
+        "y": 565,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a5",
+        "text": "Ticket VALID",
+        "x": 20,
+        "y": 685,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b5",
+        "text": "Ticket USED",
+        "x": 600,
+        "y": 685,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a6",
+        "text": "Entry WAITING",
+        "x": 20,
+        "y": 805,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b6",
+        "text": "Entry OFFERED",
+        "x": 600,
+        "y": 805,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a7",
+        "text": "Offer CREATED",
+        "x": 20,
+        "y": 925,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b7",
+        "text": "Offer CONVERTED_TO_BOOKING",
+        "x": 600,
+        "y": 925,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      },
+      {
+        "id": "a8",
+        "text": "Offer CREATED",
+        "x": 20,
+        "y": 1045,
+        "w": 300,
+        "h": 80,
+        "kind": "normal"
+      },
+      {
+        "id": "b8",
+        "text": "Offer SKIPPED / EXPIRED",
+        "x": 600,
+        "y": 1045,
+        "w": 300,
+        "h": 80,
+        "kind": "data"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a0",
+        "to": "b0",
+        "horizontal": true,
+        "label": "publish có kiểm tra quyền/thời gian",
+        "labelAt": [
+          460,
+          76
+        ]
+      },
+      {
+        "from": "a1",
+        "to": "b1",
+        "horizontal": true,
+        "label": "cancel có quyền",
+        "labelAt": [
+          460,
+          196
+        ]
+      },
+      {
+        "from": "a2",
+        "to": "b2",
+        "horizontal": true,
+        "label": "scheduler, endAt trước now",
+        "labelAt": [
+          460,
+          316
+        ]
+      },
+      {
+        "from": "a3",
+        "to": "b3",
+        "horizontal": true,
+        "label": "ADMIN confirm",
+        "labelAt": [
+          460,
+          436
+        ]
+      },
+      {
+        "from": "a4",
+        "to": "b4",
+        "horizontal": true,
+        "label": "hủy / scheduler, trả tồn kho",
+        "labelAt": [
+          460,
+          556
+        ]
+      },
+      {
+        "from": "a5",
+        "to": "b5",
+        "horizontal": true,
+        "label": "check-in có quyền",
+        "labelAt": [
+          460,
+          676
+        ]
+      },
+      {
+        "from": "a6",
+        "to": "b6",
+        "horizontal": true,
+        "label": "service tạo offer",
+        "labelAt": [
+          460,
+          796
+        ]
+      },
+      {
+        "from": "a7",
+        "to": "b7",
+        "horizontal": true,
+        "label": "accept còn hạn → booking pending",
+        "labelAt": [
+          460,
+          916
+        ]
+      },
+      {
+        "from": "a8",
+        "to": "b8",
+        "horizontal": true,
+        "label": "skip / expire",
+        "labelAt": [
+          460,
+          1036
+        ]
+      }
+    ]
+  }
+}

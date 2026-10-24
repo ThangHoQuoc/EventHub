@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="606" viewBox="0 0 880 606" role="img">
+<title>Phạm vi khóa idempotency provider + reference</title><desc>Đọc key và booking trước. Cùng booking được khóa trước lookup; cùng key khác booking dựa vào unique DB và chưa chuẩn hóa lỗi collision.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="606" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Phạm vi khóa idempotency provider + reference</tspan>
+</text>
+<rect x="28.0" y="106" width="264.6666666666667" height="94" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-0"/>
+<text x="42.0" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-0">
+<tspan x="42.0" dy="0">Request so với payment</tspan>
+<tspan x="42.0" dy="28.35">cũ</tspan>
+</text>
+<rect x="302.6666666666667" y="106" width="264.6666666666667" height="94" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-1"/>
+<text x="316.6666666666667" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-1">
+<tspan x="316.6666666666667" dy="0">Tuần tự</tspan>
+</text>
+<rect x="577.3333333333334" y="106" width="264.6666666666667" height="94" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-2"/>
+<text x="591.3333333333334" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-2">
+<tspan x="591.3333333333334" dy="0">Đồng thời</tspan>
+</text>
+<rect x="28.0" y="218" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-0"/>
+<text x="42.0" y="250" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-0">
+<tspan x="42.0" dy="0">cùng key / cùng</tspan>
+<tspan x="42.0" dy="29.700000000000003">booking</tspan>
+</text>
+<rect x="302.6666666666667" y="218" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-1"/>
+<text x="316.6666666666667" y="250" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-1">
+<tspan x="316.6666666666667" dy="0">trả SUCCESS cũ</tspan>
+</text>
+<rect x="577.3333333333334" y="218" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-2"/>
+<text x="591.3333333333334" y="250" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-2">
+<tspan x="591.3333333333334" dy="0">khóa Booking; chờ rồi</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">replay</tspan>
+</text>
+<rect x="28.0" y="344" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-0"/>
+<text x="42.0" y="376" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-0">
+<tspan x="42.0" dy="0">cùng key / khác</tspan>
+<tspan x="42.0" dy="29.700000000000003">booking</tspan>
+</text>
+<rect x="302.6666666666667" y="344" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-1"/>
+<text x="316.6666666666667" y="376" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-1">
+<tspan x="316.6666666666667" dy="0">từ chối</tspan>
+</text>
+<rect x="577.3333333333334" y="344" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-2"/>
+<text x="591.3333333333334" y="376" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-2">
+<tspan x="591.3333333333334" dy="0">UNIQUE không tự chọn</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">response</tspan>
+</text>
+<rect x="28.0" y="470" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-0"/>
+<text x="42.0" y="502" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-0">
+<tspan x="42.0" dy="0">khác key / cùng</tspan>
+<tspan x="42.0" dy="29.700000000000003">booking</tspan>
+</text>
+<rect x="302.6666666666667" y="470" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-1"/>
+<text x="316.6666666666667" y="502" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-1">
+<tspan x="316.6666666666667" dy="0">pending guard có tác</tspan>
+<tspan x="316.6666666666667" dy="29.700000000000003">dụng</tspan>
+</text>
+<rect x="577.3333333333334" y="470" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-2"/>
+<text x="591.3333333333334" y="502" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-2">
+<tspan x="591.3333333333334" dy="0">khóa Booking; chỉ một</tspan>
+<tspan x="591.3333333333334" dy="29.700000000000003">confirm</tspan>
+</text>
+</svg>

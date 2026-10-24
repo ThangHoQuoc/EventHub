@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="670" viewBox="0 0 920 670" role="img" aria-labelledby="title desc">
+<title id="title">Accept offer thành booking pending</title>
+<desc id="desc">Expired accept gọi expire rồi throw có thể rollback; sơ đồ chỉ mô tả nhánh accept thành công và replay.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#526579"/></marker></defs>
+<rect width="100%" height="100%" fill="#f6f8fc"/>
+<g font-family="Segoe UI, Arial, sans-serif">
+<text x="460.0" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#142c46">Accept offer thành booking pending</text>
+<path d="M460.0,160 L460.0,179.0 L460.0,179.0 L460.0,190" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,278 L460.0,297.0 L460.0,297.0 L460.0,308" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,396 L460.0,415.0 L460.0,415.0 L460.0,426" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M460.0,514 L460.0,533.0 L460.0,533.0 L460.0,544" fill="none" stroke="#526579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="110" y="80" width="700" height="80" rx="12" fill="#fff1d9" stroke="#ad791e" stroke-width="1.6"/>
+<text x="460.0" y="115.0" text-anchor="middle" font-size="17" fill="#18334e">POST /waitlist-offers/{offerId}/accept</text>
+<text x="460.0" y="137.0" text-anchor="middle" font-size="17" fill="#18334e">CUSTOMER phải sở hữu offer</text>
+<rect x="110" y="198" width="700" height="80" rx="12" fill="#fff1d9" stroke="#ad791e" stroke-width="1.6"/>
+<text x="460.0" y="233.0" text-anchor="middle" font-size="17" fill="#18334e">Đã CONVERTED_TO_BOOKING → trả cũ</text>
+<text x="460.0" y="255.0" text-anchor="middle" font-size="17" fill="#18334e">Nhánh mới phải CREATED và còn hạn</text>
+<rect x="110" y="316" width="700" height="80" rx="12" fill="#e8f1fc" stroke="#3872ac" stroke-width="1.6"/>
+<text x="460.0" y="351.0" text-anchor="middle" font-size="17" fill="#18334e">BookingService.createBooking(type, quantity)</text>
+<text x="460.0" y="373.0" text-anchor="middle" font-size="17" fill="#18334e">Offer chưa giữ chỗ; bước này mới atomic reserve</text>
+<rect x="110" y="434" width="700" height="80" rx="12" fill="#e0f4ed" stroke="#24836d" stroke-width="1.6"/>
+<text x="460.0" y="469.0" text-anchor="middle" font-size="17" fill="#18334e">Offer CONVERTED_TO_BOOKING</text>
+<text x="460.0" y="491.0" text-anchor="middle" font-size="17" fill="#18334e">acceptedAt + convertedBookingId; entry CONVERTED</text>
+<rect x="110" y="552" width="700" height="80" rx="12" fill="#fce8e6" stroke="#b65349" stroke-width="1.6"/>
+<text x="460.0" y="587.0" text-anchor="middle" font-size="17" fill="#18334e">Commit nhóm thay đổi → response có bookingId</text>
+<text x="460.0" y="609.0" text-anchor="middle" font-size="17" fill="#18334e">Lỗi booking → rollback; chưa có runtime caller cấp offer</text>
+<text x="460.0" y="652" text-anchor="middle" font-size="13" fill="#53667b">Working tree 09/10/2026 · Mũi tên theo quan hệ/luồng được ghi trong bài</text>
+</g></svg>

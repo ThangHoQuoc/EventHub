@@ -1,0 +1,24 @@
+%% Accept offer: replay, deadline và cơ hội đặt
+%% WaitlistOfferServiceImpl.acceptOffer · offer chưa reserve
+flowchart TD
+    N0["CUSTOMER; khóa TicketType → Offer; kiểm chủ"]
+    N0 -->|"Tiếp"| N1
+    B0["Thiếu offer/sai chủ → lỗi"]
+    N0 -->|"Không đạt"| B0
+    N1{"Offer CONVERTED_TO_BOOKING?"}
+    N1 -->|"Chưa"| N2
+    B1["Trả response cũ"]
+    N1 -->|"Đã converted"| B1
+    N2{"Offer đang CREATED?"}
+    N2 -->|"Đúng"| N3
+    B2["INVALID_REQUEST"]
+    N2 -->|"Không"| B2
+    N3{"expiresAt còn sau now?"}
+    N3 -->|"Còn hạn"| N4
+    B3["Commit EXPIRED; trả INVALID_REQUEST"]
+    N3 -->|"Hết hạn"| B3
+    N4["BookingService.createBooking(type, quantity)"]
+    N4 -->|"Tiếp"| N5
+    B4["Hết chỗ/Event sai → rollback accept"]
+    N4 -->|"Thất bại"| B4
+    N5["Offer CONVERTED_TO_BOOKING; Entry CONVERTED → save"]

@@ -1694,6 +1694,9 @@ Deferred:
 
 # 20. Phase 8 — Smart Waitlist
 
+Cập nhật working tree 19/10/2026: đã nối trả chỗ với cấp offer, khóa transition, commit nhánh hết hạn và đối soát định kỳ. Xem [kiểm chứng Phase 8](project/phase-8-verification.md) và [ADR-006](decisions/ADR-006-waitlist-runtime-and-offer-transitions.md). Offer vẫn chưa giữ chỗ; notification thuộc Phase 9.
+
+
 Status: **DONE / substantially implemented**
 
 Smart Waitlist should be implemented after Booking, Payment, and Ticket inventory rules are stable.

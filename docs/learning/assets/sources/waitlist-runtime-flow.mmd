@@ -1,0 +1,24 @@
+%% Trả chỗ đến offer tự động
+%% AFTER_COMMIT + transaction mới; job 60 giây đối soát
+flowchart TD
+    N0["Booking cancel/expiry: trả chỗ và commit"]
+    N0 -->|"Tiếp"| N1
+    N1["Availability event AFTER_COMMIT → dispatcher REQUIRES_NEW"]
+    N1 -->|"Tiếp"| N2
+    N2{"Khóa TicketType; Event PUBLISHED?"}
+    N2 -->|"Đúng"| N3
+    B2["Không cấp offer"]
+    N2 -->|"Không"| B2
+    N3{"Budget = available - CREATED offers > 0?"}
+    N3 -->|"Còn"| N4
+    B3["Kết thúc; chờ thay đổi khác"]
+    N3 -->|"Hết"| B3
+    N4{"WAITING đủ quantity? sort createdAt rồi ID"}
+    N4 -->|"Có"| N5
+    B4["Kết thúc; không hứa strict FIFO"]
+    N4 -->|"Không"| B4
+    N5["Entry OFFERED; Offer CREATED; deadline = now + TTL"]
+    N5 -->|"Tiếp"| N6
+    N6["Giảm budget; lặp chọn đến khi không còn entry phù hợp"]
+    N6 -->|"Tiếp"| N7
+    N7["Commit; customer xem offer → accept qua Booking"]

@@ -1,0 +1,15 @@
+%% Accept: reuse Booking trong transaction đang có
+%% acceptOffer · nhánh CREATED còn hạn và caller đúng chủ
+sequenceDiagram
+    autonumber
+    participant P0 as WaitlistOfferServiceImpl
+    participant P1 as BookingService
+    participant P2 as WaitlistOfferRepository
+    Note over P0,P2: Đã khóa TicketType và Offer; chưa reserve inventory
+    P0->>P1: createBooking(one-item request)
+    P1-->>P0: BookingResponse hoặc AppException
+    Note over P0,P2: Thành công: offer converted/acceptedAt/bookingId; entry CONVERTED
+    Note over P0,P2: WaitlistEntryRepository.save(entry) trong cùng operation
+    P0->>P2: save(offer)
+    P2-->>P0: offer → response
+    Note over P0,P2: Proxy ngoài commit khi thành công; lần accept sau trả cùng bookingId

@@ -1,0 +1,20 @@
+%% Request: dừng ở tầng nào, handler nào trả lỗi?
+%% Request bảo vệ · những boundary đã có handler
+flowchart TD
+    N0["HTTP request → JwtAuthenticationFilter"]
+    N0 -->|"Tiếp"| N1
+    N1{"Qua xác thực/quyền security?"}
+    N1 -->|"Qua"| N2
+    B1["EntryPoint 401 / DeniedHandler 403"]
+    N1 -->|"Bị chặn"| B1
+    N2{"MVC bind/@Valid hợp lệ?"}
+    N2 -->|"Đạt"| N3
+    B2["Advice: HTTP400/code1007, field map"]
+    N2 -->|"Validation"| B2
+    N3{"Service qua business guards?"}
+    N3 -->|"Qua"| N4
+    B3["AppException → advice theo ErrorCode"]
+    N3 -->|"Vi phạm"| B3
+    N4["Persistence nếu use case cần; transaction theo service"]
+    N4 -->|"Tiếp"| N5
+    N5["Controller response; HTTP status riêng với application code"]

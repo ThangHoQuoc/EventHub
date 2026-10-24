@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="1350" viewBox="0 0 880 1350" role="img">
+<title>Accept: reuse Booking trong transaction đang có</title><desc>BookingService dùng current customer của request accept. Chỉ sau booking thành công mới ghi convertedBookingId và các state converted; lỗi booking làm operation accept rollback.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="1350" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Accept: reuse Booking trong transaction đang có</tspan>
+</text>
+<text x="28" y="92" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="28" dy="0">acceptOffer · nhánh CREATED còn hạn và caller đúng chủ</tspan>
+</text>
+<rect x="20" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-0"/>
+<text x="132" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-0">
+<tspan x="132" dy="0">WaitlistOffer</tspan>
+<tspan x="132" dy="27.0">ServiceImpl</tspan>
+</text>
+<path d="M132 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="328" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-1"/>
+<text x="440" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-1">
+<tspan x="440" dy="0">BookingService</tspan>
+</text>
+<path d="M440 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="636" y="140" width="224" height="80" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="actor-2"/>
+<text x="748" y="172" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#172b45" text-anchor="middle" data-owner="actor-2">
+<tspan x="748" dy="0">WaitlistOffer</tspan>
+<tspan x="748" dy="27.0">Repository</tspan>
+</text>
+<path d="M748 220 V1322" stroke="#bacdde" stroke-width="2" stroke-dasharray="5 6"/>
+<rect x="28" y="258" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-0"/>
+<text x="46" y="288" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-0">
+<tspan x="46" dy="0">Đã khóa TicketType và Offer; chưa reserve inventory</tspan>
+</text>
+<path d="M132 496 L440 496" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="286.0" y="412" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="286.0" dy="0">createBooking(one-item</tspan>
+<tspan x="286.0" dy="28.35">request)</tspan>
+</text>
+<path d="M440 630 L132 630" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="286.0" y="546" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="286.0" dy="0">BookingResponse hoặc</tspan>
+<tspan x="286.0" dy="28.35">AppException</tspan>
+</text>
+<rect x="28" y="660" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-3"/>
+<text x="46" y="690" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-3">
+<tspan x="46" dy="0">Thành công: offer converted/acceptedAt/bookingId; entry CONVERTED</tspan>
+</text>
+<rect x="28" y="794" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-4"/>
+<text x="46" y="824" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-4">
+<tspan x="46" dy="0">WaitlistEntryRepository.save(entry) trong cùng operation</tspan>
+</text>
+<path d="M132 1032 L748 1032" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="440.0" y="948" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="440.0" dy="0">save(offer)</tspan>
+</text>
+<path d="M748 1166 L132 1166" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="440.0" y="1082" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="middle">
+<tspan x="440.0" dy="0">offer → response</tspan>
+</text>
+<rect x="28" y="1196" width="824" height="98" rx="10" fill="#f0f5fa" stroke="#bacdde" stroke-width="1.5" id="note-7"/>
+<text x="46" y="1226" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#172b45" text-anchor="start" data-owner="note-7">
+<tspan x="46" dy="0">Proxy ngoài commit khi thành công; lần accept sau trả cùng</tspan>
+<tspan x="46" dy="28.35">bookingId</tspan>
+</text>
+</svg>

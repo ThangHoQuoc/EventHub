@@ -1,0 +1,20 @@
+%% Phát hành: từ số lượng thành từng vé
+%% TicketServiceImpl.issueTicketsForBooking · payment gọi nội bộ
+flowchart TD
+    N0{"Booking CONFIRMED, customer/items hợp lệ?"}
+    N0 -->|"Đạt"| N1
+    B0["INVALID_REQUEST"]
+    N0 -->|"Không"| B0
+    N1{"findByBookingId: đã có bất kỳ Ticket?"}
+    N1 -->|"Chưa có"| N2
+    B1["Trả existing list; chưa kiểm đủ số lượng"]
+    N1 -->|"Đã có"| B1
+    N2["LOOP items: validateBookingItem"]
+    N2 -->|"Tiếp"| N3
+    B2["Item sai → AppException"]
+    N2 -->|"Sai"| B2
+    N3["LOOP quantity: code EVH-bookingId-sequence; payload; VALID"]
+    N3 -->|"Tiếp"| N4
+    N4["Gán booking/type/customer → saveAll(tickets)"]
+    N4 -->|"Tiếp"| N5
+    N5["Map TicketResponse; cùng transaction caller"]

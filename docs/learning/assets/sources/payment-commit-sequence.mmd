@@ -1,0 +1,14 @@
+%% Payment: phát vé trước khi transaction hoàn tất
+%% confirmPayment · đã khóa Booking, key mới, trạng thái pending
+sequenceDiagram
+    autonumber
+    participant P0 as PaymentServiceImpl
+    participant P1 as PaymentRepository
+    participant P2 as TicketService
+    Note over P0,P2: Transaction confirm: Booking CONFIRMED → BookingRepository.save
+    Note over P0,P2: Payment SUCCESS; amount lấy Booking.totalAmount; không tăng tồn
+    P0->>P1: save(payment)
+    P1-->>P0: savedPayment; chưa kết luận commit
+    P0->>P2: issueTicketsForBooking(booking)
+    P2-->>P0: vé được tạo hoặc RuntimeException
+    Note over P0,P2: Thành công → DTO/commit; lỗi unchecked → rollback booking/payment/tickets

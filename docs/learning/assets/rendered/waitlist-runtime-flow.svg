@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="1744" viewBox="0 0 880 1744" role="img">
+<title>Trả chỗ đến offer tự động</title><desc>Booking rollback không cấp offer. Dispatcher chỉ chạy sau commit hoặc qua job phục hồi, khóa TicketType trước khi tính budget và chọn entry. Offer không reserve.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="1744" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">Trả chỗ đến offer tự động</tspan>
+</text>
+<text x="28" y="92" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="28" dy="0">AFTER_COMMIT + transaction mới; job 60 giây đối soát</tspan>
+</text>
+<rect x="38" y="156" width="478" height="146" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="node-0"/>
+<text x="56" y="183" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-0">
+<tspan x="56" dy="0">01  THAO TÁC</tspan>
+</text>
+<text x="56" y="214" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-0">
+<tspan x="56" dy="0">Booking cancel/expiry: trả chỗ và</tspan>
+<tspan x="56" dy="29.700000000000003">commit</tspan>
+</text>
+<path d="M277.0 302 L277.0 350" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="336" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Tiếp</tspan>
+</text>
+<rect x="38" y="350" width="478" height="146" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="node-1"/>
+<text x="56" y="377" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-1">
+<tspan x="56" dy="0">02  THAO TÁC</tspan>
+</text>
+<text x="56" y="408" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-1">
+<tspan x="56" dy="0">Availability event AFTER_COMMIT →</tspan>
+<tspan x="56" dy="29.700000000000003">dispatcher REQUIRES_NEW</tspan>
+</text>
+<path d="M277.0 496 L277.0 544" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="530" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Tiếp</tspan>
+</text>
+<path id="node-2" d="M60 544 H494 L516 566 V668 L494 690 H60 L38 668 V566Z" fill="#e9f2fb" stroke="#54728f" stroke-width="2"/>
+<text x="56" y="571" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-2">
+<tspan x="56" dy="0">03  ĐIỀU KIỆN</tspan>
+</text>
+<text x="56" y="602" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-2">
+<tspan x="56" dy="0">Khóa TicketType; Event PUBLISHED?</tspan>
+</text>
+<path d="M277.0 690 L277.0 738" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="724" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Đúng</tspan>
+</text>
+<rect x="620" y="544" width="230" height="146" rx="10" fill="#e9f2fb" stroke="#54728f" stroke-width="1.5" id="branch-2"/>
+<text x="632" y="574" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#172b45" text-anchor="start" data-owner="branch-2">
+<tspan x="632" dy="0">Không cấp offer</tspan>
+</text>
+<path d="M516 617.0 L620 617.0" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="568.0" y="603.0" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#54728f" text-anchor="middle">
+<tspan x="568.0" dy="0">Không</tspan>
+</text>
+<path id="node-3" d="M60 738 H494 L516 760 V862 L494 884 H60 L38 862 V760Z" fill="#e9f2fb" stroke="#54728f" stroke-width="2"/>
+<text x="56" y="765" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-3">
+<tspan x="56" dy="0">04  ĐIỀU KIỆN</tspan>
+</text>
+<text x="56" y="796" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-3">
+<tspan x="56" dy="0">Budget = available - CREATED offers</tspan>
+<tspan x="56" dy="29.700000000000003">&gt; 0?</tspan>
+</text>
+<path d="M277.0 884 L277.0 932" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="918" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Còn</tspan>
+</text>
+<rect x="620" y="738" width="230" height="146" rx="10" fill="#e9f2fb" stroke="#54728f" stroke-width="1.5" id="branch-3"/>
+<text x="632" y="768" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#172b45" text-anchor="start" data-owner="branch-3">
+<tspan x="632" dy="0">Kết thúc; chờ thay</tspan>
+<tspan x="632" dy="27.0">đổi khác</tspan>
+</text>
+<path d="M516 811.0 L620 811.0" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="568.0" y="797.0" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#54728f" text-anchor="middle">
+<tspan x="568.0" dy="0">Hết</tspan>
+</text>
+<path id="node-4" d="M60 932 H494 L516 954 V1056 L494 1078 H60 L38 1056 V954Z" fill="#e9f2fb" stroke="#54728f" stroke-width="2"/>
+<text x="56" y="959" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-4">
+<tspan x="56" dy="0">05  ĐIỀU KIỆN</tspan>
+</text>
+<text x="56" y="990" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-4">
+<tspan x="56" dy="0">WAITING đủ quantity? sort createdAt</tspan>
+<tspan x="56" dy="29.700000000000003">rồi ID</tspan>
+</text>
+<path d="M277.0 1078 L277.0 1126" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="1112" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Có</tspan>
+</text>
+<rect x="620" y="932" width="230" height="146" rx="10" fill="#e9f2fb" stroke="#54728f" stroke-width="1.5" id="branch-4"/>
+<text x="632" y="962" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#172b45" text-anchor="start" data-owner="branch-4">
+<tspan x="632" dy="0">Kết thúc; không hứa</tspan>
+<tspan x="632" dy="27.0">strict FIFO</tspan>
+</text>
+<path d="M516 1005.0 L620 1005.0" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="568.0" y="991.0" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#54728f" text-anchor="middle">
+<tspan x="568.0" dy="0">Không</tspan>
+</text>
+<rect x="38" y="1126" width="478" height="146" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="node-5"/>
+<text x="56" y="1153" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-5">
+<tspan x="56" dy="0">06  THAO TÁC</tspan>
+</text>
+<text x="56" y="1184" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-5">
+<tspan x="56" dy="0">Entry OFFERED; Offer CREATED;</tspan>
+<tspan x="56" dy="29.700000000000003">deadline = now + TTL</tspan>
+</text>
+<path d="M277.0 1272 L277.0 1320" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="1306" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Tiếp</tspan>
+</text>
+<rect x="38" y="1320" width="478" height="146" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="node-6"/>
+<text x="56" y="1347" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-6">
+<tspan x="56" dy="0">07  THAO TÁC</tspan>
+</text>
+<text x="56" y="1378" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-6">
+<tspan x="56" dy="0">Giảm budget; lặp chọn đến khi không</tspan>
+<tspan x="56" dy="29.700000000000003">còn entry phù hợp</tspan>
+</text>
+<path d="M277.0 1466 L277.0 1514" fill="none" stroke="#54728f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="291.0" y="1500" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="291.0" dy="0">Tiếp</tspan>
+</text>
+<rect x="38" y="1514" width="478" height="146" rx="10" fill="#eaf6ef" stroke="#bacdde" stroke-width="1.5" id="node-7"/>
+<text x="56" y="1541" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52667d" text-anchor="start" data-owner="node-7">
+<tspan x="56" dy="0">08  THAO TÁC</tspan>
+</text>
+<text x="56" y="1572" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="node-7">
+<tspan x="56" dy="0">Commit; customer xem offer → accept</tspan>
+<tspan x="56" dy="29.700000000000003">qua Booking</tspan>
+</text>
+<text x="28" y="1713" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#52667d" text-anchor="start">
+<tspan x="28" dy="0">Đi xuống: tiếp tục · Rẽ phải: kết quả khác và dừng nhánh đó</tspan>
+</text>
+</svg>

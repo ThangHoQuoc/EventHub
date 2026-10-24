@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="594" viewBox="0 0 880 594" role="img">
+<title>EXPIRED: lỗi nghiệp vụ vẫn commit nhánh quá hạn</title><desc>Hai đường cùng commit EXPIRED. Riêng exception hết hạn không rollback; lỗi reserve Booking vẫn rollback toàn bộ accept. Reload DB để kiểm chứng, không chỉ verify save trong mock.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="594" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">EXPIRED: lỗi nghiệp vụ vẫn commit nhánh quá hạn</tspan>
+</text>
+<rect x="28.0" y="100" width="404.0" height="460" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5"/>
+<text x="44.0" y="133" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="44.0" dy="0">acceptOffer quá hạn</tspan>
+</text>
+<rect x="40.0" y="190" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-0-0"/>
+<text x="54.0" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-0-0">
+<tspan x="54.0" dy="0">set/save offer + entry EXPIRED</tspan>
+</text>
+<rect x="40.0" y="310" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-0-1"/>
+<text x="54.0" y="342" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-0-1">
+<tspan x="54.0" dy="0">throw</tspan>
+<tspan x="54.0" dy="29.700000000000003">WaitlistOfferExpiredException</tspan>
+</text>
+<rect x="40.0" y="430" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-0-2"/>
+<text x="54.0" y="462" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-0-2">
+<tspan x="54.0" dy="0">dontRollbackOn → commit EXPIRED</tspan>
+</text>
+<rect x="448.0" y="100" width="404.0" height="460" rx="10" fill="#eaf6ef" stroke="#bacdde" stroke-width="1.5"/>
+<text x="464.0" y="133" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="464.0" dy="0">job expireCreatedOffers</tspan>
+</text>
+<rect x="460.0" y="190" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-1-0"/>
+<text x="474.0" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-1-0">
+<tspan x="474.0" dy="0">khóa Type → Offer; cutoff &lt;=</tspan>
+<tspan x="474.0" dy="29.700000000000003">now</tspan>
+</text>
+<rect x="460.0" y="310" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-1-1"/>
+<text x="474.0" y="342" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-1-1">
+<tspan x="474.0" dy="0">set/save EXPIRED</tspan>
+</text>
+<rect x="460.0" y="430" width="380.0" height="96" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="comparison-1-2"/>
+<text x="474.0" y="462" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="comparison-1-2">
+<tspan x="474.0" dy="0">commit → sự kiện cấp offer tiếp</tspan>
+</text>
+</svg>

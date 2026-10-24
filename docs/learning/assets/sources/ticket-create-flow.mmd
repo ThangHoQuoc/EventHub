@@ -1,0 +1,22 @@
+%% TicketType: cấu hình trước khi mở bán
+%% TicketTypeServiceImpl.createTicketType · không phát Ticket cá nhân
+flowchart TD
+    N0["HTTP role/@Valid → load Event và danh sách type"]
+    N0 -->|"Tiếp"| N1
+    B0["Event thiếu → EVENT_NOT_FOUND"]
+    N0 -->|"Thiếu"| B0
+    N1{"ADMIN hoặc organizer sở hữu?"}
+    N1 -->|"Có quyền"| N2
+    B1["UNAUTHORIZED"]
+    N1 -->|"Không"| B1
+    N2{"Event đang DRAFT?"}
+    N2 -->|"Đúng"| N3
+    B2["INVALID_REQUEST"]
+    N2 -->|"Không"| B2
+    N3{"Tên chưa trùng trong Event?"}
+    N3 -->|"Chưa trùng"| N4
+    B3["TICKET_TYPE_ALREADY_EXIST"]
+    N3 -->|"Trùng"| B3
+    N4["Mapper tạo type → set Event; soldQuantity=0"]
+    N4 -->|"Tiếp"| N5
+    N5["save → TicketTypeResponse; không tạo Booking/Ticket"]

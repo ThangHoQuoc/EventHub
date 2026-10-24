@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="704" viewBox="0 0 880 704" role="img">
+<title>PATCH theo trạng thái: reject khác ignore</title><desc>Chọn hàng theo field, rồi chọn cột theo state trước request. Đừng dùng null-ignore để giải thích mọi nhánh: PUBLISHED xử lý tay và từ chối time/thumbnail không-null.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#54728f"/></marker><marker id="error-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#ad4b38"/></marker></defs>
+<rect width="880" height="704" rx="12" fill="#f8fafc"/>
+<text x="28" y="38" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" fill="#172b45" text-anchor="start">
+<tspan x="28" dy="0">PATCH theo trạng thái: reject khác ignore</tspan>
+</text>
+<rect x="28.0" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-0"/>
+<text x="42.0" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-0">
+<tspan x="42.0" dy="0">Input minh họa</tspan>
+</text>
+<rect x="302.6666666666667" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-1"/>
+<text x="316.6666666666667" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-1">
+<tspan x="316.6666666666667" dy="0">DRAFT</tspan>
+</text>
+<rect x="577.3333333333334" y="106" width="264.6666666666667" height="66" rx="10" fill="#e9f2fb" stroke="#bacdde" stroke-width="1.5" id="header-2"/>
+<text x="591.3333333333334" y="137" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#172b45" text-anchor="start" data-owner="header-2">
+<tspan x="591.3333333333334" dy="0">PUBLISHED</tspan>
+</text>
+<rect x="28.0" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-0"/>
+<text x="42.0" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-0">
+<tspan x="42.0" dy="0">title=B, field khác</tspan>
+<tspan x="42.0" dy="29.700000000000003">vắng</tspan>
+</text>
+<rect x="302.6666666666667" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-1"/>
+<text x="316.6666666666667" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-1">
+<tspan x="316.6666666666667" dy="0">mapper cập nhật title</tspan>
+</text>
+<rect x="577.3333333333334" y="190" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-0-2"/>
+<text x="591.3333333333334" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-0-2">
+<tspan x="591.3333333333334" dy="0">set tay title</tspan>
+</text>
+<rect x="28.0" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-0"/>
+<text x="42.0" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-0">
+<tspan x="42.0" dy="0">startAt mới không-null</tspan>
+</text>
+<rect x="302.6666666666667" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-1"/>
+<text x="316.6666666666667" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-1">
+<tspan x="316.6666666666667" dy="0">kiểm lịch kết hợp</tspan>
+<tspan x="316.6666666666667" dy="29.700000000000003">cũ/mới</tspan>
+</text>
+<rect x="577.3333333333334" y="316" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-1-2"/>
+<text x="591.3333333333334" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-1-2">
+<tspan x="591.3333333333334" dy="0">từ chối</tspan>
+</text>
+<rect x="28.0" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-0"/>
+<text x="42.0" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-0">
+<tspan x="42.0" dy="0">category mới</tspan>
+</text>
+<rect x="302.6666666666667" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-1"/>
+<text x="316.6666666666667" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-1">
+<tspan x="316.6666666666667" dy="0">mapper cập nhật</tspan>
+</text>
+<rect x="577.3333333333334" y="442" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-2-2"/>
+<text x="591.3333333333334" y="474" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-2-2">
+<tspan x="591.3333333333334" dy="0">bỏ qua ở nhánh này</tspan>
+</text>
+<rect x="28.0" y="568" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-3-0"/>
+<text x="42.0" y="600" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-3-0">
+<tspan x="42.0" dy="0">field=null</tspan>
+</text>
+<rect x="302.6666666666667" y="568" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-3-1"/>
+<text x="316.6666666666667" y="600" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-3-1">
+<tspan x="316.6666666666667" dy="0">mapper giữ giá trị cũ</tspan>
+</text>
+<rect x="577.3333333333334" y="568" width="264.6666666666667" height="106" rx="10" fill="white" stroke="#bacdde" stroke-width="1.5" id="cell-3-2"/>
+<text x="591.3333333333334" y="600" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#172b45" text-anchor="start" data-owner="cell-3-2">
+<tspan x="591.3333333333334" dy="0">không phải lệnh xóa</tspan>
+</text>
+</svg>

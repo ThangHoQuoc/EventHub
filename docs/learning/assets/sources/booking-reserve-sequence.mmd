@@ -1,0 +1,15 @@
+%% Booking: reserve và lưu cùng một transaction
+%% createBooking → reserveInventory · sau bước chuẩn bị
+sequenceDiagram
+    autonumber
+    participant P0 as BookingServiceImpl
+    participant P1 as TicketTypeRepository
+    participant P2 as BookingRepository
+    Note over P0,P2: Transaction ngoài bao reserve và Booking/items; chưa commit
+    Note over P0,P2: LOOP từng TicketType ID theo thứ tự sort
+    P0->>P1: reserveAvailableQuantity(id, qty)
+    P1-->>P0: JPQL conditional UPDATE → row count
+    Note over P0,P2: row count ≠ 1 → AppException → rollback; = 1 → item tiếp
+    P0->>P2: save(booking); cascade items
+    P2-->>P0: savedBooking
+    Note over P0,P2: Map DTO; transaction proxy hoàn tất thành công mới commit
