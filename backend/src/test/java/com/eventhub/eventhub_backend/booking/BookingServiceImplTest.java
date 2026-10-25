@@ -4,6 +4,7 @@ import com.eventhub.eventhub_backend.booking.dto.request.BookingItemRequest;
 import com.eventhub.eventhub_backend.booking.dto.request.CreateBookingRequest;
 import com.eventhub.eventhub_backend.booking.dto.response.BookingResponse;
 import com.eventhub.eventhub_backend.booking.entity.Booking;
+import com.eventhub.eventhub_backend.booking.entity.BookingItem;
 import com.eventhub.eventhub_backend.booking.entity.BookingStatus;
 import com.eventhub.eventhub_backend.booking.repository.BookingRepository;
 import com.eventhub.eventhub_backend.booking.service.Impl.BookingServiceImpl;
@@ -48,7 +49,8 @@ class BookingServiceImplTest {
             bookingRepository,
             ticketTypeRepository,
             userRepository,
-            currentUserService
+            currentUserService,
+            mock(org.springframework.context.ApplicationEventPublisher.class)
     );
 
     @Test
@@ -66,6 +68,7 @@ class BookingServiceImplTest {
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
         when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.reserveAvailableQuantity("ticket-type-1", 2)).thenReturn(1);
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
             Booking booking = invocation.getArgument(0);
             booking.setId("booking-1");
@@ -82,11 +85,12 @@ class BookingServiceImplTest {
         assertThat(response.getItems().getFirst().getTicketTypeId()).isEqualTo("ticket-type-1");
         assertThat(response.getItems().getFirst().getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(500000));
         assertThat(response.getItems().getFirst().getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(1000000));
+        verify(ticketTypeRepository).reserveAvailableQuantity("ticket-type-1", 2);
         verify(bookingRepository).save(any(Booking.class));
     }
 
     @Test
-    void createBooking_shouldNotIncreaseSoldQuantityForPendingPaymentBooking() {
+    void createBooking_shouldReserveInventoryForPendingPaymentBooking() {
         User customer = createCustomer("customer-1");
         TicketType vip = createTicketType("ticket-type-1", createEvent(EventStatus.PUBLISHED));
         CreateBookingRequest request = createSingleItemRequest("ticket-type-1", 2);
@@ -95,13 +99,13 @@ class BookingServiceImplTest {
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
         when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.reserveAvailableQuantity("ticket-type-1", 2)).thenReturn(1);
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingResponse response = bookingService.createBooking(request);
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING_PAYMENT);
-        assertThat(vip.getSoldQuantity()).isEqualTo(25);
-        verify(ticketTypeRepository, never()).save(any(TicketType.class));
+        verify(ticketTypeRepository).reserveAvailableQuantity("ticket-type-1", 2);
     }
 
     @Test
@@ -152,6 +156,26 @@ class BookingServiceImplTest {
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
         when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+
+        assertThatThrownBy(() -> bookingService.createBooking(request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_REQUEST);
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void createBooking_shouldRejectWhenAtomicReservationCannotReserveInventory() {
+        User customer = createCustomer("customer-1");
+        TicketType vip = createTicketType("ticket-type-1", createEvent(EventStatus.PUBLISHED));
+        CreateBookingRequest request = createSingleItemRequest("ticket-type-1", 2);
+
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
+        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.reserveAvailableQuantity("ticket-type-1", 2)).thenReturn(0);
 
         assertThatThrownBy(() -> bookingService.createBooking(request))
                 .isInstanceOf(AppException.class)
@@ -224,14 +248,19 @@ class BookingServiceImplTest {
     @Test
     void cancelBooking_shouldCancelPendingPaymentBookingForOwner() {
         Booking booking = createBooking("booking-1", "customer-1", BookingStatus.PENDING_PAYMENT);
+        TicketType ticketType = booking.getItems().getFirst().getTicketType();
+        ticketType.setSoldQuantity(27);
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(ticketType));
 
         BookingResponse response = bookingService.cancelBooking("booking-1");
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(ticketType.getSoldQuantity()).isEqualTo(25);
+        verify(ticketTypeRepository).save(ticketType);
         verify(bookingRepository).save(booking);
     }
 
@@ -241,7 +270,7 @@ class BookingServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
 
         assertThatThrownBy(() -> bookingService.cancelBooking("booking-1"))
                 .isInstanceOf(AppException.class)
@@ -249,6 +278,26 @@ class BookingServiceImplTest {
                 .isEqualTo(ErrorCode.INVALID_REQUEST);
 
         verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void expirePendingBookings_shouldExpireOldPendingBookingsAndReleaseInventory() {
+        Instant expiresBefore = Instant.now();
+        Booking booking = createBooking("booking-1", "customer-1", BookingStatus.PENDING_PAYMENT);
+        TicketType ticketType = booking.getItems().getFirst().getTicketType();
+        ticketType.setSoldQuantity(27);
+
+        when(bookingRepository.findByStatusAndCreatedAtBefore(BookingStatus.PENDING_PAYMENT, expiresBefore))
+                .thenReturn(List.of(booking));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(ticketType));
+
+        int expiredCount = bookingService.expirePendingBookings(expiresBefore);
+
+        assertThat(expiredCount).isEqualTo(1);
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.EXPIRED);
+        assertThat(ticketType.getSoldQuantity()).isEqualTo(25);
+        verify(ticketTypeRepository).save(ticketType);
+        verify(bookingRepository).saveAll(List.of(booking));
     }
 
     private CreateBookingRequest createSingleItemRequest(String ticketTypeId, int quantity) {
@@ -270,7 +319,15 @@ class BookingServiceImplTest {
                 .totalAmount(BigDecimal.valueOf(500000))
                 .build();
         booking.setId(id);
-        booking.setItems(List.of());
+        BookingItem item = BookingItem.builder()
+                .booking(booking)
+                .ticketType(ticketType)
+                .quantity(2)
+                .unitPrice(ticketType.getPrice())
+                .subtotal(ticketType.getPrice().multiply(BigDecimal.valueOf(2)))
+                .build();
+        item.setId("booking-item-1");
+        booking.setItems(List.of(item));
         return booking;
     }
 

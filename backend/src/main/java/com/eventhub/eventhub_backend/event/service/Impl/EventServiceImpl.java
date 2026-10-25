@@ -234,6 +234,22 @@ public class EventServiceImpl implements EventService {
     }
 
 
+    @Override
+    public PageResponse<EventResponse> getMyEvents(EventStatus status, String keyword, Pageable pageable) {
+        String currentUserId = currentUserService.getCurrentUserId();
+        Role role = currentUserService.getCurrentUserRole();
+
+        String filterOrganizerId = (role == Role.ADMIN) ? null : currentUserId;
+        String filterKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+
+        Page<Event> page = eventRepository.findByOrganizerAndFilters(filterOrganizerId, status, filterKeyword, pageable);
+
+        return PageResponse.<EventResponse>builder()
+                .content(page.getContent().stream().map(eventMapper::toResponse).toList())
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .build();
+    }
 }
-
-

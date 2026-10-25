@@ -52,7 +52,7 @@ public class WaitlistServiceImpl implements WaitlistService {
         String customerId = currentUserService.getCurrentUserId();
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        TicketType ticketType = ticketTypeRepository.findById(ticketTypeId)
+        TicketType ticketType = ticketTypeRepository.findByIdForUpdate(ticketTypeId)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_TYPE_NOT_FOUND));
 
         validateJoinableTicketType(ticketType);

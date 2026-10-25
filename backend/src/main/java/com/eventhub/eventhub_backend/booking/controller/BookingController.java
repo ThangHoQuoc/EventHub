@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,18 @@ public class BookingController {
         return ApiResponse.<PageResponse<BookingResponse>>builder()
                 .code(ErrorCode.SUCCESS.getCode())
                 .message("Bookings retrieved successfully")
+                .result(response)
+                .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/pending")
+    public ApiResponse<PageResponse<BookingResponse>> getPendingBookings(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PageResponse<BookingResponse> response = bookingService.getPendingBookings(pageable);
+        return ApiResponse.<PageResponse<BookingResponse>>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Pending bookings retrieved successfully")
                 .result(response)
                 .build();
     }

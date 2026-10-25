@@ -5,9 +5,8 @@ import com.eventhub.eventhub_backend.event.dto.request.CreateEventRequest;
 import com.eventhub.eventhub_backend.event.dto.request.EventSearchRequest;
 import com.eventhub.eventhub_backend.event.dto.request.UpdateEventRequest;
 import com.eventhub.eventhub_backend.event.dto.response.EventResponse;
+import com.eventhub.eventhub_backend.event.entity.EventStatus;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface EventService {
 
@@ -29,5 +28,5 @@ public interface EventService {
 
     void completeExpiredEvents();
 
-
+    PageResponse<EventResponse> getMyEvents(EventStatus status, String keyword, Pageable pageable);
 }

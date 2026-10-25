@@ -58,7 +58,7 @@ class WaitlistServiceImplTest {
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
-        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(vip));
         when(waitlistEntryRepository.existsByCustomerIdAndTicketTypeIdAndStatusIn(
                 "customer-1",
                 "ticket-type-1",
@@ -91,7 +91,7 @@ class WaitlistServiceImplTest {
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
-        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(vip));
 
         assertThatThrownBy(() -> waitlistService.joinWaitlist("ticket-type-1", request))
                 .isInstanceOf(AppException.class)
@@ -112,7 +112,7 @@ class WaitlistServiceImplTest {
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
         when(userRepository.findById("customer-1")).thenReturn(Optional.of(customer));
-        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(vip));
         when(waitlistEntryRepository.existsByCustomerIdAndTicketTypeIdAndStatusIn(
                 "customer-1",
                 "ticket-type-1",

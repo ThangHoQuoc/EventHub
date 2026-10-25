@@ -8,7 +8,9 @@ import com.eventhub.eventhub_backend.common.exception.AppException;
 import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.common.response.PageResponse;
 import com.eventhub.eventhub_backend.event.entity.Event;
+import com.eventhub.eventhub_backend.event.entity.EventStatus;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
+import com.eventhub.eventhub_backend.ticket.event.TicketAvailabilityChangedEvent;
 import com.eventhub.eventhub_backend.ticket.repository.TicketTypeRepository;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
@@ -18,16 +20,20 @@ import com.eventhub.eventhub_backend.waitlist.entity.WaitlistEntry;
 import com.eventhub.eventhub_backend.waitlist.entity.WaitlistEntryStatus;
 import com.eventhub.eventhub_backend.waitlist.entity.WaitlistOffer;
 import com.eventhub.eventhub_backend.waitlist.entity.WaitlistOfferStatus;
+import com.eventhub.eventhub_backend.waitlist.exception.WaitlistOfferExpiredException;
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistEntryRepository;
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistOfferRepository;
 import com.eventhub.eventhub_backend.waitlist.service.WaitlistOfferService;
 import jakarta.transaction.Transactional;
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -44,16 +50,34 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
     private final TicketTypeRepository ticketTypeRepository;
     private final BookingService bookingService;
     private final CurrentUserService currentUserService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${eventhub.waitlist.offer-ttl-seconds:900}")
+    private long offerTtlSeconds = 900;
+
+    @PostConstruct
+    void validateOfferTtl() {
+        if (offerTtlSeconds <= 0) {
+            throw new IllegalArgumentException("eventhub.waitlist.offer-ttl-seconds phải lớn hơn 0");
+        }
+    }
 
     @Override
     @Transactional
     public WaitlistOfferResponse createOffer(CreateWaitlistOfferRequest request) {
         validateCreateOfferRequest(request);
 
+        String typeId = waitlistEntryRepository.findTicketTypeIdById(request.getWaitlistEntryId())
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        TicketType type = lockTicketType(typeId);
         WaitlistEntry entry = waitlistEntryRepository.findById(request.getWaitlistEntryId())
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
         validateOfferableEntry(entry, request);
+
+        if (!isPublished(type) || request.getQuantity() > calculateOfferBudget(type)) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
 
         if (waitlistOfferRepository.existsByWaitlistEntryIdAndStatus(
                 entry.getId(),
@@ -85,7 +109,7 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
     }
 
     @Override
-    @Transactional
+    @Transactional(dontRollbackOn = WaitlistOfferExpiredException.class)
     public WaitlistOfferResponse acceptOffer(String offerId) {
         requireCustomer();
 
@@ -102,7 +126,8 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
 
         if (!offer.getExpiresAt().isAfter(Instant.now())) {
             expireOffer(offer);
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+            eventPublisher.publishEvent(new TicketAvailabilityChangedEvent(offer.getTicketType().getId()));
+            throw new WaitlistOfferExpiredException();
         }
 
         BookingResponse booking = bookingService.createBooking(CreateBookingRequest.builder()
@@ -143,7 +168,9 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
         entry.setStatus(WaitlistEntryStatus.SKIPPED);
         waitlistEntryRepository.save(entry);
 
-        return toResponse(waitlistOfferRepository.save(offer));
+        WaitlistOffer saved = waitlistOfferRepository.save(offer);
+        eventPublisher.publishEvent(new TicketAvailabilityChangedEvent(offer.getTicketType().getId()));
+        return toResponse(saved);
     }
 
     @Override
@@ -153,13 +180,18 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        List<WaitlistOffer> expiredOffers = waitlistOfferRepository.findByStatusAndExpiresAtBefore(
-                WaitlistOfferStatus.CREATED,
-                now
-        );
-
-        expiredOffers.forEach(this::expireOffer);
-        return expiredOffers.size();
+        int count = 0;
+        for (String typeId : waitlistOfferRepository.findExpiredTicketTypeIds(WaitlistOfferStatus.CREATED, now)) {
+            lockTicketType(typeId);
+            List<WaitlistOffer> expiredOffers = waitlistOfferRepository
+                    .findByTicketTypeIdAndStatusAndExpiresAtLessThanEqualOrderByIdAsc(typeId, WaitlistOfferStatus.CREATED, now);
+            expiredOffers.forEach(this::expireOffer);
+            count += expiredOffers.size();
+            if (!expiredOffers.isEmpty()) {
+                eventPublisher.publishEvent(new TicketAvailabilityChangedEvent(typeId));
+            }
+        }
+        return count;
     }
 
     @Override
@@ -169,17 +201,40 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        int availableQuantity = calculateAvailableQuantityLimit(ticketTypeId);
+        TicketType type = lockTicketType(ticketTypeId);
+        if (!isPublished(type)) return Optional.empty();
+        int availableQuantity = calculateOfferBudget(type);
         if (availableQuantity <= 0) {
             return Optional.empty();
         }
 
-        return waitlistEntryRepository.findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAsc(
+        return waitlistEntryRepository.findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAscIdAsc(
                         ticketTypeId,
                         WaitlistEntryStatus.WAITING,
                         availableQuantity
                 )
                 .map(entry -> toResponse(createOfferForEntry(entry, entry.getQuantity(), expiresAt)));
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public int offerAvailableEntries(String ticketTypeId) {
+        TicketType type = lockTicketType(ticketTypeId);
+        if (!isPublished(type)) return 0;
+        int remaining = calculateOfferBudget(type);
+        int count = 0;
+        Instant expiresAt = Instant.now().plusSeconds(offerTtlSeconds);
+        while (remaining > 0) {
+            Optional<WaitlistEntry> next = waitlistEntryRepository
+                    .findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAscIdAsc(
+                            ticketTypeId, WaitlistEntryStatus.WAITING, remaining);
+            if (next.isEmpty()) break;
+            WaitlistEntry entry = next.get();
+            createOfferForEntry(entry, entry.getQuantity(), expiresAt);
+            remaining -= entry.getQuantity();
+            count++;
+        }
+        return count;
     }
 
     private void validateCreateOfferRequest(CreateWaitlistOfferRequest request) {
@@ -201,13 +256,21 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
         }
     }
 
-    private Integer calculateAvailableQuantityLimit(String ticketTypeId) {
-        TicketType ticketType = ticketTypeRepository.findById(ticketTypeId)
-                .orElseThrow(() -> new AppException(ErrorCode.TICKET_TYPE_NOT_FOUND));
+    private int calculateOfferBudget(TicketType ticketType) {
         int quantity = ticketType.getQuantity() == null ? 0 : ticketType.getQuantity();
         int soldQuantity = ticketType.getSoldQuantity() == null ? 0 : ticketType.getSoldQuantity();
+        long offered = waitlistOfferRepository.sumQuantityByTicketTypeAndStatus(ticketType.getId(), WaitlistOfferStatus.CREATED);
+        return (int) Math.max(0L, (long) quantity - soldQuantity - offered);
+    }
 
-        return Math.max(0, quantity - soldQuantity);
+    private TicketType lockTicketType(String ticketTypeId) {
+        if (!StringUtils.hasText(ticketTypeId)) throw new AppException(ErrorCode.INVALID_REQUEST);
+        return ticketTypeRepository.findByIdForUpdate(ticketTypeId)
+                .orElseThrow(() -> new AppException(ErrorCode.TICKET_TYPE_NOT_FOUND));
+    }
+
+    private boolean isPublished(TicketType type) {
+        return type.getEvent() != null && type.getEvent().getStatus() == EventStatus.PUBLISHED;
     }
 
     private void requireCustomer() {
@@ -221,7 +284,10 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        return waitlistOfferRepository.findById(offerId)
+        String typeId = waitlistOfferRepository.findTicketTypeIdById(offerId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        lockTicketType(typeId);
+        return waitlistOfferRepository.findByIdForUpdate(offerId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
     }
 

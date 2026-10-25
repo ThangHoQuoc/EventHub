@@ -27,17 +27,10 @@ public class WaitlistController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/ticket-types/{ticketTypeId}/waitlist")
-    public ApiResponse<WaitlistEntryResponse> joinWaitlist(
-            @PathVariable String ticketTypeId,
-            @Valid @RequestBody JoinWaitlistRequest request
-    ) {
+    public ApiResponse<WaitlistEntryResponse> joinWaitlist(@PathVariable String ticketTypeId, @Valid @RequestBody JoinWaitlistRequest request) {
         WaitlistEntryResponse response = waitlistService.joinWaitlist(ticketTypeId, request);
 
-        return ApiResponse.<WaitlistEntryResponse>builder()
-                .code(ErrorCode.SUCCESS.getCode())
-                .message("Joined waitlist successfully")
-                .result(response)
-                .build();
+        return ApiResponse.<WaitlistEntryResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Joined waitlist successfully").result(response).build();
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -45,11 +38,7 @@ public class WaitlistController {
     public ApiResponse<PageResponse<WaitlistEntryResponse>> getMyWaitlist(Pageable pageable) {
         PageResponse<WaitlistEntryResponse> response = waitlistService.getMyWaitlist(pageable);
 
-        return ApiResponse.<PageResponse<WaitlistEntryResponse>>builder()
-                .code(ErrorCode.SUCCESS.getCode())
-                .message("Waitlist entries retrieved successfully")
-                .result(response)
-                .build();
+        return ApiResponse.<PageResponse<WaitlistEntryResponse>>builder().code(ErrorCode.SUCCESS.getCode()).message("Waitlist entries retrieved successfully").result(response).build();
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -57,11 +46,7 @@ public class WaitlistController {
     public ApiResponse<PageResponse<WaitlistOfferResponse>> getMyWaitlistOffers(Pageable pageable) {
         PageResponse<WaitlistOfferResponse> response = waitlistOfferService.getMyOffers(pageable);
 
-        return ApiResponse.<PageResponse<WaitlistOfferResponse>>builder()
-                .code(ErrorCode.SUCCESS.getCode())
-                .message("Waitlist offers retrieved successfully")
-                .result(response)
-                .build();
+        return ApiResponse.<PageResponse<WaitlistOfferResponse>>builder().code(ErrorCode.SUCCESS.getCode()).message("Waitlist offers retrieved successfully").result(response).build();
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -69,11 +54,7 @@ public class WaitlistController {
     public ApiResponse<WaitlistOfferResponse> acceptWaitlistOffer(@PathVariable String offerId) {
         WaitlistOfferResponse response = waitlistOfferService.acceptOffer(offerId);
 
-        return ApiResponse.<WaitlistOfferResponse>builder()
-                .code(ErrorCode.SUCCESS.getCode())
-                .message("Waitlist offer accepted successfully")
-                .result(response)
-                .build();
+        return ApiResponse.<WaitlistOfferResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Waitlist offer accepted successfully").result(response).build();
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -81,10 +62,6 @@ public class WaitlistController {
     public ApiResponse<WaitlistOfferResponse> skipWaitlistOffer(@PathVariable String offerId) {
         WaitlistOfferResponse response = waitlistOfferService.skipOffer(offerId);
 
-        return ApiResponse.<WaitlistOfferResponse>builder()
-                .code(ErrorCode.SUCCESS.getCode())
-                .message("Waitlist offer skipped successfully")
-                .result(response)
-                .build();
+        return ApiResponse.<WaitlistOfferResponse>builder().code(ErrorCode.SUCCESS.getCode()).message("Waitlist offer skipped successfully").result(response).build();
     }
 }

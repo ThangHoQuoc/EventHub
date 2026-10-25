@@ -91,6 +91,20 @@ public class EventController {
 
 
 
+        @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
+    @GetMapping("/my-events")
+    public ApiResponse<PageResponse<EventResponse>> getMyEvents(
+            @RequestParam(required = false) com.eventhub.eventhub_backend.event.entity.EventStatus status,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PageResponse<EventResponse> response = eventService.getMyEvents(status, keyword, pageable);
+        return ApiResponse.<PageResponse<EventResponse>>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("My events retrieved successfully")
+                .result(response)
+                .build();
+    }
+
     @GetMapping("/{eventId}")
     public ApiResponse<EventResponse> getEvent(@PathVariable String eventId) {
 

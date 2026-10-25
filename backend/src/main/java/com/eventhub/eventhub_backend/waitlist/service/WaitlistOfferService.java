@@ -21,4 +21,6 @@ public interface WaitlistOfferService {
     int expireCreatedOffers(Instant now);
 
     Optional<WaitlistOfferResponse> offerNextEligibleEntry(String ticketTypeId, Instant expiresAt);
+
+    int offerAvailableEntries(String ticketTypeId);
 }

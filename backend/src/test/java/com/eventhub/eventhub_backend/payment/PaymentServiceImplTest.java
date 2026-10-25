@@ -15,7 +15,6 @@ import com.eventhub.eventhub_backend.payment.entity.PaymentStatus;
 import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
 import com.eventhub.eventhub_backend.payment.service.Impl.PaymentServiceImpl;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
-import com.eventhub.eventhub_backend.ticket.repository.TicketTypeRepository;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
@@ -38,25 +37,23 @@ class PaymentServiceImplTest {
 
     private final BookingRepository bookingRepository = mock(BookingRepository.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
-    private final TicketTypeRepository ticketTypeRepository = mock(TicketTypeRepository.class);
     private final TicketService ticketService = mock(TicketService.class);
 
     private final PaymentServiceImpl paymentService = new PaymentServiceImpl(
             bookingRepository,
             paymentRepository,
-            ticketTypeRepository,
             ticketService
     );
 
     @Test
-    void confirmPayment_shouldConfirmPendingBookingAndIncreaseSoldQuantity() {
-        TicketType vip = createTicketType("ticket-type-1", 100, 25);
+    void confirmPayment_shouldConfirmPendingBookingWithoutChangingReservedInventory() {
+        TicketType vip = createTicketType("ticket-type-1", 100, 27);
         Booking booking = createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2);
         ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
 
         when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
                 .thenReturn(Optional.empty());
-        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
             Payment payment = invocation.getArgument(0);
             payment.setId("payment-1");
@@ -72,7 +69,6 @@ class PaymentServiceImplTest {
         assertThat(response.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(1000000));
         assertThat(vip.getSoldQuantity()).isEqualTo(27);
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
-        verify(ticketTypeRepository).saveAll(List.of(vip));
         verify(bookingRepository).save(booking);
         verify(paymentRepository).save(any(Payment.class));
         verify(ticketService).issueTicketsForBooking(booking);
@@ -86,7 +82,7 @@ class PaymentServiceImplTest {
 
         when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
                 .thenReturn(Optional.empty());
-        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
 
         assertThatThrownBy(() -> paymentService.confirmPayment(request))
                 .isInstanceOf(AppException.class)
@@ -94,30 +90,6 @@ class PaymentServiceImplTest {
                 .isEqualTo(ErrorCode.INVALID_REQUEST);
 
         assertThat(vip.getSoldQuantity()).isEqualTo(25);
-        verify(ticketTypeRepository, never()).saveAll(any());
-        verify(bookingRepository, never()).save(booking);
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
-    }
-
-    @Test
-    void confirmPayment_shouldRejectWhenInventoryIsNoLongerAvailable() {
-        TicketType vip = createTicketType("ticket-type-1", 26, 25);
-        Booking booking = createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2);
-        ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
-
-        when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
-                .thenReturn(Optional.empty());
-        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
-
-        assertThatThrownBy(() -> paymentService.confirmPayment(request))
-                .isInstanceOf(AppException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.INVALID_REQUEST);
-
-        assertThat(vip.getSoldQuantity()).isEqualTo(25);
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.PENDING_PAYMENT);
-        verify(ticketTypeRepository, never()).saveAll(any());
         verify(bookingRepository, never()).save(booking);
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
@@ -130,6 +102,9 @@ class PaymentServiceImplTest {
         Payment existingPayment = createPayment("payment-1", booking, PaymentStatus.SUCCESS);
         ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
 
+        when(bookingRepository.findByIdForUpdate("booking-1"))
+                .thenReturn(Optional.of(createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2)));
+
         when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
                 .thenReturn(Optional.of(existingPayment));
 
@@ -139,8 +114,7 @@ class PaymentServiceImplTest {
         assertThat(response.getBookingId()).isEqualTo("booking-1");
         assertThat(response.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
         assertThat(vip.getSoldQuantity()).isEqualTo(27);
-        verify(bookingRepository, never()).findById(any());
-        verify(ticketTypeRepository, never()).saveAll(any());
+        verify(bookingRepository).findByIdForUpdate("booking-1");
         verify(bookingRepository, never()).save(any(Booking.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
@@ -153,6 +127,9 @@ class PaymentServiceImplTest {
         Payment existingPayment = createPayment("payment-1", otherBooking, PaymentStatus.SUCCESS);
         ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
 
+        when(bookingRepository.findByIdForUpdate("booking-1"))
+                .thenReturn(Optional.of(createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2)));
+
         when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
                 .thenReturn(Optional.of(existingPayment));
 
@@ -161,8 +138,7 @@ class PaymentServiceImplTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_REQUEST);
 
-        verify(bookingRepository, never()).findById(any());
-        verify(ticketTypeRepository, never()).saveAll(any());
+        verify(bookingRepository).findByIdForUpdate("booking-1");
         verify(bookingRepository, never()).save(any(Booking.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));

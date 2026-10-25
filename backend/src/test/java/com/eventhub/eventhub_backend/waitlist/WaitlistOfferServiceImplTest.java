@@ -50,7 +50,8 @@ class WaitlistOfferServiceImplTest {
             waitlistOfferRepository,
             ticketTypeRepository,
             bookingService,
-            currentUserService
+            currentUserService,
+            mock(org.springframework.context.ApplicationEventPublisher.class)
     );
 
     @Test
@@ -65,7 +66,7 @@ class WaitlistOfferServiceImplTest {
                 .expiresAt(expiresAt)
                 .build();
 
-        when(waitlistEntryRepository.findById("waitlist-entry-1")).thenReturn(Optional.of(entry));
+        stubEntry(entry);
         when(waitlistOfferRepository.existsByWaitlistEntryIdAndStatus(
                 "waitlist-entry-1",
                 WaitlistOfferStatus.CREATED
@@ -101,7 +102,7 @@ class WaitlistOfferServiceImplTest {
                 .expiresAt(Instant.now().plusSeconds(900))
                 .build();
 
-        when(waitlistEntryRepository.findById("waitlist-entry-1")).thenReturn(Optional.of(entry));
+        stubEntry(entry);
 
         assertThatThrownBy(() -> waitlistOfferService.createOffer(request))
                 .isInstanceOf(AppException.class)
@@ -122,7 +123,7 @@ class WaitlistOfferServiceImplTest {
                 .expiresAt(Instant.now().plusSeconds(900))
                 .build();
 
-        when(waitlistEntryRepository.findById("waitlist-entry-1")).thenReturn(Optional.of(entry));
+        stubEntry(entry);
         when(waitlistOfferRepository.existsByWaitlistEntryIdAndStatus(
                 "waitlist-entry-1",
                 WaitlistOfferStatus.CREATED
@@ -163,7 +164,7 @@ class WaitlistOfferServiceImplTest {
                 .expiresAt(Instant.now().plusSeconds(900))
                 .build();
 
-        when(waitlistEntryRepository.findById("waitlist-entry-1")).thenReturn(Optional.of(entry));
+        stubEntry(entry);
 
         assertThatThrownBy(() -> waitlistOfferService.createOffer(request))
                 .isInstanceOf(AppException.class)
@@ -220,7 +221,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
         when(bookingService.createBooking(any())).thenReturn(bookingResponse);
         when(waitlistOfferRepository.save(any(WaitlistOffer.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -246,7 +247,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
 
         WaitlistOfferResponse response = waitlistOfferService.acceptOffer("waitlist-offer-1");
 
@@ -265,7 +266,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-2");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
 
         assertThatThrownBy(() -> waitlistOfferService.acceptOffer("waitlist-offer-1"))
                 .isInstanceOf(AppException.class)
@@ -285,7 +286,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
 
         assertThatThrownBy(() -> waitlistOfferService.acceptOffer("waitlist-offer-1"))
                 .isInstanceOf(AppException.class)
@@ -308,7 +309,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
         when(waitlistOfferRepository.save(any(WaitlistOffer.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         WaitlistOfferResponse response = waitlistOfferService.skipOffer("waitlist-offer-1");
@@ -328,7 +329,7 @@ class WaitlistOfferServiceImplTest {
 
         when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
         when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
-        when(waitlistOfferRepository.findById("waitlist-offer-1")).thenReturn(Optional.of(offer));
+        stubOffer(offer);
 
         WaitlistOfferResponse response = waitlistOfferService.skipOffer("waitlist-offer-1");
 
@@ -345,8 +346,11 @@ class WaitlistOfferServiceImplTest {
         WaitlistOffer offer = createOffer("waitlist-offer-1", entry, 1, WaitlistOfferStatus.CREATED);
         offer.setExpiresAt(now.minusSeconds(60));
 
-        when(waitlistOfferRepository.findByStatusAndExpiresAtBefore(WaitlistOfferStatus.CREATED, now))
-                .thenReturn(List.of(offer));
+        when(waitlistOfferRepository.findExpiredTicketTypeIds(WaitlistOfferStatus.CREATED, now))
+                .thenReturn(List.of("ticket-type-1"));
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(waitlistOfferRepository.findByTicketTypeIdAndStatusAndExpiresAtLessThanEqualOrderByIdAsc(
+                "ticket-type-1", WaitlistOfferStatus.CREATED, now)).thenReturn(List.of(offer));
 
         int expiredCount = waitlistOfferService.expireCreatedOffers(now);
 
@@ -366,8 +370,8 @@ class WaitlistOfferServiceImplTest {
         WaitlistEntry entry = createWaitlistEntry("waitlist-entry-1", customer, vip, 1, WaitlistEntryStatus.WAITING);
         Instant expiresAt = Instant.now().plusSeconds(900);
 
-        when(ticketTypeRepository.findById("ticket-type-1")).thenReturn(Optional.of(vip));
-        when(waitlistEntryRepository.findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAsc(
+        when(ticketTypeRepository.findByIdForUpdate("ticket-type-1")).thenReturn(Optional.of(vip));
+        when(waitlistEntryRepository.findFirstByTicketTypeIdAndStatusAndQuantityLessThanEqualOrderByCreatedAtAscIdAsc(
                 "ticket-type-1",
                 WaitlistEntryStatus.WAITING,
                 1
@@ -392,6 +396,22 @@ class WaitlistOfferServiceImplTest {
         assertThat(response.get().getQuantity()).isEqualTo(1);
         assertThat(entry.getStatus()).isEqualTo(WaitlistEntryStatus.OFFERED);
         verify(waitlistEntryRepository).save(entry);
+    }
+
+    private void stubEntry(WaitlistEntry entry) {
+        when(waitlistEntryRepository.findTicketTypeIdById(entry.getId()))
+                .thenReturn(Optional.of(entry.getTicketType().getId()));
+        when(ticketTypeRepository.findByIdForUpdate(entry.getTicketType().getId()))
+                .thenReturn(Optional.of(entry.getTicketType()));
+        when(waitlistEntryRepository.findById(entry.getId())).thenReturn(Optional.of(entry));
+    }
+
+    private void stubOffer(WaitlistOffer offer) {
+        when(waitlistOfferRepository.findTicketTypeIdById(offer.getId()))
+                .thenReturn(Optional.of(offer.getTicketType().getId()));
+        when(ticketTypeRepository.findByIdForUpdate(offer.getTicketType().getId()))
+                .thenReturn(Optional.of(offer.getTicketType()));
+        when(waitlistOfferRepository.findByIdForUpdate(offer.getId())).thenReturn(Optional.of(offer));
     }
 
     private WaitlistOffer createOffer(
@@ -433,7 +453,7 @@ class WaitlistOfferServiceImplTest {
                 .name("VIP")
                 .price(BigDecimal.valueOf(500000))
                 .quantity(100)
-                .soldQuantity(100)
+                .soldQuantity(95)
                 .event(createEvent())
                 .build();
         ticketType.setId(id);

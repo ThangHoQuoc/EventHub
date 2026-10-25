@@ -5,6 +5,8 @@ import com.eventhub.eventhub_backend.booking.dto.response.BookingResponse;
 import com.eventhub.eventhub_backend.common.response.PageResponse;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
+
 public interface BookingService {
 
     BookingResponse createBooking(CreateBookingRequest request);
@@ -14,4 +16,8 @@ public interface BookingService {
     BookingResponse getBooking(String bookingId);
 
     BookingResponse cancelBooking(String bookingId);
+
+    int expirePendingBookings(Instant expiresBefore);
+
+    PageResponse<BookingResponse> getPendingBookings(Pageable pageable);
 }
