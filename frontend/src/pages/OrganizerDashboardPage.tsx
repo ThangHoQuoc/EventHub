@@ -5,7 +5,7 @@ import { RequestState } from "../components/ui/RequestState";
 import { PageNav } from "../components/ui/PageNav";
 import { LineIcon } from "../components/ui/LineIcon";
 import { EmptyState } from "../components/ui/EmptyState";
-import { searchEventsApi } from "../api/organizer";
+import { getMyEventsApi } from "../api/organizer";
 import { useApiResource } from "../hooks/useApiResource";
 import { useAuth } from "../context/AuthContext";
 import { recentEvents } from "../utils/organizerState";
@@ -19,7 +19,7 @@ export function OrganizerDashboardPage() {
   const [keyword, setKeyword] = useState("");
   const [eventId, setEventId] = useState("");
 
-  const resource = useApiResource(() => searchEventsApi(page, keyword), [page, keyword]);
+  const resource = useApiResource(() => getMyEventsApi({ page, keyword }), [page, keyword]);
   const visible =
     resource.data?.content.filter((event) => user?.role === "ADMIN" || event.organizerId === user?.id) ?? [];
 

@@ -57,6 +57,22 @@ export async function getMyBookingsApi(params: {
   });
 }
 
+export async function getPendingBookingsApi(params: {
+  page?: number;
+  size?: number;
+} = {}): Promise<PageResponse<BookingDto>> {
+  const searchParams = new URLSearchParams();
+  if (params.page !== undefined) searchParams.set("page", String(params.page));
+  if (params.size !== undefined) searchParams.set("size", String(params.size));
+
+  const query = searchParams.toString();
+  const endpoint = `/api/v1/bookings/pending${query ? `?${query}` : ""}`;
+
+  return fetchApi<PageResponse<BookingDto>>(endpoint, {
+    method: "GET",
+  });
+}
+
 export async function getBookingDetailApi(bookingId: string): Promise<BookingDto> {
   return fetchApi<BookingDto>(`/api/v1/bookings/${bookingId}`, {
     method: "GET",

@@ -1,7 +1,7 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { confirmPaymentApi, type PaymentDto } from "../api/payments";
-import { RequestState } from "../components/ui/RequestState";
+import { getPendingBookingsApi, type BookingDto } from "../api/booking";
 import { formatCurrency, formatDateTime } from "../utils/format";
 import { LineIcon } from "../components/ui/LineIcon";
 
@@ -20,10 +20,30 @@ export function AdminPaymentPage() {
   const [payment, setPayment] = useState<PaymentDto>();
   const [history, setHistory] = useState<ReconciledItem[]>([]);
 
+  // Pending bookings state
+  const [pendingBookings, setPendingBookings] = useState<BookingDto[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+
   // Form states
   const [bookingId, setBookingId] = useState("");
   const [provider, setProvider] = useState("MANUAL_TRANSFER");
   const [reference, setReference] = useState("");
+
+  async function loadPendingBookings() {
+    setLoadingPending(true);
+    try {
+      const res = await getPendingBookingsApi({ page: 0, size: 10 });
+      setPendingBookings(res.content || []);
+    } catch {
+      // Bỏ qua lỗi nếu không phải role ADMIN hoặc network tạm thời
+    } finally {
+      setLoadingPending(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPendingBookings();
+  }, []);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,6 +74,7 @@ export function AdminPaymentPage() {
       ]);
       setBookingId("");
       setReference("");
+      loadPendingBookings();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể xác nhận thanh toán.");
     } finally {
@@ -77,7 +98,7 @@ export function AdminPaymentPage() {
       </header>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: "32px", alignItems: "start" }}>
-        {/* Cột trái: Form nhập đối soát */}
+        {/* Cột trái: Form nhập đối soát & Danh sách chờ */}
         <div style={{ display: "grid", gap: "24px" }}>
           <section className="checkout-form-card" style={{ background: "var(--eh-surface)", padding: "28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
             <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 16px", color: "var(--eh-text)" }}>
@@ -96,12 +117,12 @@ export function AdminPaymentPage() {
                   required
                   value={bookingId}
                 />
-                <small>Nhập chính xác mã đơn được người mua cung cấp trong nội dung chuyển khoản.</small>
+                <small>Nhập chính xác mã đơn được người mua cung cấp trong nội dung chuyển khoản hoặc chọn từ danh sách bên dưới.</small>
               </div>
 
-              <div className="ev-form-grid-2">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div className="ev-form-group">
-                  <label htmlFor="adm-provider">Phương thức thanh toán</label>
+                  <label htmlFor="adm-provider">Kênh thanh toán</label>
                   <select
                     disabled={busy}
                     id="adm-provider"
@@ -109,42 +130,35 @@ export function AdminPaymentPage() {
                     onChange={(e) => setProvider(e.target.value)}
                     value={provider}
                   >
-                    <option value="MANUAL_TRANSFER">Chuyển khoản Vietcombank</option>
-                    <option value="TECHCOMBANK">Chuyển khoản Techcombank</option>
-                    <option value="MOMO_TRANSFER">Ví MoMo</option>
-                    <option value="VNPAY_QR">VNPay QR</option>
-                    <option value="CASH_DIRECT">Tiền mặt tại quầy</option>
+                    <option value="MANUAL_TRANSFER">Chuyển khoản VietQR / 247</option>
+                    <option value="VNPAY">VNPay Sandbox</option>
+                    <option value="MOMO">MoMo QR</option>
                   </select>
                 </div>
 
                 <div className="ev-form-group">
-                  <label htmlFor="adm-reference">Mã giao dịch ngân hàng / Ref</label>
+                  <label htmlFor="adm-ref">Mã tham chiếu ngân hàng</label>
                   <input
                     disabled={busy}
-                    id="adm-reference"
+                    id="adm-ref"
                     name="reference"
                     onChange={(e) => setReference(e.target.value)}
-                    placeholder="FT261020... hoặc bỏ trống để tự tạo"
+                    placeholder="Tùy chọn: Mã FT/Trace..."
                     value={reference}
                   />
                 </div>
               </div>
 
-              <div style={{ paddingTop: "8px" }}>
-                <button
-                  className="ev-btn-primary"
-                  disabled={busy || !bookingId.trim()}
-                  style={{ width: "100%", justifyContent: "center", minHeight: "46px" }}
-                  type="submit"
-                >
-                  <LineIcon name="check" /> {busy ? "Đang xử lý trên hệ thống..." : "Xác nhận đã nhận tiền & Phát hành vé"}
-                </button>
-              </div>
-            </form>
+              {error && (
+                <div style={{ color: "var(--eh-red)", fontSize: "13px", padding: "10px", background: "var(--eh-red-50)", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-red-100)" }}>
+                  {error}
+                </div>
+              )}
 
-            <div style={{ marginTop: "16px" }}>
-              <RequestState error={error} />
-            </div>
+              <button className="btn btn-primary" disabled={busy || !bookingId.trim()} style={{ justifySelf: "start" }} type="submit">
+                {busy ? "Đang xử lý đối soát..." : "Xác nhận & Cấp vé ngay"}
+              </button>
+            </form>
 
             {payment && (
               <div
@@ -175,6 +189,63 @@ export function AdminPaymentPage() {
                   <strong>{payment.status} · Đơn: {payment.bookingStatus}</strong>
                 </div>
               </div>
+            )}
+          </section>
+
+          {/* Danh sách đơn hàng PENDING_PAYMENT chờ duyệt */}
+          <section style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "800", margin: 0, color: "var(--eh-text)" }}>
+                Đơn hàng đang chờ đối soát ({pendingBookings.length})
+              </h3>
+              <button
+                className="btn btn-secondary"
+                disabled={loadingPending}
+                onClick={loadPendingBookings}
+                style={{ fontSize: "12px", padding: "4px 10px" }}
+                type="button"
+              >
+                {loadingPending ? "Đang tải..." : "Làm mới"}
+              </button>
+            </div>
+
+            {pendingBookings.length === 0 ? (
+              <div style={{ color: "var(--eh-muted)", fontSize: "13px", textAlign: "center", padding: "20px 0" }}>
+                Hiện không có đơn hàng nào đang chờ thanh toán.
+              </div>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--eh-border)", color: "var(--eh-muted)", textAlign: "left" }}>
+                    <th style={{ padding: "8px 6px" }}>Mã đơn</th>
+                    <th style={{ padding: "8px 6px" }}>Tổng tiền</th>
+                    <th style={{ padding: "8px 6px" }}>Tạo lúc</th>
+                    <th style={{ padding: "8px 6px", textAlign: "right" }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingBookings.map((b) => (
+                    <tr key={b.id} style={{ borderBottom: "1px solid var(--eh-border)" }}>
+                      <td style={{ padding: "10px 6px", fontFamily: "monospace", fontWeight: "600" }}>{b.id}</td>
+                      <td style={{ padding: "10px 6px", fontWeight: "700", color: "var(--eh-green)" }}>{formatCurrency(b.totalAmount)}</td>
+                      <td style={{ padding: "10px 6px", color: "var(--eh-muted)" }}>{formatDateTime(b.createdAt)}</td>
+                      <td style={{ padding: "10px 6px", textAlign: "right" }}>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            setBookingId(b.id);
+                            window.scrollTo({ top: 150, behavior: "smooth" });
+                          }}
+                          style={{ fontSize: "11px", padding: "4px 8px" }}
+                          type="button"
+                        >
+                          Chọn duyệt
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </section>
 
@@ -219,7 +290,7 @@ export function AdminPaymentPage() {
             <ol style={{ margin: 0, paddingLeft: "16px", fontSize: "12px", color: "var(--eh-muted)", lineHeight: "1.7", display: "grid", gap: "6px" }}>
               <li>Kiểm tra biến động số dư tài khoản ngân hàng của EventHub.</li>
               <li>Đối chiếu số tiền thực nhận với giá trị đơn đặt vé.</li>
-              <li>Nhập mã đơn vào form bên cạnh và bấm duyệt.</li>
+              <li>Nhập mã đơn vào form bên cạnh hoặc bấm nút <strong>Chọn duyệt</strong> từ danh sách đơn chờ.</li>
               <li>Hệ thống tự động chuyển trạng thái đơn sang <code>CONFIRMED</code> và sinh vé kèm mã QR cho khách.</li>
             </ol>
           </section>

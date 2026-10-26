@@ -40,6 +40,17 @@ export interface UserProfile {
   updatedAt?: string;
 }
 
+export interface UpdateProfilePayload {
+  fullName: string;
+  phone?: string;
+  avatarUrl?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export async function registerApi(payload: RegisterPayload): Promise<RegisterResult> {
   return fetchApi<RegisterResult>("/api/v1/auth/register", {
     method: "POST",
@@ -57,5 +68,19 @@ export async function loginApi(payload: LoginPayload): Promise<LoginResult> {
 export async function getCurrentUserApi(): Promise<UserProfile> {
   return fetchApi<UserProfile>("/api/v1/users/me", {
     method: "GET",
+  });
+}
+
+export async function updateProfileApi(payload: UpdateProfilePayload): Promise<UserProfile> {
+  return fetchApi<UserProfile>("/api/v1/users/me", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function changePasswordApi(payload: ChangePasswordPayload): Promise<void> {
+  return fetchApi<void>("/api/v1/users/change-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }

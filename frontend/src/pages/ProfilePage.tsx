@@ -3,6 +3,7 @@ import { CustomerLayout } from "../components/customer/CustomerLayout";
 import { useAuth } from "../context/AuthContext";
 import { formatDate } from "../utils/format";
 import { LineIcon } from "../components/ui/LineIcon";
+import { updateProfileApi, changePasswordApi } from "../api/auth";
 
 type TabKey = "info" | "security" | "preferences";
 
