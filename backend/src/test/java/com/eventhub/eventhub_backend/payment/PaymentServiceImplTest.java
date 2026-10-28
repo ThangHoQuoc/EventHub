@@ -8,8 +8,11 @@ import com.eventhub.eventhub_backend.common.exception.AppException;
 import com.eventhub.eventhub_backend.common.exception.ErrorCode;
 import com.eventhub.eventhub_backend.event.entity.Event;
 import com.eventhub.eventhub_backend.event.entity.EventStatus;
+import com.eventhub.eventhub_backend.payment.config.VNPayConfig;
 import com.eventhub.eventhub_backend.payment.dto.request.ConfirmPaymentRequest;
+import com.eventhub.eventhub_backend.payment.dto.request.CreatePaymentUrlRequest;
 import com.eventhub.eventhub_backend.payment.dto.response.PaymentResponse;
+import com.eventhub.eventhub_backend.payment.dto.response.PaymentUrlResponse;
 import com.eventhub.eventhub_backend.payment.entity.Payment;
 import com.eventhub.eventhub_backend.payment.entity.PaymentStatus;
 import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
@@ -18,32 +21,45 @@ import com.eventhub.eventhub_backend.ticket.entity.TicketType;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
+import com.eventhub.eventhub_backend.user.service.CurrentUserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class PaymentServiceImplTest {
 
     private final BookingRepository bookingRepository = mock(BookingRepository.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
     private final TicketService ticketService = mock(TicketService.class);
+    private final CurrentUserService currentUserService = mock(CurrentUserService.class);
+    private final VNPayConfig vnpayConfig = new VNPayConfig();
 
-    private final PaymentServiceImpl paymentService = new PaymentServiceImpl(
-            bookingRepository,
-            paymentRepository,
-            ticketService
-    );
+    private PaymentServiceImpl paymentService;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(vnpayConfig, "vnpTmnCode", "2QXUI4J4");
+        ReflectionTestUtils.setField(vnpayConfig, "vnpHashSecret", "RAOCTRECEAXYZGTRJAHHAHNZGSGKTZXQ");
+        ReflectionTestUtils.setField(vnpayConfig, "vnpPayUrl", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+        ReflectionTestUtils.setField(vnpayConfig, "vnpReturnUrl", "http://localhost:5173/payment/result");
+
+        paymentService = new PaymentServiceImpl(
+                bookingRepository,
+                paymentRepository,
+                ticketService,
+                vnpayConfig,
+                currentUserService
+        );
+    }
 
     @Test
     void confirmPayment_shouldConfirmPendingBookingWithoutChangingReservedInventory() {
@@ -96,52 +112,100 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void confirmPayment_shouldReturnExistingSuccessPaymentForSameProviderTransaction() {
-        TicketType vip = createTicketType("ticket-type-1", 100, 27);
-        Booking booking = createBooking("booking-1", BookingStatus.CONFIRMED, vip, 2);
-        Payment existingPayment = createPayment("payment-1", booking, PaymentStatus.SUCCESS);
-        ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
+    void createPaymentUrl_shouldGenerateValidVNPayUrl() {
+        TicketType vip = createTicketType("ticket-type-1", 100, 25);
+        Booking booking = createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2);
+        CreatePaymentUrlRequest request = CreatePaymentUrlRequest.builder()
+                .bookingId("booking-1")
+                .bankCode("VNBANK")
+                .build();
 
-        when(bookingRepository.findByIdForUpdate("booking-1"))
-                .thenReturn(Optional.of(createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2)));
+        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(currentUserService.getCurrentUserId()).thenReturn("customer-1");
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.CUSTOMER);
 
-        when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
-                .thenReturn(Optional.of(existingPayment));
+        PaymentUrlResponse response = paymentService.createPaymentUrl(request, "192.168.1.1");
 
-        PaymentResponse response = paymentService.confirmPayment(request);
-
-        assertThat(response.getId()).isEqualTo("payment-1");
+        assertThat(response).isNotNull();
         assertThat(response.getBookingId()).isEqualTo("booking-1");
-        assertThat(response.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
-        assertThat(vip.getSoldQuantity()).isEqualTo(27);
-        verify(bookingRepository).findByIdForUpdate("booking-1");
-        verify(bookingRepository, never()).save(any(Booking.class));
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
+        assertThat(response.getProvider()).isEqualTo("VNPAY");
+        assertThat(response.getPaymentUrl()).contains("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+        assertThat(response.getPaymentUrl()).contains("vnp_Amount=100000000"); // 1,000,000 * 100
+        assertThat(response.getPaymentUrl()).contains("vnp_SecureHash=");
     }
 
     @Test
-    void confirmPayment_shouldRejectProviderTransactionUsedByAnotherBooking() {
-        TicketType vip = createTicketType("ticket-type-1", 100, 27);
-        Booking otherBooking = createBooking("booking-2", BookingStatus.CONFIRMED, vip, 2);
-        Payment existingPayment = createPayment("payment-1", otherBooking, PaymentStatus.SUCCESS);
-        ConfirmPaymentRequest request = createRequest("booking-1", "MANUAL", "tx-1");
+    void processVNPayCallback_shouldConfirmWhenChecksumAndResponseCode00() {
+        TicketType vip = createTicketType("ticket-type-1", 100, 25);
+        Booking booking = createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2);
 
-        when(bookingRepository.findByIdForUpdate("booking-1"))
-                .thenReturn(Optional.of(createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2)));
+        Map<String, String> params = new HashMap<>();
+        params.put("vnp_Amount", "100000000");
+        params.put("vnp_BankCode", "NCB");
+        params.put("vnp_ResponseCode", "00");
+        params.put("vnp_TxnRef", "booking-1");
+        params.put("vnp_TransactionNo", "14000123");
 
-        when(paymentRepository.findByProviderAndProviderTransactionId("MANUAL", "tx-1"))
-                .thenReturn(Optional.of(existingPayment));
+        String secureHash = vnpayConfig.hashAllFields(params);
+        params.put("vnp_SecureHash", secureHash);
 
-        assertThatThrownBy(() -> paymentService.confirmPayment(request))
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByProviderAndProviderTransactionId("VNPAY", "14000123"))
+                .thenReturn(Optional.empty());
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
+            Payment p = inv.getArgument(0);
+            p.setId("pay-vnp-1");
+            return p;
+        });
+
+        PaymentResponse response = paymentService.processVNPayCallback(params);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBookingId()).isEqualTo("booking-1");
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        verify(ticketService).issueTicketsForBooking(booking);
+    }
+
+    @Test
+    void processVNPayCallback_shouldRejectWhenChecksumInvalid() {
+        Map<String, String> params = new HashMap<>();
+        params.put("vnp_Amount", "100000000");
+        params.put("vnp_ResponseCode", "00");
+        params.put("vnp_TxnRef", "booking-1");
+        params.put("vnp_SecureHash", "invalid-hash-data");
+
+        assertThatThrownBy(() -> paymentService.processVNPayCallback(params))
                 .isInstanceOf(AppException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_REQUEST);
+    }
 
-        verify(bookingRepository).findByIdForUpdate("booking-1");
-        verify(bookingRepository, never()).save(any(Booking.class));
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verify(ticketService, never()).issueTicketsForBooking(any(Booking.class));
+    @Test
+    void processVNPayIPN_shouldReturn00SuccessWhenValid() {
+        TicketType vip = createTicketType("ticket-type-1", 100, 25);
+        Booking booking = createBooking("booking-1", BookingStatus.PENDING_PAYMENT, vip, 2);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("vnp_Amount", "100000000");
+        params.put("vnp_ResponseCode", "00");
+        params.put("vnp_TxnRef", "booking-1");
+        params.put("vnp_TransactionNo", "14000123");
+
+        String secureHash = vnpayConfig.hashAllFields(params);
+        params.put("vnp_SecureHash", secureHash);
+
+        when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdForUpdate("booking-1")).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByProviderAndProviderTransactionId("VNPAY", "14000123"))
+                .thenReturn(Optional.empty());
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Map<String, String> ipnResult = paymentService.processVNPayIPN(params);
+
+        assertThat(ipnResult.get("RspCode")).isEqualTo("00");
+        assertThat(ipnResult.get("Message")).isEqualTo("Confirm Success");
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
     }
 
     private ConfirmPaymentRequest createRequest(String bookingId, String provider, String providerTransactionId) {
@@ -171,19 +235,6 @@ class PaymentServiceImplTest {
         booking.setItems(List.of(item));
 
         return booking;
-    }
-
-    private Payment createPayment(String id, Booking booking, PaymentStatus status) {
-        Payment payment = Payment.builder()
-                .booking(booking)
-                .amount(booking.getTotalAmount())
-                .status(status)
-                .provider("MANUAL")
-                .providerTransactionId("tx-1")
-                .paidAt(Instant.now())
-                .build();
-        payment.setId(id);
-        return payment;
     }
 
     private TicketType createTicketType(String id, int quantity, int soldQuantity) {

@@ -25,25 +25,21 @@ public class SecurityConfig {
             JwtAccessDeniedHandler accessDeniedHandler) throws Exception {
 
         http.csrf(AbstractHttpConfigurer::disable)
-
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/register",
-                                        "/api/v1/auth/login",
-                                        "/api/v1/events/public",
-                                        "/api/v1/events/public/**")
-                        .permitAll()
-
+                        .requestMatchers(
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/events/public",
+                                "/api/v1/events/public/**",
+                                "/api/v1/payments/vnpay-callback",
+                                "/api/v1/payments/vnpay-ipn"
+                        ).permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-
                         .requestMatchers("/api/v1/organizer/**").hasAnyRole("ORGANIZER", "ADMIN")
-
-
                         .anyRequest().authenticated())
-
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
-
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -53,5 +49,4 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         return new JwtAuthenticationFilter(jwtService, userRepository);
     }
-
 }

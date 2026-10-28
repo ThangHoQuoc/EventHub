@@ -1,30 +1,59 @@
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckoutHeader } from "../components/checkout/CheckoutHeader";
-import { BookingDetails } from "../components/customer/BookingDetails";
 import { RequestState } from "../components/ui/RequestState";
-import { ResultHero, NextStepsList, AnimatedCheck } from "../components/checkout/ResultComponents";
-
+import { ResultHero, NextStepsList } from "../components/checkout/ResultComponents";
 import { LineIcon } from "../components/ui/LineIcon";
-import { getBookingDetailApi } from "../api/booking";
-import { useApiResource } from "../hooks/useApiResource";
+import { getBookingDetailApi, type BookingDto } from "../api/booking";
+import { vnpayCallbackApi } from "../api/payments";
 import { paymentResultStatus } from "../utils/bookingState";
 import { formatCurrency, formatDateTime } from "../utils/format";
 import { useAuth } from "../context/AuthContext";
 
 export function PaymentResultPage() {
   const [params] = useSearchParams();
-  const bookingId = params.get("bookingId");
+  const rawBookingId = params.get("bookingId") || params.get("vnp_TxnRef");
+  const isVnpayRedirect = Boolean(params.get("vnp_SecureHash"));
   const { user } = useAuth();
 
-  const resource = useApiResource(
-    () =>
-      bookingId
-        ? getBookingDetailApi(bookingId)
-        : Promise.reject(new Error("Thiếu mã đơn để kiểm tra kết quả.")),
-    [bookingId]
-  );
+  const [booking, setBooking] = useState<BookingDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const booking = resource.data;
+  async function loadResult() {
+    if (!rawBookingId) {
+      setError(new Error("Thiếu mã đơn để kiểm tra kết quả giao dịch."));
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Nếu redirect từ VNPay về, gọi xác thực callback trước
+      if (isVnpayRedirect) {
+        try {
+          await vnpayCallbackApi(window.location.search);
+        } catch (err) {
+          console.warn("VNPay callback verification note:", err);
+        }
+      }
+
+      // Tải trạng thái mới nhất của đơn hàng
+      const res = await getBookingDetailApi(rawBookingId);
+      setBooking(res);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Không thể kiểm tra kết quả thanh toán"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadResult();
+  }, [rawBookingId]);
+
   const status = paymentResultStatus(booking?.status);
 
   return (
@@ -36,7 +65,7 @@ export function PaymentResultPage() {
       />
 
       <main className="result-main">
-        <RequestState error={resource.error} loading={resource.loading} onRetry={resource.reload} />
+        <RequestState error={error ? error.message : undefined} loading={loading} onRetry={loadResult} />
 
         {booking && (
           <>
@@ -85,7 +114,9 @@ export function PaymentResultPage() {
                       <LineIcon name="check" /> Đã xác nhận
                     </span>
                     <div style={{ margin: "14px 0 8px" }}>
-                      <Link to="/my-tickets">Mở QR trên vé đã phát hành</Link>
+                      <Link to="/my-tickets" style={{ color: "var(--eh-green)", fontWeight: "700" }}>
+                        Mở QR vé đã phát hành
+                      </Link>
                     </div>
                     <strong style={{ fontSize: "12px", letterSpacing: "0.05em", fontFamily: "monospace" }}>
                       {booking.id.slice(0, 10).toUpperCase()}
@@ -95,94 +126,44 @@ export function PaymentResultPage() {
                 </article>
 
                 {/* Nút hành động */}
-                <div className="result-actions">
-                  <Link className="checkout-button checkout-button--primary" to="/my-tickets">
+                <div className="result-actions" style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
+                  <Link className="btn btn-primary" to="/my-tickets" style={{ padding: "12px 24px", fontSize: "15px" }}>
                     <LineIcon name="ticket" /> Mở vé trong Ví của tôi
                   </Link>
-                  <button
-                    className="checkout-button checkout-button--outline"
-                    onClick={() => window.print()}
-                    type="button"
-                  >
-                    <LineIcon name="download" /> In xác nhận đơn hàng
-                  </button>
-                  <div>
-                    <button onClick={resource.reload} type="button">
-                      <LineIcon name="refresh" /> Đồng bộ trạng thái mới nhất
-                    </button>
-                  </div>
-                  <Link className="result-explore-link" to="/explore">
-                    Tiếp tục khám phá thêm sự kiện khác <LineIcon name="arrow-right" />
+                  <Link className="btn btn-secondary" to="/events" style={{ padding: "12px 24px", fontSize: "15px" }}>
+                    Khám phá sự kiện khác
                   </Link>
                 </div>
-
-                {/* Các bước tiếp theo */}
-                <NextStepsList />
               </div>
             )}
 
-            {/* Trạng thái 2: Đang chờ xác nhận (PENDING_PAYMENT) */}
+            {/* Trạng thái 2: Đang chờ (PENDING_PAYMENT) */}
             {status === "processing" && (
-              <div style={{ maxWidth: "680px", margin: "0 auto", display: "grid", gap: "24px" }}>
-                <div className="result-state-card" style={{ background: "var(--eh-surface)", padding: "28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)", boxShadow: "var(--eh-warm-shadow)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--eh-amber)", fontWeight: "700", marginBottom: "12px" }}>
-                    <LineIcon name="clock" />
-                    <span>Đơn hàng đang chờ đối chiếu thanh toán</span>
-                  </div>
-                  <p style={{ color: "var(--eh-muted)", fontSize: "14px", lineHeight: "1.6" }}>
-                    Nếu bạn đã quét mã QR hoặc chuyển khoản ngân hàng, hệ thống có thể cần từ 1 - 3 phút để ghi nhận giao dịch. Bạn không cần chuyển khoản lại.
-                  </p>
-
-                  <div style={{ margin: "16px 0", padding: "14px", background: "var(--eh-bg)", borderRadius: "var(--radius-md)" }}>
-                    <BookingDetails booking={booking} />
-                  </div>
-
-                  <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-                    <button
-                      className="btn btn-primary"
-                      disabled={resource.loading}
-                      onClick={resource.reload}
-                      style={{ flex: 1, justifyContent: "center" }}
-                      type="button"
-                    >
-                      <LineIcon name="refresh" /> {resource.loading ? "Đang kiểm tra..." : "Kiểm tra lại ngay"}
-                    </button>
-                    <Link
-                      className="btn btn-secondary"
-                      style={{ flex: 1, justifyContent: "center" }}
-                      to={`/payment?bookingId=${encodeURIComponent(booking.id)}`}
-                    >
-                      Xem lại mã QR thanh toán
-                    </Link>
-                  </div>
-                </div>
-
-                <div style={{ textAlign: "center" }}>
-                  <Link className="ev-text-link" to="/my-bookings">
-                    Xem tất cả đơn hàng của bạn trong mục Đơn hàng <LineIcon name="arrow-right" />
+              <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", display: "grid", gap: "20px" }}>
+                <p style={{ color: "var(--eh-muted)", fontSize: "14px", lineHeight: "1.6" }}>
+                  Đơn hàng của bạn đang ở trạng thái chờ thanh toán. Nếu đã thực hiện chuyển khoản, vui lòng đợi 1-2 phút để hệ thống cập nhật.
+                </p>
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                  <button className="btn btn-primary" onClick={loadResult} type="button">
+                    Làm mới trạng thái
+                  </button>
+                  <Link className="btn btn-secondary" to={`/payment?bookingId=${encodeURIComponent(booking.id)}`}>
+                    Thanh toán lại qua VNPay
                   </Link>
                 </div>
               </div>
             )}
 
-            {/* Trạng thái 3: Hủy hoặc Hết hạn (CANCELLED / EXPIRED) */}
+            {/* Trạng thái 3: Hủy hoặc Hết hạn */}
             {status === "failed" && (
-              <div style={{ maxWidth: "600px", margin: "0 auto", display: "grid", gap: "20px", textAlign: "center" }}>
-                <div style={{ background: "var(--eh-surface)", padding: "32px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-                  <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--eh-error)", margin: "0 0 10px" }}>
-                    Đơn hàng không còn hiệu lực
-                  </h3>
-                  <p style={{ color: "var(--eh-muted)", fontSize: "14px", marginBottom: "20px" }}>
-                    Đơn giữ chỗ này đã bị hủy hoặc hết hạn thanh toán theo quy định thời gian của hệ thống. Vé đã được trả lại kho cho cộng đồng.
-                  </p>
-                  <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                    <Link className="btn btn-primary" to="/explore">
-                      Khám phá & Chọn vé khác
-                    </Link>
-                    <Link className="btn btn-secondary" to="/my-bookings">
-                      Lịch sử đơn hàng
-                    </Link>
-                  </div>
+              <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", display: "grid", gap: "20px" }}>
+                <p style={{ color: "var(--eh-red)", fontSize: "14px" }}>
+                  Đơn đặt vé này đã bị hủy hoặc hết hạn thanh toán (quá thời hạn 15 phút). Chỗ đã được hoàn trả lại cho sự kiện.
+                </p>
+                <div>
+                  <Link className="btn btn-primary" to="/events">
+                    Đặt lại vé mới
+                  </Link>
                 </div>
               </div>
             )}
