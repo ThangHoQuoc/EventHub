@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CheckoutHeader } from "../components/checkout/CheckoutHeader";
+import { CustomerLayout } from "../components/customer/CustomerLayout";
 import { RequestState } from "../components/ui/RequestState";
-import { ResultHero, NextStepsList } from "../components/checkout/ResultComponents";
 import { LineIcon } from "../components/ui/LineIcon";
 import { getBookingDetailApi, type BookingDto } from "../api/booking";
 import { vnpayCallbackApi } from "../api/payments";
-import { paymentResultStatus } from "../utils/bookingState";
 import { formatCurrency, formatDateTime } from "../utils/format";
-import { useAuth } from "../context/AuthContext";
 
 export function PaymentResultPage() {
-  const [params] = useSearchParams();
-  const rawBookingId = params.get("bookingId") || params.get("vnp_TxnRef");
-  const isVnpayRedirect = Boolean(params.get("vnp_SecureHash"));
-  const { user } = useAuth();
-
+  const [searchParams] = useSearchParams();
   const [booking, setBooking] = useState<BookingDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [status, setStatus] = useState<"success" | "processing" | "failed">("processing");
 
-  async function loadResult() {
-    if (!rawBookingId) {
-      setError(new Error("Thiếu mã đơn để kiểm tra kết quả giao dịch."));
+  const bookingIdParam = searchParams.get("bookingId");
+  const vnpResponseCode = searchParams.get("vnp_ResponseCode");
+  const vnpTxnRef = searchParams.get("vnp_TxnRef");
+
+  const effectiveBookingId = bookingIdParam || vnpTxnRef || "";
+
+  const loadResult = useCallback(async () => {
+    if (!effectiveBookingId) {
+      setError(new Error("Không tìm thấy thông tin đơn hàng hoặc mã tham chiếu thanh toán."));
       setLoading(false);
       return;
     }
@@ -31,80 +31,175 @@ export function PaymentResultPage() {
     setError(null);
 
     try {
-      // Nếu redirect từ VNPay về, gọi xác thực callback trước
-      if (isVnpayRedirect) {
+      if (vnpResponseCode) {
         try {
-          await vnpayCallbackApi(window.location.search);
-        } catch (err) {
-          console.warn("VNPay callback verification note:", err);
+          await vnpayCallbackApi(searchParams.toString());
+        } catch (e) {
+          console.warn("Callback verification api call completed:", e);
         }
       }
 
-      // Tải trạng thái mới nhất của đơn hàng
-      const res = await getBookingDetailApi(rawBookingId);
+      const res = await getBookingDetailApi(effectiveBookingId);
       setBooking(res);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Không thể kiểm tra kết quả thanh toán"));
+
+      if (res.status === "CONFIRMED") {
+        setStatus("success");
+      } else if (res.status === "PENDING_PAYMENT") {
+        setStatus("processing");
+      } else {
+        setStatus("failed");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err : new Error("Lỗi khi tải kết quả đơn hàng."));
     } finally {
       setLoading(false);
     }
-  }
+  }, [effectiveBookingId, vnpResponseCode, searchParams]);
 
   useEffect(() => {
     loadResult();
-  }, [rawBookingId]);
-
-  const status = paymentResultStatus(booking?.status);
+  }, [loadResult]);
 
   return (
-    <div className={`checkout-flow-page result-page result-page--${status}`}>
-      <CheckoutHeader
-        activeStep={status === "success" ? 4 : 3}
-        orderInProgress={status === "processing"}
-        secureLabel="Hệ thống vé điện tử EventHub"
-      />
-
-      <main className="result-main">
+    <CustomerLayout
+      activeNav="bookings"
+      description="Chi tiết xác nhận thanh toán trực tuyến và vé điện tử check-in của bạn."
+      title="Kết quả thanh toán"
+    >
+      <div className="payment-result-container" style={{ maxWidth: "800px", margin: "0 auto", padding: "10px 0 40px" }}>
         <RequestState error={error ? error.message : undefined} loading={loading} onRetry={loadResult} />
 
-        {booking && (
-          <>
-            {/* Header thông báo trạng thái */}
-            <ResultHero email={user?.email || "email của bạn"} status={status} />
+        {!loading && booking && (
+          <div style={{ display: "grid", gap: "24px" }}>
+            {/* Header Icon & Status Heading */}
+            <div style={{ textAlign: "center", padding: "20px 0 10px" }}>
+              {status === "success" && (
+                <div>
+                  <div
+                    style={{
+                      width: "72px",
+                      height: "72px",
+                      borderRadius: "50%",
+                      background: "rgba(16, 185, 129, 0.12)",
+                      color: "var(--eh-green)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 16px",
+                      fontSize: "32px",
+                      border: "2px solid rgba(16, 185, 129, 0.3)",
+                    }}
+                  >
+                    <LineIcon name="check" />
+                  </div>
+                  <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", margin: "0 0 8px" }}>
+                    Thanh toán thành công!
+                  </h1>
+                  <p style={{ color: "var(--eh-muted)", fontSize: "15px", margin: 0 }}>
+                    Cảm ơn bạn. Đơn đặt chỗ đã được xác nhận và vé điện tử đã được phát hành tự động.
+                  </p>
+                </div>
+              )}
 
-            {/* Trạng thái 1: Thành công (CONFIRMED) */}
+              {status === "processing" && (
+                <div>
+                  <div
+                    style={{
+                      width: "72px",
+                      height: "72px",
+                      borderRadius: "50%",
+                      background: "rgba(245, 158, 11, 0.12)",
+                      color: "var(--eh-orange)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 16px",
+                      fontSize: "32px",
+                      border: "2px solid rgba(245, 158, 11, 0.3)",
+                    }}
+                  >
+                    <LineIcon name="refresh" />
+                  </div>
+                  <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--eh-text)", margin: "0 0 8px" }}>
+                    Đang chờ xác nhận giao dịch...
+                  </h1>
+                </div>
+              )}
+
+              {status === "failed" && (
+                <div>
+                  <div
+                    style={{
+                      width: "72px",
+                      height: "72px",
+                      borderRadius: "50%",
+                      background: "rgba(239, 68, 68, 0.12)",
+                      color: "var(--eh-red)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 16px",
+                      fontSize: "32px",
+                      border: "2px solid rgba(239, 68, 68, 0.3)",
+                    }}
+                  >
+                    <LineIcon name="x" />
+                  </div>
+                  <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--eh-text)", margin: "0 0 8px" }}>
+                    Giao dịch chưa hoàn tất
+                  </h1>
+                </div>
+              )}
+            </div>
+
+            {/* Trạng thái 1: Thành công */}
             {status === "success" && (
-              <div style={{ display: "grid", gap: "32px", width: "100%", maxWidth: "880px", margin: "0 auto" }}>
-                {/* Cuống vé điện tử Master E-Ticket */}
-                <article className="e-ticket-card" aria-label="Vé điện tử EventHub">
-                  <div className="e-ticket-main">
-                    <div className="e-ticket-copy">
-                      <span style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "800", letterSpacing: "0.1em" }}>
-                        VÉ CHÍNH THỨC · EVENTHUB E-TICKET
-                      </span>
-                      <h2 style={{ fontSize: "24px", fontWeight: "800", margin: "8px 0 16px", color: "var(--eh-text)" }}>
-                        {booking.items[0]?.eventTitle || "Sự kiện EventHub"}
-                      </h2>
-                      <p style={{ color: "var(--eh-muted)", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <LineIcon name="calendar" /> {formatDateTime(booking.createdAt)}
-                      </p>
-                      <p style={{ color: "var(--eh-muted)", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <LineIcon name="ticket" /> Mã đơn: <strong style={{ fontFamily: "monospace" }}>{booking.id}</strong>
-                      </p>
+              <div>
+                {/* Thông báo vé điện tử qua Email */}
+                <div
+                  style={{
+                    background: "rgba(16, 185, 129, 0.08)",
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    borderRadius: "12px",
+                    padding: "14px 20px",
+                    margin: "0 auto 20px",
+                    maxWidth: "680px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    color: "var(--eh-green)",
+                    fontSize: "14px",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  <span style={{ fontSize: "22px" }}>✉️</span>
+                  <div>
+                    <strong>Vé điện tử kèm mã QR check-in</strong> đã được tự động gửi tới email của bạn. Bạn cũng có thể mở hoặc in trực tiếp trong mục <em>Vé của tôi</em>.
+                  </div>
+                </div>
 
-                      <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid var(--eh-border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                        <div>
-                          <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Hạng vé</small>
-                          <strong style={{ fontSize: "14px", color: "var(--eh-text)" }}>
-                            {booking.items.map((it) => `${it.quantity} × ${it.ticketTypeName}`).join(", ")}
-                          </strong>
-                        </div>
-                        <div>
-                          <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Người sở hữu</small>
-                          <strong style={{ fontSize: "14px", color: "var(--eh-text)" }}>
-                            {user?.fullName || user?.email}
-                          </strong>
-                        </div>
+                <article className="e-ticket-card" style={{ maxWidth: "680px", margin: "0 auto 28px" }}>
+                  <div className="e-ticket-body">
+                    <span className="e-ticket-badge" style={{ background: "rgba(37,99,235,0.1)", color: "var(--eh-primary)" }}>
+                      EventHub Ticket Pass
+                    </span>
+                    <h2 className="e-ticket-title" style={{ fontSize: "20px", margin: "10px 0 16px" }}>
+                      Đơn hàng #{booking.id.slice(0, 8)}
+                    </h2>
+                    <div className="e-ticket-meta" style={{ display: "grid", gap: "8px", fontSize: "14px" }}>
+                      <div>
+                        <strong style={{ color: "var(--eh-text)" }}>Tổng thanh toán: </strong>
+                        <span style={{ color: "var(--eh-green)", fontWeight: "700", fontSize: "16px" }}>
+                          {formatCurrency(booking.totalAmount)}
+                        </span>
+                      </div>
+                      <div>
+                        <strong style={{ color: "var(--eh-text)" }}>Thời gian đặt: </strong>
+                        <span>{formatDateTime(booking.createdAt)}</span>
+                      </div>
+                      <div>
+                        <strong style={{ color: "var(--eh-text)" }}>Số lượng loại vé: </strong>
+                        <span>{booking.items?.length || 0} mục</span>
                       </div>
                     </div>
                   </div>
@@ -158,18 +253,21 @@ export function PaymentResultPage() {
             {status === "failed" && (
               <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", display: "grid", gap: "20px" }}>
                 <p style={{ color: "var(--eh-red)", fontSize: "14px" }}>
-                  Đơn đặt vé này đã bị hủy hoặc hết hạn thanh toán (quá thời hạn 15 phút). Chỗ đã được hoàn trả lại cho sự kiện.
+                  Đơn hàng chưa được thanh toán thành công hoặc đã bị quá hạn giữ chỗ (15 phút).
                 </p>
-                <div>
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
                   <Link className="btn btn-primary" to="/events">
-                    Đặt lại vé mới
+                    Quay lại tìm sự kiện
+                  </Link>
+                  <Link className="btn btn-secondary" to="/my-bookings">
+                    Xem lịch sử đơn đặt
                   </Link>
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </CustomerLayout>
   );
 }

@@ -24,6 +24,8 @@ import com.eventhub.eventhub_backend.waitlist.exception.WaitlistOfferExpiredExce
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistEntryRepository;
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistOfferRepository;
 import com.eventhub.eventhub_backend.waitlist.service.WaitlistOfferService;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.transaction.Transactional;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
@@ -40,6 +42,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -51,6 +54,7 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
     private final BookingService bookingService;
     private final CurrentUserService currentUserService;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
 
     @Value("${eventhub.waitlist.offer-ttl-seconds:900}")
     private long offerTtlSeconds = 900;
@@ -317,7 +321,15 @@ public class WaitlistOfferServiceImpl implements WaitlistOfferService {
         entry.setStatus(WaitlistEntryStatus.OFFERED);
         waitlistEntryRepository.save(entry);
 
-        return waitlistOfferRepository.save(offer);
+        WaitlistOffer savedOffer = waitlistOfferRepository.save(offer);
+        if (emailService != null) {
+            try {
+                emailService.sendWaitlistOfferEmail(savedOffer);
+            } catch (Exception e) {
+                log.warn("Could not dispatch waitlist offer email for offer {}: {}", savedOffer.getId(), e.getMessage());
+            }
+        }
+        return savedOffer;
     }
 
     private void expireOffer(WaitlistOffer offer) {

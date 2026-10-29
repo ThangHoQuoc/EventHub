@@ -20,6 +20,7 @@ import com.eventhub.eventhub_backend.waitlist.entity.WaitlistOfferStatus;
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistEntryRepository;
 import com.eventhub.eventhub_backend.waitlist.repository.WaitlistOfferRepository;
 import com.eventhub.eventhub_backend.waitlist.service.Impl.WaitlistOfferServiceImpl;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -45,13 +46,16 @@ class WaitlistOfferServiceImplTest {
     private final BookingService bookingService = mock(BookingService.class);
     private final CurrentUserService currentUserService = mock(CurrentUserService.class);
 
+    private final EmailService emailService = mock(EmailService.class);
+
     private final WaitlistOfferServiceImpl waitlistOfferService = new WaitlistOfferServiceImpl(
             waitlistEntryRepository,
             waitlistOfferRepository,
             ticketTypeRepository,
             bookingService,
             currentUserService,
-            mock(org.springframework.context.ApplicationEventPublisher.class)
+            mock(org.springframework.context.ApplicationEventPublisher.class),
+            emailService
     );
 
     @Test

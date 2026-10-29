@@ -17,6 +17,7 @@ import com.eventhub.eventhub_backend.payment.entity.Payment;
 import com.eventhub.eventhub_backend.payment.entity.PaymentStatus;
 import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
 import com.eventhub.eventhub_backend.payment.service.Impl.PaymentServiceImpl;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
 import com.eventhub.eventhub_backend.ticket.entity.TicketType;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
 import com.eventhub.eventhub_backend.user.entity.Role;
@@ -41,6 +42,7 @@ class PaymentServiceImplTest {
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
     private final TicketService ticketService = mock(TicketService.class);
     private final CurrentUserService currentUserService = mock(CurrentUserService.class);
+    private final EmailService emailService = mock(EmailService.class);
     private final VNPayConfig vnpayConfig = new VNPayConfig();
 
     private PaymentServiceImpl paymentService;
@@ -57,7 +59,8 @@ class PaymentServiceImplTest {
                 paymentRepository,
                 ticketService,
                 vnpayConfig,
-                currentUserService
+                currentUserService,
+                emailService
         );
     }
 

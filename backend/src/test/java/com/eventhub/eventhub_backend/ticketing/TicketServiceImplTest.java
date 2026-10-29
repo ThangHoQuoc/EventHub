@@ -14,6 +14,7 @@ import com.eventhub.eventhub_backend.ticketing.entity.Ticket;
 import com.eventhub.eventhub_backend.ticketing.entity.TicketStatus;
 import com.eventhub.eventhub_backend.ticketing.repository.TicketRepository;
 import com.eventhub.eventhub_backend.ticketing.service.Impl.TicketServiceImpl;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
@@ -38,10 +39,12 @@ class TicketServiceImplTest {
 
     private final TicketRepository ticketRepository = mock(TicketRepository.class);
     private final CurrentUserService currentUserService = mock(CurrentUserService.class);
+    private final EmailService emailService = mock(EmailService.class);
 
     private final TicketServiceImpl ticketService = new TicketServiceImpl(
             ticketRepository,
-            currentUserService
+            currentUserService,
+            emailService
     );
 
     @Test

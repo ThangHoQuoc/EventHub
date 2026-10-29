@@ -41,3 +41,10 @@ export async function getTicketDetailApi(ticketId: string): Promise<TicketDto> {
     method: "GET",
   });
 }
+
+
+export async function resendTicketEmailApi(ticketCode: string): Promise<string> {
+  return fetchApi<string>(`/api/v1/tickets/${ticketCode}/resend-email`, {
+    method: "POST",
+  });
+}

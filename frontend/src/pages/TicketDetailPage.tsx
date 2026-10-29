@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CustomerLayout } from "../components/customer/CustomerLayout";
 import { QRCode } from "../components/ui/QRCode";
 import { RequestState } from "../components/ui/RequestState";
 import { LineIcon } from "../components/ui/LineIcon";
-import { getTicketDetailApi } from "../api/tickets";
+import { getTicketDetailApi, resendTicketEmailApi } from "../api/tickets";
 import { useApiResource } from "../hooks/useApiResource";
 import { formatDateTime } from "../utils/format";
 import { ticketStatusLabel } from "./MyTicketsPage";
 
 export function TicketDetailPage() {
   const { ticketId } = useParams();
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ message: string; success: boolean } | null>(null);
+
   const resource = useApiResource(
     () =>
       ticketId
@@ -19,6 +23,26 @@ export function TicketDetailPage() {
   );
   const ticket = resource.data;
   const isValid = ticket?.status === "VALID";
+
+  const handleResendEmail = async () => {
+    if (!ticket?.ticketCode) return;
+    setSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      await resendTicketEmailApi(ticket.ticketCode);
+      setEmailStatus({
+        message: "Vé điện tử kèm mã QR check-in đã được gửi tới email của bạn!",
+        success: true,
+      });
+    } catch {
+      setEmailStatus({
+        message: "Chưa thể gửi email lúc này. Vui lòng thử lại sau.",
+        success: false,
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   return (
     <CustomerLayout
@@ -59,83 +83,54 @@ export function TicketDetailPage() {
               }}
             >
               {/* Thân vé bên trái */}
-              <div style={{ padding: "32px 36px", display: "grid", gap: "18px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "800", letterSpacing: "0.12em" }}>
-                    EVENTHUB TICKETING SYSTEM
-                  </span>
-                  <span
-                    className={`ev-ticket-status-pill ${isValid ? "status-valid" : "status-used"}`}
-                    style={{
-                      background: isValid ? "var(--eh-green-50)" : "#f1f3f4",
-                      color: isValid ? "var(--eh-green)" : "var(--eh-muted)",
-                      padding: "4px 12px",
-                      borderRadius: "999px",
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <LineIcon name={isValid ? "check" : "clock"} />
-                    {ticketStatusLabel[ticket.status] || ticket.status}
-                  </span>
-                </div>
-
+              <div style={{ padding: "32px 36px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div>
-                  <h1 style={{ fontSize: "26px", fontWeight: "800", margin: "4px 0 8px", color: "var(--eh-text)", letterSpacing: "-0.04em", lineHeight: "1.2" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
+                    <span className="badge badge-primary" style={{ padding: "6px 12px", fontSize: "12px" }}>
+                      {ticket.ticketTypeName}
+                    </span>
+                    <span className={`badge ${isValid ? "badge-success" : "badge-neutral"}`}>
+                      {ticketStatusLabel[ticket.status]}
+                    </span>
+                  </div>
+
+                  <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--eh-text)", lineHeight: "1.3", margin: "0 0 16px" }}>
                     {ticket.eventTitle}
-                  </h1>
-                  <span
-                    style={{
-                      background: "var(--eh-bg)",
-                      border: "1px solid var(--eh-border)",
-                      color: "var(--eh-text)",
-                      padding: "4px 10px",
-                      borderRadius: "var(--radius-md)",
-                      fontSize: "12px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    Hạng vé: {ticket.ticketTypeName}
-                  </span>
-                </div>
+                  </h2>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", paddingTop: "12px", borderTop: "1px solid var(--eh-border)" }}>
-                  <div>
-                    <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Thời gian cấp vé</small>
-                    <strong style={{ color: "var(--eh-text)", fontSize: "13px" }}>{formatDateTime(ticket.issuedAt)}</strong>
-                  </div>
-                  <div>
-                    <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Trạng thái check-in</small>
-                    <strong style={{ color: isValid ? "var(--eh-green)" : "var(--eh-muted)", fontSize: "13px" }}>
-                      {ticket.checkedInAt ? `Đã quét lúc: ${formatDateTime(ticket.checkedInAt)}` : "Chưa sử dụng"}
-                    </strong>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", margin: "20px 0" }}>
+                    <div>
+                      <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", fontWeight: "600", textTransform: "uppercase" }}>
+                        Thời gian phát hành
+                      </small>
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-text)", marginTop: "2px" }}>
+                        {formatDateTime(ticket.issuedAt)}
+                      </div>
+                    </div>
+                    {ticket.checkedInAt && (
+                      <div>
+                        <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", fontWeight: "600", textTransform: "uppercase" }}>
+                          Thời gian Check-in
+                        </small>
+                        <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-green)", marginTop: "2px" }}>
+                          {formatDateTime(ticket.checkedInAt)}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <div>
-                    <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Mã đơn hàng liên kết</small>
-                    <strong style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--eh-muted)" }}>
-                      {ticket.bookingId}
-                    </strong>
+                <div style={{ borderTop: "1px dashed var(--eh-border)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
+                    Mã đơn hàng: <strong style={{ color: "var(--eh-text)" }}>{ticket.bookingId}</strong>
                   </div>
-                  <div>
-                    <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Trang sự kiện</small>
-                    <Link className="ev-text-link" style={{ fontSize: "12px", fontWeight: "700" }} to={`/events/${ticket.eventId}`}>
-                      Xem chi tiết sự kiện <LineIcon name="arrow-right" />
-                    </Link>
+                  <div style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
+                    EventHub Official E-Ticket
                   </div>
-                </div>
-
-                <div style={{ background: "var(--eh-bg)", padding: "12px 16px", borderRadius: "var(--radius-md)", fontSize: "12px", color: "var(--eh-muted)" }}>
-                  <LineIcon name="info" /> <strong>Lưu ý:</strong> Mỗi mã vé chỉ có giá trị check-in một lần duy nhất tại cổng soát vé. Vui lòng không chụp gửi mã QR cho người khác.
                 </div>
               </div>
 
-              {/* Cuống vé bên phải */}
+              {/* Cuống vé chứa mã QR bên phải */}
               <div
                 style={{
                   background: "#faf8f5",
@@ -162,7 +157,7 @@ export function TicketDetailPage() {
                   </strong>
                 </div>
 
-                <div style={{ marginTop: "20px", display: "grid", gap: "8px", width: "100%" }}>
+                <div style={{ marginTop: "18px", display: "grid", gap: "8px", width: "100%" }}>
                   <button
                     className="btn btn-primary"
                     onClick={() => window.print()}
@@ -171,6 +166,17 @@ export function TicketDetailPage() {
                   >
                     <LineIcon name="download" /> In vé điện tử
                   </button>
+
+                  <button
+                    className="btn btn-secondary"
+                    disabled={sendingEmail}
+                    onClick={handleResendEmail}
+                    style={{ width: "100%", justifyContent: "center" }}
+                    type="button"
+                  >
+                    <LineIcon name="mail" /> {sendingEmail ? "Đang gửi email..." : "Gửi vé vào Email"}
+                  </button>
+
                   <button
                     className="btn btn-secondary"
                     disabled={resource.loading}
@@ -181,6 +187,23 @@ export function TicketDetailPage() {
                     <LineIcon name="refresh" /> Đồng bộ trạng thái
                   </button>
                 </div>
+
+                {emailStatus && (
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      lineHeight: "1.4",
+                      background: emailStatus.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                      color: emailStatus.success ? "var(--eh-green)" : "var(--eh-red)",
+                      border: `1px solid ${emailStatus.success ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
+                    }}
+                  >
+                    {emailStatus.message}
+                  </div>
+                )}
               </div>
             </article>
 
@@ -191,7 +214,7 @@ export function TicketDetailPage() {
               </h3>
               <ol style={{ margin: 0, paddingLeft: "18px", color: "var(--eh-muted)", fontSize: "13px", lineHeight: "1.8", display: "grid", gap: "6px" }}>
                 <li>Cổng check-in mở đón khách trước giờ khai mạc <strong>45 - 60 phút</strong>.</li>
-                <li>Mở sẵn màn hình vé này với độ sáng màn hình điện thoại tối đa để máy quét laser đọc mã nhanh nhất.</li>
+                <li>Mở sẵn màn hình vé này hoặc xuất trình email có mã QR để nhân viên quét laser nhanh chóng.</li>
                 <li>Bạn cũng có thể xuất trình bản in giấy của vé này nếu không mang điện thoại.</li>
               </ol>
             </section>

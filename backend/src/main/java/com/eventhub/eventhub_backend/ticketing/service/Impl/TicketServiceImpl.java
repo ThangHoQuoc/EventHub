@@ -14,6 +14,7 @@ import com.eventhub.eventhub_backend.ticketing.entity.Ticket;
 import com.eventhub.eventhub_backend.ticketing.entity.TicketStatus;
 import com.eventhub.eventhub_backend.ticketing.repository.TicketRepository;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.entity.User;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
@@ -37,6 +38,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
     private final CurrentUserService currentUserService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -103,6 +105,35 @@ public class TicketServiceImpl implements TicketService {
         validateOwner(ticket);
 
         return toResponse(ticket);
+    }
+
+    @Override
+    public void resendTicketEmail(String ticketCode) {
+        if (!StringUtils.hasText(ticketCode)) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
+                .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
+
+        Role role = currentUserService.getCurrentUserRole();
+        if (role == Role.ADMIN) {
+            // Admin allowed
+        } else if (role == Role.CUSTOMER) {
+            validateOwner(ticket);
+        } else if (role == Role.ORGANIZER) {
+            Event event = ticket.getTicketType().getEvent();
+            if (event == null || event.getOrganizer() == null
+                    || !currentUserService.getCurrentUserId().equals(event.getOrganizer().getId())) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+        } else {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (emailService != null) {
+            emailService.sendSingleTicketEmail(ticket);
+        }
     }
 
     @Override

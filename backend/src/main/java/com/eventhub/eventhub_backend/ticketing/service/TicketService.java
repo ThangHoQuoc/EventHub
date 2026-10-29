@@ -17,4 +17,6 @@ public interface TicketService {
     TicketResponse getMyTicket(String ticketId);
 
     TicketResponse checkInTicket(CheckInTicketRequest request);
+
+    void resendTicketEmail(String ticketCode);
 }

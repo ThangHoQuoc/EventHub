@@ -14,7 +14,10 @@ import com.eventhub.eventhub_backend.payment.entity.Payment;
 import com.eventhub.eventhub_backend.payment.entity.PaymentStatus;
 import com.eventhub.eventhub_backend.payment.repository.PaymentRepository;
 import com.eventhub.eventhub_backend.payment.service.PaymentService;
+import com.eventhub.eventhub_backend.notification.service.EmailService;
+import lombok.extern.slf4j.Slf4j;
 import com.eventhub.eventhub_backend.ticketing.service.TicketService;
+import com.eventhub.eventhub_backend.ticketing.dto.response.TicketResponse;
 import com.eventhub.eventhub_backend.user.entity.Role;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
 import lombok.AccessLevel;
@@ -32,6 +35,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -42,6 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
     TicketService ticketService;
     VNPayConfig vnpayConfig;
     CurrentUserService currentUserService;
+    EmailService emailService;
 
     @Override
     @Transactional
@@ -75,7 +80,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
-        ticketService.issueTicketsForBooking(booking);
+        List<TicketResponse> issuedTickets = ticketService.issueTicketsForBooking(booking);
+        if (emailService != null) {
+            try {
+                emailService.sendTicketConfirmationEmail(booking, issuedTickets);
+            } catch (Exception e) {
+                log.warn("Could not dispatch ticket confirmation email for booking {}: {}", booking.getId(), e.getMessage());
+            }
+        }
 
         return toResponse(savedPayment);
     }

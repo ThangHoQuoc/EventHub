@@ -57,4 +57,16 @@ public class TicketController {
                 .result(response)
                 .build();
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{ticketCode}/resend-email")
+    public ApiResponse<String> resendTicketEmail(@PathVariable String ticketCode) {
+        ticketService.resendTicketEmail(ticketCode);
+
+        return ApiResponse.<String>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Ticket email has been sent successfully")
+                .result("Email dispatched for ticket: " + ticketCode)
+                .build();
+    }
 }
