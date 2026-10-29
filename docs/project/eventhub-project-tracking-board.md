@@ -2,7 +2,7 @@
 
 > **Dự án**: EventHub — Nền tảng Quản lý sự kiện, Đặt vé trực tuyến, Thanh toán tự động & Check-in QR  
 > **Cập nhật lần cuối**: 31/10/2026  
-> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2 và Phase 3. Đang chuẩn bị cho Phase 4.
+> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2, Phase 3 và Phase 4. Đang chuẩn bị cho Phase 5.
 
 ---
 
@@ -82,22 +82,22 @@ flowchart TD
 
 ---
 
-### ⏳ Phase 4: Dịch vụ Email & Thông báo tự động (Ưu tiên: P1 — Milestone #5 — SẴN SÀNG TRIỂN KHAI)
+### ✅ Phase 4: Dịch vụ Email & Thông báo tự động (Ưu tiên: P1 — ĐÃ XONG)
 *Mục tiêu: Gửi email vé điện tử kèm mã QR sau thanh toán và email mời nhận vé từ Waitlist.*
 
 | Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
 |---|---|---|---|:---:|:---:|---|
-| **TSK-401** | [#26](https://github.com/ThangHoQuoc/EventHub/issues/26) | Cấu hình Spring Boot Mail & ZXing QR Code Engine | Backend | `P1` | `TODO` | Bổ sung `spring-boot-starter-mail`, `zxing`, cấu hình SMTP Sandbox và service sinh ảnh QR Code từ `ticketCode`. |
-| **TSK-402** | [#27](https://github.com/ThangHoQuoc/EventHub/issues/27) | Thiết kế HTML E-Ticket Template & Async Mail Service | Backend | `P1` | `TODO` | Async mail sender bằng `@Async` ThreadPoolTaskExecutor; HTML email template responsive chèn QR code. |
-| **TSK-403** | [#28](https://github.com/ThangHoQuoc/EventHub/issues/28) | Tích hợp Trigger gửi E-Ticket tự động khi thanh toán thành công | Backend | `P1` | `TODO` | Tự động bắn email vé kèm mã QR khi đơn hàng `CONFIRMED` (cả VNPay online lẫn Admin duyệt chuyển khoản). |
-| **TSK-404** | [#29](https://github.com/ThangHoQuoc/EventHub/issues/29) | Gửi email thông báo Waitlist Offer & Nhắc nhở hạn chót | Backend | `P1` | `TODO` | Tự động gửi email thông báo khi có vé trống và được phát hành suất WaitlistOffer, đính kèm link thanh toán. |
-| **TSK-405** | [#30](https://github.com/ThangHoQuoc/EventHub/issues/30) | API Gửi lại vé điện tử qua Email (Resend E-Ticket) | Backend | `P1` | `TODO` | Endpoint `POST /api/v1/tickets/{ticketCode}/resend-email` cho phép gửi lại vé điện tử vào hòm thư. |
-| **TSK-406** | [#31](https://github.com/ThangHoQuoc/EventHub/issues/31) | Frontend: Nút "Gửi lại vé qua Email" & Banner thông báo | Frontend | `P1` | `TODO` | Bổ sung UI trên `PaymentResultPage`, `TicketDetailPage`, `MyBookingsPage` với Toast notification. |
-| **TSK-407** | [#32](https://github.com/ThangHoQuoc/EventHub/issues/32) | Unit Tests & Verification cho Notification & QR Engine | Testing | `P1` | `TODO` | Viết unit tests cho QRCodeGenerator, EmailService, trigger thanh toán; 100% test pass. |
+| **TSK-401** | [#26](https://github.com/ThangHoQuoc/EventHub/issues/26) | Cấu hình Spring Boot Mail & ZXing QR Code Engine | Backend | `P1` | `DONE` | Bổ sung `spring-boot-starter-mail`, `zxing`, cấu hình SMTP Sandbox và service sinh ảnh QR Code từ `ticketCode`. |
+| **TSK-402** | [#27](https://github.com/ThangHoQuoc/EventHub/issues/27) | Thiết kế HTML E-Ticket Template & Async Mail Service | Backend | `P1` | `DONE` | Async mail sender bằng `@Async` ThreadPoolTaskExecutor; HTML email template responsive chèn QR code. |
+| **TSK-403** | [#28](https://github.com/ThangHoQuoc/EventHub/issues/28) | Tích hợp Trigger gửi E-Ticket tự động khi thanh toán thành công | Backend | `P1` | `DONE` | Tự động bắn email vé kèm mã QR khi đơn hàng `CONFIRMED` (cả VNPay online lẫn Admin duyệt chuyển khoản). |
+| **TSK-404** | [#29](https://github.com/ThangHoQuoc/EventHub/issues/29) | Gửi email thông báo Waitlist Offer & Nhắc nhở hạn chót | Backend | `P1` | `DONE` | Tự động gửi email thông báo khi có vé trống và được phát hành suất WaitlistOffer, đính kèm link thanh toán. |
+| **TSK-405** | [#30](https://github.com/ThangHoQuoc/EventHub/issues/30) | API Gửi lại vé điện tử qua Email (Resend E-Ticket) | Backend | `P1` | `DONE` | Endpoint `POST /api/v1/tickets/{ticketCode}/resend-email` cho phép gửi lại vé điện tử vào hòm thư. |
+| **TSK-406** | [#31](https://github.com/ThangHoQuoc/EventHub/issues/31) | Frontend: Nút "Gửi lại vé qua Email" & Banner thông báo | Frontend | `P1` | `DONE` | Bổ sung UI trên `PaymentResultPage`, `TicketDetailPage`, `MyBookingsPage` với Toast notification. |
+| **TSK-407** | [#32](https://github.com/ThangHoQuoc/EventHub/issues/32) | Unit Tests & Verification cho Notification & QR Engine | Testing | `P1` | `DONE` | Viết unit tests cho QRCodeGenerator, EmailService, trigger thanh toán; 100% test pass. |
 
 ---
 
-### 📅 Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — DỰ KIẾN)
+### ⏳ Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — TIẾP THEO)
 *Mục tiêu: Cung cấp dashboard quản trị người dùng toàn sàn và biểu đồ doanh thu theo thời gian thực.*
 
 | Mã Task | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
@@ -136,11 +136,11 @@ flowchart TD
 ## 📈 Tóm tắt Tỷ lệ Hoàn thành Dự án
 
 ```
-[█████████████████████░░░░░░░░░░░░░░░░░░░] 52% Hoàn thành toàn dự án
+[███████████████████████████░░░░░░░░░░░░░] 67% Hoàn thành toàn dự án
 - Phase 1 (Invariants & Concurrency):   [████████████████████] 100% (7/7 Tasks)
 - Phase 2 (Core APIs & FE Connect):     [████████████████████] 100% (8/8 Tasks)
 - Phase 3 (Online Payment Gateway):     [████████████████████] 100% (7/7 Tasks)
-- Phase 4 (Notification & Email):       [░░░░░░░░░░░░░░░░░░░░]   0% (0/5 Tasks)
+- Phase 4 (Notification & Email):       [████████████████████] 100% (7/7 Tasks)
 - Phase 5 (Admin & Analytics):          [░░░░░░░░░░░░░░░░░░░░]   0% (0/4 Tasks)
 - Phase 6 (AI EventMatch):              [░░░░░░░░░░░░░░░░░░░░]   0% (0/3 Tasks)
 - Phase 7 (Redis, Docker & CI/CD):      [░░░░░░░░░░░░░░░░░░░░]   0% (0/5 Tasks)
