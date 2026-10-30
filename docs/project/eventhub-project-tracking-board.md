@@ -2,7 +2,7 @@
 
 > **Dự án**: EventHub — Nền tảng Quản lý sự kiện, Đặt vé trực tuyến, Thanh toán tự động & Check-in QR  
 > **Cập nhật lần cuối**: 31/10/2026  
-> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2, Phase 3 và Phase 4. Đang chuẩn bị cho Phase 5.
+> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2, Phase 3, Phase 4 và Phase 5. Đang chuẩn bị cho Phase 6.
 
 ---
 
@@ -97,22 +97,22 @@ flowchart TD
 
 ---
 
-### ⏳ Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — Milestone #6 — SẴN SÀNG TRIỂN KHAI)
+### ✅ Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — ĐÃ XONG)
 *Mục tiêu: Cung cấp dashboard quản trị người dùng toàn sàn và biểu đồ doanh thu theo thời gian thực.*
 
 | Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
 |---|---|---|---|:---:|:---:|---|
-| **TSK-501** | [#33](https://github.com/ThangHoQuoc/EventHub/issues/33) | API Quản lý Người dùng cho Admin (`GET /api/v1/admin/users` & PATCH status) | Backend | `P1` | `TODO` | Tìm kiếm đa điều kiện (tên, email, role, status), phân trang và đổi trạng thái `ACTIVE` / `INACTIVE` / `BANNED`. |
-| **TSK-502** | [#34](https://github.com/ThangHoQuoc/EventHub/issues/34) | API Thống kê Doanh thu Toàn sàn cho Admin (`GET /api/v1/admin/stats`) | Backend | `P1` | `TODO` | Tổng doanh thu sàn, tổng vé đã bán, tổng sự kiện active, tổng user và danh sách top sự kiện doanh thu cao nhất. |
-| **TSK-503** | [#35](https://github.com/ThangHoQuoc/EventHub/issues/35) | API Thống kê Doanh thu & Tỷ lệ Lấp đầy cho Organizer (`GET /api/v1/events/{id}/stats`) | Backend | `P1` | `TODO` | Doanh thu sự kiện, số lượng bán và tỷ lệ lấp đầy (occupancy rate) từng loại vé, số vé đã check-in. |
-| **TSK-504** | [#36](https://github.com/ThangHoQuoc/EventHub/issues/36) | Frontend: Trang Quản lý Người dùng Toàn sàn (`AdminUsersPage.tsx`) | Frontend | `P1` | `TODO` | Giao diện quản lý user phân trang, tìm kiếm thời gian thực, bộ lọc role/status và modal khóa/mở khóa tài khoản. |
-| **TSK-505** | [#37](https://github.com/ThangHoQuoc/EventHub/issues/37) | Frontend: Dashboard Thống kê Doanh thu & KPI Admin (`AdminStatsPage.tsx`) | Frontend | `P1` | `TODO` | Bảng số liệu KPI trực quan, bảng xếp hạng các sự kiện có doanh thu lớn nhất trên sàn. |
-| **TSK-506** | [#38](https://github.com/ThangHoQuoc/EventHub/issues/38) | Frontend: Thống kê Doanh thu & Tỷ lệ Lấp đầy trên Organizer Dashboard | Frontend | `P1` | `TODO` | Thanh tiến độ bán vé, tỷ lệ lấp đầy, số vé check-in thời gian thực trên giao diện Organizer. |
-| **TSK-507** | [#39](https://github.com/ThangHoQuoc/EventHub/issues/39) | Unit Tests & Integration Tests cho Admin & Stats Module | Testing | `P1` | `TODO` | Unit tests đầy đủ cho `AdminUserService`, `AdminStatsService`, `EventStatsService`, kiểm tra quyền 100% pass. |
+| **TSK-501** | [#33](https://github.com/ThangHoQuoc/EventHub/issues/33) | API Quản lý Người dùng cho Admin (`GET /api/v1/admin/users` & PATCH status) | Backend | `P1` | `DONE` | Tìm kiếm đa điều kiện (tên, email, role, status), phân trang và đổi trạng thái `ACTIVE` / `INACTIVE` / `BANNED`. |
+| **TSK-502** | [#34](https://github.com/ThangHoQuoc/EventHub/issues/34) | API Thống kê Doanh thu Toàn sàn cho Admin (`GET /api/v1/admin/stats`) | Backend | `P1` | `DONE` | Tổng doanh thu sàn, tổng vé đã bán, tổng sự kiện active, tổng user và danh sách top sự kiện doanh thu cao nhất. |
+| **TSK-503** | [#35](https://github.com/ThangHoQuoc/EventHub/issues/35) | API Thống kê Doanh thu & Tỷ lệ Lấp đầy cho Organizer (`GET /api/v1/events/{id}/stats`) | Backend | `P1` | `DONE` | Doanh thu sự kiện, số lượng bán và tỷ lệ lấp đầy (occupancy rate) từng loại vé, số vé đã check-in. |
+| **TSK-504** | [#36](https://github.com/ThangHoQuoc/EventHub/issues/36) | Frontend: Trang Quản lý Người dùng Toàn sàn (`AdminUsersPage.tsx`) | Frontend | `P1` | `DONE` | Giao diện quản lý user phân trang, tìm kiếm thời gian thực, bộ lọc role/status và modal khóa/mở khóa tài khoản. |
+| **TSK-505** | [#37](https://github.com/ThangHoQuoc/EventHub/issues/37) | Frontend: Dashboard Thống kê Doanh thu & KPI Admin (`AdminStatsPage.tsx`) | Frontend | `P1` | `DONE` | Bảng số liệu KPI trực quan, bảng xếp hạng các sự kiện có doanh thu lớn nhất trên sàn. |
+| **TSK-506** | [#38](https://github.com/ThangHoQuoc/EventHub/issues/38) | Frontend: Thống kê Doanh thu & Tỷ lệ Lấp đầy trên Organizer Dashboard | Frontend | `P1` | `DONE` | Thanh tiến độ bán vé, tỷ lệ lấp đầy, số vé check-in thời gian thực trên giao diện Organizer. |
+| **TSK-507** | [#39](https://github.com/ThangHoQuoc/EventHub/issues/39) | Unit Tests & Integration Tests cho Admin & Stats Module | Testing | `P1` | `DONE` | Unit tests đầy đủ cho `AdminUserService`, `AdminStatsService`, `EventStatsService`, kiểm tra quyền 100% pass. |
 
 ---
 
-### 📅 Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — DỰ KIẾN)
+### ⏳ Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — TIẾP THEO)
 *Mục tiêu: Biến tính năng tìm kiếm sự kiện tự nhiên bằng AI thành sản phẩm thực tế.*
 
 | Mã Task | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
@@ -139,12 +139,12 @@ flowchart TD
 ## 📈 Tóm tắt Tỷ lệ Hoàn thành Dự án
 
 ```
-[███████████████████████████░░░░░░░░░░░░░] 67% Hoàn thành toàn dự án
+[████████████████████████████████░░░░░░░░] 81% Hoàn thành toàn dự án
 - Phase 1 (Invariants & Concurrency):   [████████████████████] 100% (7/7 Tasks)
 - Phase 2 (Core APIs & FE Connect):     [████████████████████] 100% (8/8 Tasks)
 - Phase 3 (Online Payment Gateway):     [████████████████████] 100% (7/7 Tasks)
 - Phase 4 (Notification & Email):       [████████████████████] 100% (7/7 Tasks)
-- Phase 5 (Admin & Analytics):          [░░░░░░░░░░░░░░░░░░░░]   0% (0/4 Tasks)
+- Phase 5 (Admin & Analytics):          [████████████████████] 100% (7/7 Tasks)
 - Phase 6 (AI EventMatch):              [░░░░░░░░░░░░░░░░░░░░]   0% (0/3 Tasks)
 - Phase 7 (Redis, Docker & CI/CD):      [░░░░░░░░░░░░░░░░░░░░]   0% (0/5 Tasks)
 ```
