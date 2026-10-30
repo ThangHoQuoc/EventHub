@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -27,5 +28,11 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Booking b where b.status = :status and b.createdAt < :createdAt order by b.id")
     List<Booking> findByStatusAndCreatedAtBefore(@Param("status") BookingStatus status,
-                                               @Param("createdAt") Instant createdAt);
+                                                @Param("createdAt") Instant createdAt);
+
+    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.status = :status")
+    BigDecimal sumTotalAmountByStatus(@Param("status") BookingStatus status);
+
+    @Query("SELECT COALESCE(SUM(i.subtotal), 0) FROM BookingItem i WHERE i.ticketType.event.id = :eventId AND i.booking.status = :status")
+    BigDecimal sumRevenueByEventIdAndBookingStatus(@Param("eventId") String eventId, @Param("status") BookingStatus status);
 }

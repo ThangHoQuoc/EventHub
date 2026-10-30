@@ -26,4 +26,6 @@ public interface EventRepository extends JpaRepository<Event, String>, EventRepo
                                           @Param("status") EventStatus status,
                                           @Param("keyword") String keyword,
                                           Pageable pageable);
+
+    long countByStatus(EventStatus status);
 }

@@ -28,4 +28,7 @@ public interface TicketTypeRepository extends JpaRepository<TicketType,String> {
               and COALESCE(ticketType.soldQuantity, 0) + :quantity <= ticketType.quantity
             """)
     int reserveAvailableQuantity(@Param("ticketTypeId") String ticketTypeId, @Param("quantity") int quantity);
+
+    @Query("SELECT COALESCE(SUM(t.soldQuantity), 0) FROM TicketType t")
+    long sumSoldQuantity();
 }

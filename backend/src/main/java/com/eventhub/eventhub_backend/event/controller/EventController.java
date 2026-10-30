@@ -8,6 +8,8 @@ import com.eventhub.eventhub_backend.event.dto.request.EventSearchRequest;
 import com.eventhub.eventhub_backend.event.dto.request.UpdateEventRequest;
 import com.eventhub.eventhub_backend.event.dto.response.EventResponse;
 import com.eventhub.eventhub_backend.event.service.EventService;
+import com.eventhub.eventhub_backend.event.service.EventStatsService;
+import com.eventhub.eventhub_backend.admin.dto.response.EventStatsResponse;
 import com.eventhub.eventhub_backend.user.service.CurrentUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class EventController {
 
     private final EventService eventService;
+    private final EventStatsService eventStatsService;
     private final CurrentUserService currentUserService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
@@ -113,8 +116,14 @@ public class EventController {
 
     }
 
-
-
-
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZER')")
+    @GetMapping("/{eventId}/stats")
+    public ApiResponse<EventStatsResponse> getEventStats(@PathVariable String eventId) {
+        EventStatsResponse response = eventStatsService.getEventStats(eventId);
+        return ApiResponse.<EventStatsResponse>builder()
+                .code(ErrorCode.SUCCESS.getCode())
+                .message("Event statistics retrieved successfully")
+                .result(response)
+                .build();
+    }
 }

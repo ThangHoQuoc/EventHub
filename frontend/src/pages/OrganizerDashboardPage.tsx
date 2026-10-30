@@ -6,10 +6,11 @@ import { PageNav } from "../components/ui/PageNav";
 import { LineIcon } from "../components/ui/LineIcon";
 import { EmptyState } from "../components/ui/EmptyState";
 import { getMyEventsApi } from "../api/organizer";
+import { getEventStatsApi, type EventStatsDto } from "../api/admin";
 import { useApiResource } from "../hooks/useApiResource";
 import { useAuth } from "../context/AuthContext";
 import { recentEvents } from "../utils/organizerState";
-import { formatDate } from "../utils/format";
+import { formatDate, formatCurrency } from "../utils/format";
 
 export function OrganizerDashboardPage() {
   const { user } = useAuth();
@@ -18,6 +19,11 @@ export function OrganizerDashboardPage() {
   const [query, setQuery] = useState("");
   const [keyword, setKeyword] = useState("");
   const [eventId, setEventId] = useState("");
+
+  // Stats Modal state
+  const [selectedEventStats, setSelectedEventStats] = useState<EventStatsDto | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   const resource = useApiResource(() => getMyEventsApi({ page, keyword }), [page, keyword]);
   const visible =
@@ -29,6 +35,20 @@ export function OrganizerDashboardPage() {
       navigate(`/organizer/events/${encodeURIComponent(eventId.trim())}/edit`);
     }
   }
+
+  const handleOpenStats = async (id: string) => {
+    setLoadingStats(true);
+    setStatsError(null);
+    setSelectedEventStats(null);
+    try {
+      const data = await getEventStatsApi(id);
+      setSelectedEventStats(data);
+    } catch (err: unknown) {
+      setStatsError(err instanceof Error ? err.message : "Không thể tải số liệu thống kê sự kiện.");
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const publishedCount = visible.filter((e) => e.status === "PUBLISHED").length;
   const draftCount = visible.filter((e) => e.status === "DRAFT").length;
@@ -60,12 +80,12 @@ export function OrganizerDashboardPage() {
               <span>TỔNG SỰ KIỆN</span>
               <LineIcon name="calendar" />
             </div>
-            <strong style={{ fontSize: "28px", color: "var(--eh-text)", fontWeight: "900", display: "block", margin: "8px 0 4px" }}>
-              {visible.length}
-            </strong>
-            <small style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "600" }}>
-              {publishedCount} đang mở bán · {draftCount} bản nháp
-            </small>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", margin: "8px 0 4px" }}>
+              {resource.data?.totalElements ?? visible.length}
+            </div>
+            <span style={{ fontSize: "12px", color: "var(--eh-green)", fontWeight: "600" }}>
+              {publishedCount} sự kiện đang mở bán
+            </span>
           </div>
 
           <div
@@ -78,15 +98,13 @@ export function OrganizerDashboardPage() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-muted)", fontSize: "12px", fontWeight: "700" }}>
-              <span>VÉ ĐÃ PHÁT HÀNH</span>
-              <LineIcon name="ticket" />
+              <span>BẢN NHÁP (DRAFT)</span>
+              <LineIcon name="card" />
             </div>
-            <strong style={{ fontSize: "28px", color: "var(--eh-text)", fontWeight: "900", display: "block", margin: "8px 0 4px" }}>
-              284
-            </strong>
-            <small style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "600" }}>
-              Tỷ lệ lấp đầy đạt ~78%
-            </small>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", margin: "8px 0 4px" }}>
+              {draftCount}
+            </div>
+            <span style={{ fontSize: "12px", color: "var(--eh-muted)" }}>Chưa công khai ra ngoài</span>
           </div>
 
           <div
@@ -99,15 +117,15 @@ export function OrganizerDashboardPage() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-muted)", fontSize: "12px", fontWeight: "700" }}>
-              <span>DOANH THU TẠM TÍNH</span>
-              <LineIcon name="trending" />
+              <span>SOÁT VÉ NHANH</span>
+              <LineIcon name="shield" />
             </div>
-            <strong style={{ fontSize: "28px", color: "var(--eh-green)", fontWeight: "900", display: "block", margin: "8px 0 4px" }}>
-              68.500.000đ
-            </strong>
-            <small style={{ color: "var(--eh-muted)", fontSize: "11px" }}>
-              Đã bao gồm VAT & đối soát
-            </small>
+            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--eh-text)", margin: "14px 0 8px" }}>
+              Cổng Check-in QR
+            </div>
+            <Link className="ev-text-link" style={{ fontSize: "12px", fontWeight: "700" }} to="/organizer/check-in">
+              Mở camera quét vé →
+            </Link>
           </div>
 
           <div
@@ -120,121 +138,98 @@ export function OrganizerDashboardPage() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-muted)", fontSize: "12px", fontWeight: "700" }}>
-              <span>TỶ LỆ CHECK-IN</span>
-              <LineIcon name="check" />
+              <span>TẠO MỚI</span>
+              <LineIcon name="plus" />
             </div>
-            <strong style={{ fontSize: "28px", color: "var(--eh-text)", fontWeight: "900", display: "block", margin: "8px 0 4px" }}>
-              86.4%
-            </strong>
-            <small style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "600" }}>
-              Hệ thống trạm QR ổn định
-            </small>
+            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--eh-text)", margin: "14px 0 8px" }}>
+              Thêm Sự Kiện Mới
+            </div>
+            <Link className="btn btn-primary" style={{ fontSize: "12px", padding: "6px 14px", display: "inline-flex" }} to="/organizer/events/new">
+              Bắt đầu ngay
+            </Link>
           </div>
         </section>
 
-        {/* Thanh tìm kiếm & Mở nhanh sự kiện */}
+        {/* Thanh tìm kiếm nhanh bằng ID sự kiện */}
         <section
           style={{
-            background: "var(--eh-surface)",
+            background: "#faf8f5",
             padding: "20px 24px",
             borderRadius: "var(--radius-xl)",
-            border: "1px solid var(--eh-border)",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
+            border: "1.5px dashed var(--eh-border)",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "16px",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          {/* Tìm theo từ khóa */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setKeyword(query);
-              setPage(0);
-            }}
-            style={{ display: "grid", gap: "8px" }}
-          >
-            <label htmlFor="event-keyword" style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-text)" }}>
-              Tìm kiếm sự kiện theo tiêu đề / địa điểm
-            </label>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <input
-                id="event-keyword"
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Nhập tên sự kiện..."
-                style={{ flex: 1, height: "42px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 12px" }}
-                value={query}
-              />
-              <button className="btn btn-secondary" style={{ height: "42px" }} type="submit">
-                <LineIcon name="search" /> Tìm
-              </button>
-            </div>
+          <form onSubmit={openEvent} style={{ display: "flex", gap: "10px", flex: "1 1 340px" }}>
+            <input
+              aria-label="Nhập ID sự kiện"
+              onChange={(e) => setEventId(e.target.value)}
+              placeholder="Nhập nhanh Event ID (ví dụ: e-tech-summit-2026)..."
+              style={{ flex: 1, minWidth: "220px" }}
+              value={eventId}
+            />
+            <button className="btn btn-secondary" style={{ whiteSpace: "nowrap" }} type="submit">
+              Mở nhanh
+            </button>
           </form>
 
-          {/* Mở nhanh theo ID */}
-          <form onSubmit={openEvent} style={{ display: "grid", gap: "8px" }}>
-            <label htmlFor="open-event-id" style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-text)" }}>
-              Mở sự kiện trực tiếp bằng mã ID
-            </label>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <input
-                id="open-event-id"
-                onChange={(e) => setEventId(e.target.value)}
-                placeholder="Dán ID sự kiện vào đây..."
-                style={{ flex: 1, height: "42px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 12px" }}
-                value={eventId}
-              />
-              <button className="btn btn-primary" style={{ height: "42px" }} type="submit">
-                Mở quản lý
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Mã sự kiện lưu trên trình duyệt nếu có */}
-        {recentEvents(user!.id).length > 0 && (
-          <div style={{ background: "var(--eh-bg)", padding: "12px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--eh-border)", fontSize: "12px" }}>
-            <span style={{ color: "var(--eh-muted)", marginRight: "8px" }}>Sự kiện bạn vừa tạo gần đây:</span>
-            {recentEvents(user!.id).map((id) => (
-              <Link
-                key={id}
-                style={{
-                  background: "var(--eh-surface)",
-                  padding: "4px 8px",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--eh-border)",
-                  fontFamily: "monospace",
-                  marginRight: "6px",
-                  display: "inline-block",
-                }}
-                to={`/organizer/events/${encodeURIComponent(id)}/edit`}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "12px", color: "var(--eh-muted)", fontWeight: "600" }}>Gợi ý mẫu:</span>
+            {recentEvents(user?.id ?? "").slice(0, 3).map((item) => (
+              <button
+                key={item}
+                className="btn btn-secondary"
+                onClick={() => setEventId(item)}
+                style={{ fontSize: "11px", padding: "4px 10px", minHeight: "28px" }}
+                type="button"
               >
-                {id.slice(0, 8)}... <LineIcon name="arrow-right" />
-              </Link>
+                {item}
+              </button>
             ))}
           </div>
-        )}
+        </section>
 
-        {/* Danh sách sự kiện quản lý */}
-        <section style={{ display: "grid", gap: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h2 style={{ fontSize: "20px", fontWeight: "800", margin: 0, color: "var(--eh-text)" }}>
-              Danh sách sự kiện của bạn ({visible.length})
+        {/* Danh sách Sự kiện của tôi */}
+        <section style={{ display: "grid", gap: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", color: "var(--eh-text)", margin: 0 }}>
+              Sự kiện bạn quản lý
             </h2>
-            <button
-              className="btn btn-secondary"
-              disabled={resource.loading}
-              onClick={resource.reload}
-              style={{ fontSize: "12px", minHeight: "36px" }}
-              type="button"
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setPage(0);
+                setKeyword(query.trim());
+              }}
+              style={{ display: "flex", gap: "8px" }}
             >
-              <LineIcon name="refresh" /> Tải lại danh sách
-            </button>
+              <input
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Tìm theo tiêu đề sự kiện..."
+                style={{ width: "240px", padding: "8px 12px", fontSize: "13px" }}
+                value={query}
+              />
+              <button className="btn btn-secondary" style={{ padding: "0 14px" }} type="submit">
+                Tìm
+              </button>
+            </form>
           </div>
 
           <RequestState error={resource.error} loading={resource.loading} onRetry={resource.reload} />
 
           {visible.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "20px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gap: "24px",
+              }}
+            >
               {visible.map((event) => {
                 const isPublished = event.status === "PUBLISHED";
                 const isDraft = event.status === "DRAFT";
@@ -244,8 +239,8 @@ export function OrganizerDashboardPage() {
                     key={event.id}
                     style={{
                       background: "var(--eh-surface)",
-                      border: "1px solid var(--eh-border)",
                       borderRadius: "var(--radius-xl)",
+                      border: "1px solid var(--eh-border)",
                       boxShadow: "var(--eh-shadow-sm)",
                       overflow: "hidden",
                       display: "flex",
@@ -271,7 +266,7 @@ export function OrganizerDashboardPage() {
                           position: "absolute",
                           top: "12px",
                           right: "12px",
-                          background: isPublished ? "var(--eh-green)" : isDraft ? "var(--eh-amber)" : "#666",
+                          background: isPublished ? "var(--eh-green)" : isDraft ? "var(--eh-orange)" : "#666",
                           color: "#ffffff",
                           fontSize: "10px",
                           fontWeight: "800",
@@ -313,9 +308,10 @@ export function OrganizerDashboardPage() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         gap: "8px",
+                        flexWrap: "wrap",
                       }}
                     >
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <Link
                           className="btn btn-secondary"
                           style={{ fontSize: "11px", padding: "0 10px", minHeight: "32px" }}
@@ -330,6 +326,14 @@ export function OrganizerDashboardPage() {
                         >
                           Loại vé
                         </Link>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleOpenStats(event.id)}
+                          style={{ fontSize: "11px", padding: "0 10px", minHeight: "32px", color: "var(--eh-primary)" }}
+                          type="button"
+                        >
+                          <LineIcon name="trending" /> Thống kê
+                        </button>
                       </div>
 
                       {isPublished && (
@@ -365,6 +369,161 @@ export function OrganizerDashboardPage() {
           />
         </section>
       </div>
+
+      {/* Modal Thống kê Sự Kiện Chi Tiết */}
+      {(selectedEventStats || loadingStats || statsError) && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "var(--eh-surface)",
+              borderRadius: "var(--radius-xl)",
+              maxWidth: "680px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              padding: "32px",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+              <div>
+                <span className="badge badge-primary" style={{ fontSize: "11px", marginBottom: "6px" }}>Báo cáo thời gian thực</span>
+                <h3 style={{ fontSize: "20px", fontWeight: "800", margin: 0, color: "var(--eh-text)" }}>
+                  {selectedEventStats ? selectedEventStats.title : "Thống kê sự kiện"}
+                </h3>
+              </div>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setSelectedEventStats(null);
+                  setStatsError(null);
+                }}
+                style={{ padding: "6px 12px", fontSize: "12px" }}
+                type="button"
+              >
+                ✕ Đóng
+              </button>
+            </div>
+
+            {loadingStats && (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "var(--eh-muted)" }}>
+                Đang tổng hợp dữ liệu thống kê...
+              </div>
+            )}
+
+            {statsError && (
+              <div style={{ padding: "14px", background: "rgba(239,68,68,0.1)", color: "var(--eh-red)", borderRadius: "8px", fontSize: "14px" }}>
+                {statsError}
+              </div>
+            )}
+
+            {selectedEventStats && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                {/* 3 Metric Cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid var(--eh-border)" }}>
+                    <div style={{ fontSize: "12px", color: "var(--eh-muted)", fontWeight: "600" }}>Tổng Doanh Thu</div>
+                    <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--eh-green)", marginTop: "4px" }}>
+                      {formatCurrency(selectedEventStats.totalRevenue)}
+                    </div>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid var(--eh-border)" }}>
+                    <div style={{ fontSize: "12px", color: "var(--eh-muted)", fontWeight: "600" }}>Tỷ Lệ Lấp Đầy</div>
+                    <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--eh-primary)", marginTop: "4px" }}>
+                      {selectedEventStats.occupancyRate}%
+                    </div>
+                    <small style={{ fontSize: "11px", color: "var(--eh-placeholder)" }}>
+                      {selectedEventStats.totalSold}/{selectedEventStats.totalCapacity} vé
+                    </small>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid var(--eh-border)" }}>
+                    <div style={{ fontSize: "12px", color: "var(--eh-muted)", fontWeight: "600" }}>Check-in Quầy</div>
+                    <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--eh-text)", marginTop: "4px" }}>
+                      {selectedEventStats.checkedInTickets} <span style={{ fontSize: "12px", fontWeight: "normal", color: "var(--eh-muted)" }}>vé</span>
+                    </div>
+                    <small style={{ fontSize: "11px", color: "var(--eh-orange)" }}>
+                      Waitlist: {selectedEventStats.waitingCount} người
+                    </small>
+                  </div>
+                </div>
+
+                {/* Thanh tiến độ lấp đầy */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
+                    <span>Tiến độ bán vé toàn sự kiện</span>
+                    <span>{selectedEventStats.occupancyRate}%</span>
+                  </div>
+                  <div style={{ width: "100%", height: "10px", background: "#e2e8f0", borderRadius: "999px", overflow: "hidden" }}>
+                    <div
+                      style={{
+                        width: `${Math.min(100, selectedEventStats.occupancyRate)}%`,
+                        height: "100%",
+                        background: "linear-gradient(90deg, var(--eh-primary) 0%, var(--eh-green) 100%)",
+                        borderRadius: "999px",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Chi tiết từng hạng vé */}
+                <div>
+                  <h4 style={{ fontSize: "15px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text)" }}>
+                    Chi tiết từng loại vé mở bán
+                  </h4>
+
+                  {selectedEventStats.ticketTypes.length === 0 ? (
+                    <div style={{ fontSize: "13px", color: "var(--eh-muted)" }}>Chưa cấu hình loại vé nào.</div>
+                  ) : (
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                        <thead>
+                          <tr style={{ background: "#f1f5f9", color: "var(--eh-muted)", textAlign: "left" }}>
+                            <th style={{ padding: "8px 12px", fontWeight: "600" }}>Hạng vé</th>
+                            <th style={{ padding: "8px 12px", fontWeight: "600" }}>Đơn giá</th>
+                            <th style={{ padding: "8px 12px", fontWeight: "600", textAlign: "right" }}>Tổng vé</th>
+                            <th style={{ padding: "8px 12px", fontWeight: "600", textAlign: "right" }}>Đã bán</th>
+                            <th style={{ padding: "8px 12px", fontWeight: "600", textAlign: "right" }}>Còn lại</th>
+                            <th style={{ padding: "8px 12px", fontWeight: "600", textAlign: "right" }}>Tỷ lệ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedEventStats.ticketTypes.map((tt) => (
+                            <tr key={tt.ticketTypeId} style={{ borderBottom: "1px solid var(--eh-border)" }}>
+                              <td style={{ padding: "10px 12px", fontWeight: "700" }}>{tt.name}</td>
+                              <td style={{ padding: "10px 12px" }}>{formatCurrency(tt.price)}</td>
+                              <td style={{ padding: "10px 12px", textAlign: "right" }}>{tt.quantity}</td>
+                              <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: "700", color: "var(--eh-green)" }}>
+                                {tt.soldQuantity}
+                              </td>
+                              <td style={{ padding: "10px 12px", textAlign: "right" }}>{tt.availableQuantity}</td>
+                              <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: "700" }}>
+                                {tt.occupancyRate}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </OrganizerLayout>
   );
 }

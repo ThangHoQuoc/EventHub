@@ -35,7 +35,7 @@ export function Header({ editorial = false }: HeaderProps) {
         <NavLink to="/eventmatch">EventMatch</NavLink>
         {(!user || user.role === "CUSTOMER") && <NavLink to="/my-tickets">Vé của tôi</NavLink>}
         {user && ["ADMIN", "ORGANIZER"].includes(user.role) && <NavLink to="/organizer">Nhà tổ chức</NavLink>}
-        {user?.role === "ADMIN" && <NavLink to="/admin/payments">Xác nhận thanh toán</NavLink>}
+        {user?.role === "ADMIN" && <NavLink to="/admin/stats">Quản trị sàn</NavLink>}
       </nav>
       <div className="header-actions">
         {user ? (

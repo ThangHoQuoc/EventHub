@@ -33,4 +33,6 @@ public interface WaitlistEntryRepository extends JpaRepository<WaitlistEntry, St
             WaitlistEntryStatus status,
             Integer quantity
     );
+
+    long countByTicketTypeEventIdAndStatus(String eventId, WaitlistEntryStatus status);
 }
