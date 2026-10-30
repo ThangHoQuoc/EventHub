@@ -97,15 +97,18 @@ flowchart TD
 
 ---
 
-### ⏳ Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — TIẾP THEO)
+### ⏳ Phase 5: Quản trị Admin Nâng cao & Thống kê Doanh thu (Ưu tiên: P2 — Milestone #6 — SẴN SÀNG TRIỂN KHAI)
 *Mục tiêu: Cung cấp dashboard quản trị người dùng toàn sàn và biểu đồ doanh thu theo thời gian thực.*
 
-| Mã Task | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
-|---|---|---|---|:---:|---|
-| **TSK-501** | API Quản lý User `GET /admin/users` & Khóa/Mở khóa | Backend | `P2` | `TODO` | Danh sách user phân trang, API `PATCH /admin/users/{id}/status` đổi `ACTIVE/BANNED`. |
-| **TSK-502** | API Thống kê Doanh thu Sàn `GET /admin/stats` | Backend | `P2` | `TODO` | Thống kê tổng doanh thu theo ngày/tháng, tổng số vé bán, sự kiện bán chạy nhất. |
-| **TSK-503** | API Thống kê cho Organizer `GET /events/{id}/stats` | Backend | `P2` | `TODO` | Tỷ lệ lấp đầy loại vé, doanh thu chi tiết từng loại vé của sự kiện. |
-| **TSK-504** | Frontend Dashboard Analytics | Frontend | `P2` | `TODO` | Hiển thị biểu đồ doanh thu và thẻ KPI sống trên Organizer & Admin Portal. |
+| Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
+|---|---|---|---|:---:|:---:|---|
+| **TSK-501** | [#33](https://github.com/ThangHoQuoc/EventHub/issues/33) | API Quản lý Người dùng cho Admin (`GET /api/v1/admin/users` & PATCH status) | Backend | `P1` | `TODO` | Tìm kiếm đa điều kiện (tên, email, role, status), phân trang và đổi trạng thái `ACTIVE` / `INACTIVE` / `BANNED`. |
+| **TSK-502** | [#34](https://github.com/ThangHoQuoc/EventHub/issues/34) | API Thống kê Doanh thu Toàn sàn cho Admin (`GET /api/v1/admin/stats`) | Backend | `P1` | `TODO` | Tổng doanh thu sàn, tổng vé đã bán, tổng sự kiện active, tổng user và danh sách top sự kiện doanh thu cao nhất. |
+| **TSK-503** | [#35](https://github.com/ThangHoQuoc/EventHub/issues/35) | API Thống kê Doanh thu & Tỷ lệ Lấp đầy cho Organizer (`GET /api/v1/events/{id}/stats`) | Backend | `P1` | `TODO` | Doanh thu sự kiện, số lượng bán và tỷ lệ lấp đầy (occupancy rate) từng loại vé, số vé đã check-in. |
+| **TSK-504** | [#36](https://github.com/ThangHoQuoc/EventHub/issues/36) | Frontend: Trang Quản lý Người dùng Toàn sàn (`AdminUsersPage.tsx`) | Frontend | `P1` | `TODO` | Giao diện quản lý user phân trang, tìm kiếm thời gian thực, bộ lọc role/status và modal khóa/mở khóa tài khoản. |
+| **TSK-505** | [#37](https://github.com/ThangHoQuoc/EventHub/issues/37) | Frontend: Dashboard Thống kê Doanh thu & KPI Admin (`AdminStatsPage.tsx`) | Frontend | `P1` | `TODO` | Bảng số liệu KPI trực quan, bảng xếp hạng các sự kiện có doanh thu lớn nhất trên sàn. |
+| **TSK-506** | [#38](https://github.com/ThangHoQuoc/EventHub/issues/38) | Frontend: Thống kê Doanh thu & Tỷ lệ Lấp đầy trên Organizer Dashboard | Frontend | `P1` | `TODO` | Thanh tiến độ bán vé, tỷ lệ lấp đầy, số vé check-in thời gian thực trên giao diện Organizer. |
+| **TSK-507** | [#39](https://github.com/ThangHoQuoc/EventHub/issues/39) | Unit Tests & Integration Tests cho Admin & Stats Module | Testing | `P1` | `TODO` | Unit tests đầy đủ cho `AdminUserService`, `AdminStatsService`, `EventStatsService`, kiểm tra quyền 100% pass. |
 
 ---
 
