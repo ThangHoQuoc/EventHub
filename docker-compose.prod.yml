@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: eventhub-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: eventhub
+      POSTGRES_USER: ${POSTGRES_USER:-eventhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eventhub}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventhub -d eventhub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventhub-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: eventhub-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - eventhub-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eventhub-backend-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/eventhub
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-eventhub}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-eventhub}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-9a7f3c2e5b8a1d4f6c0e2b4a6d8f1a3c5e7b9a1d3f5a7c9b1e3d5f7a9b1c3d5e}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-2QXUI4J4}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-RAOCTRECEAXYZGTRJAHHAHNZGSGKTZXQ}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost}
+    networks:
+      - eventhub-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eventhub-frontend-prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - eventhub-net
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:
+
+networks:
+  eventhub-net:
+    driver: bridge
