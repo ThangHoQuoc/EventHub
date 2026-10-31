@@ -2,7 +2,7 @@
 
 > **Dự án**: EventHub — Nền tảng Quản lý sự kiện, Đặt vé trực tuyến, Thanh toán tự động & Check-in QR  
 > **Cập nhật lần cuối**: 31/10/2026  
-> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2, Phase 3, Phase 4 và Phase 5. Đang chuẩn bị cho Phase 6.
+> **Trạng thái tổng thể**: Đã hoàn tất 100% Phase 1, Phase 2, Phase 3, Phase 4, Phase 5 và Phase 6. Đang chuẩn bị cho Phase 7.
 
 ---
 
@@ -112,14 +112,14 @@ flowchart TD
 
 ---
 
-### ⏳ Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — ĐANG LÀM)
+### ✅ Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — ĐÃ XONG)
 *Mục tiêu: Biến tính năng tìm kiếm sự kiện tự nhiên bằng AI thành sản phẩm thực tế.*
 
 | Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
 |---|:---:|---|---|:---:|:---:|---|
-| **TSK-601** | [#40](https://github.com/ThangHoQuoc/EventHub/issues/40) | Structured Prompt & LLM Client Service | Backend | `P2` | `TODO` | Cấu hình Gemini API / OpenAI API trích xuất yêu cầu (thời gian, địa điểm, ngân sách, chủ đề). |
-| **TSK-602** | [#41](https://github.com/ThangHoQuoc/EventHub/issues/41) | API Match Sự kiện `POST /events/match` | Backend | `P2` | `TODO` | Nhận text tự nhiên, lọc database và chấm điểm độ tương thích (0-100%) kèm lý do gợi ý. |
-| **TSK-603** | [#42](https://github.com/ThangHoQuoc/EventHub/issues/42) | Đấu nối Trang `EventMatchPage.tsx` | Frontend | `P2` | `TODO` | Khách hàng nhập văn bản tự nhiên, hiển thị kết quả gợi ý thực từ backend kèm điểm match. |
+| **TSK-601** | [#40](https://github.com/ThangHoQuoc/EventHub/issues/40) | Structured Prompt & LLM Client Service | Backend | `P2` | `DONE` | Cấu hình Gemini API / OpenAI API trích xuất yêu cầu (thời gian, địa điểm, ngân sách, chủ đề). |
+| **TSK-602** | [#41](https://github.com/ThangHoQuoc/EventHub/issues/41) | API Match Sự kiện `POST /events/match` | Backend | `P2` | `DONE` | Nhận text tự nhiên, lọc database và chấm điểm độ tương thích (0-100%) kèm lý do gợi ý. |
+| **TSK-603** | [#42](https://github.com/ThangHoQuoc/EventHub/issues/42) | Đấu nối Trang `EventMatchPage.tsx` | Frontend | `P2` | `DONE` | Khách hàng nhập văn bản tự nhiên, hiển thị kết quả gợi ý thực từ backend kèm điểm match. |
 
 ---
 
@@ -139,12 +139,12 @@ flowchart TD
 ## 📈 Tóm tắt Tỷ lệ Hoàn thành Dự án
 
 ```
-[████████████████████████████████░░░░░░░░] 81% Hoàn thành toàn dự án
+[███████████████████████████████████░░░░░] 88% Hoàn thành toàn dự án
 - Phase 1 (Invariants & Concurrency):   [████████████████████] 100% (7/7 Tasks)
 - Phase 2 (Core APIs & FE Connect):     [████████████████████] 100% (8/8 Tasks)
 - Phase 3 (Online Payment Gateway):     [████████████████████] 100% (7/7 Tasks)
 - Phase 4 (Notification & Email):       [████████████████████] 100% (7/7 Tasks)
 - Phase 5 (Admin & Analytics):          [████████████████████] 100% (7/7 Tasks)
-- Phase 6 (AI EventMatch):              [░░░░░░░░░░░░░░░░░░░░]   0% (0/3 Tasks)
+- Phase 6 (AI EventMatch):              [████████████████████] 100% (3/3 Tasks)
 - Phase 7 (Redis, Docker & CI/CD):      [░░░░░░░░░░░░░░░░░░░░]   0% (0/5 Tasks)
 ```
