@@ -31,6 +31,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/events/public",
                                 "/api/v1/events/public/**",
+                                "/api/v1/events/match",
                                 "/api/v1/payments/vnpay-callback",
                                 "/api/v1/payments/vnpay-ipn"
                         ).permitAll()
