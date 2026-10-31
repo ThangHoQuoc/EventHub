@@ -112,14 +112,14 @@ flowchart TD
 
 ---
 
-### ⏳ Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — TIẾP THEO)
+### ⏳ Phase 6: Trợ lý AI EventMatch Backend (Ưu tiên: P2 — ĐANG LÀM)
 *Mục tiêu: Biến tính năng tìm kiếm sự kiện tự nhiên bằng AI thành sản phẩm thực tế.*
 
-| Mã Task | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
-|---|---|---|---|:---:|---|
-| **TSK-601** | Structured Prompt & LLM Client Service | Backend | `P2` | `TODO` | Cấu hình Gemini API / OpenAI API trích xuất yêu cầu (thời gian, địa điểm, ngân sách). |
-| **TSK-602** | API Match Sự kiện `POST /events/match` | Backend | `P2` | `TODO` | Nhận text tự nhiên, lọc database và chấm điểm độ tương thích (0-100%). |
-| **TSK-603** | Đấu nối Trang `EventMatchPage.tsx` | Frontend | `P2` | `TODO` | Khách hàng nhập văn bản tự nhiên, hiển thị kết quả gợi ý kèm lý do lựa chọn. |
+| Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
+|---|:---:|---|---|:---:|:---:|---|
+| **TSK-601** | [#40](https://github.com/ThangHoQuoc/EventHub/issues/40) | Structured Prompt & LLM Client Service | Backend | `P2` | `TODO` | Cấu hình Gemini API / OpenAI API trích xuất yêu cầu (thời gian, địa điểm, ngân sách, chủ đề). |
+| **TSK-602** | [#41](https://github.com/ThangHoQuoc/EventHub/issues/41) | API Match Sự kiện `POST /events/match` | Backend | `P2` | `TODO` | Nhận text tự nhiên, lọc database và chấm điểm độ tương thích (0-100%) kèm lý do gợi ý. |
+| **TSK-603** | [#42](https://github.com/ThangHoQuoc/EventHub/issues/42) | Đấu nối Trang `EventMatchPage.tsx` | Frontend | `P2` | `TODO` | Khách hàng nhập văn bản tự nhiên, hiển thị kết quả gợi ý thực từ backend kèm điểm match. |
 
 ---
 
