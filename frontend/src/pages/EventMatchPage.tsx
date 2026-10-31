@@ -1,10 +1,10 @@
-import { useState, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { EventGrid } from "../components/event/EventGrid";
 import { LineIcon } from "../components/ui/LineIcon";
 import { EmptyState } from "../components/ui/EmptyState";
-import { matchedEvents, mockEvents } from "../data/mockEvents";
-import type { Event, EventMatchPreferences } from "../types/event";
+import { matchEventsApi } from "../api/events";
+import type { Event } from "../types/event";
 
 const examples = [
   "Concert ở Sài Gòn cuối tuần này",
@@ -15,81 +15,64 @@ const examples = [
 
 export function EventMatchPage() {
   const [query, setQuery] = useState("Tìm workshop công nghệ ở TP.HCM cuối tuần này dưới 300k");
-  const [isSearching, startTransition] = useTransition();
   const [analyzing, setAnalyzing] = useState(false);
-  const [matchedList, setMatchedList] = useState<Event[]>(matchedEvents);
+  const [matchedList, setMatchedList] = useState<Event[]>([]);
+  const [preferences, setPreferences] = useState({
+    city: "TP.HCM",
+    topic: "Công nghệ",
+    maxBudget: 300000,
+    dateRange: "Cuối tuần này",
+    goal: "Học hỏi & Trải nghiệm",
+  });
 
-  // Phân tích intent động dựa trên query người dùng
-  const parseQuery = (text: string): EventMatchPreferences => {
-    const lower = text.toLowerCase();
-    const city = lower.includes("hà nội")
-      ? "Hà Nội"
-      : lower.includes("đà nẵng")
-      ? "Đà Nẵng"
-      : "TP.HCM";
-
-    let topic = "Công nghệ & Kỹ năng";
-    if (lower.includes("nhạc") || lower.includes("concert") || lower.includes("indie")) {
-      topic = "Âm nhạc / Concert";
-    } else if (lower.includes("ux") || lower.includes("thiết kế") || lower.includes("design")) {
-      topic = "Thiết kế & Sáng tạo";
-    } else if (lower.includes("networking") || lower.includes("startup") || lower.includes("kinh doanh")) {
-      topic = "Kinh doanh & Khởi nghiệp";
-    }
-
-    let maxBudget = 500000;
-    if (lower.includes("miễn phí") || lower.includes("free")) maxBudget = 0;
-    else if (lower.includes("300k") || lower.includes("300.000")) maxBudget = 300000;
-    else if (lower.includes("200k") || lower.includes("200.000")) maxBudget = 200000;
-
-    const dateRange = lower.includes("cuối tuần")
-      ? "Cuối tuần này"
-      : lower.includes("tối")
-      ? "Tối nay"
-      : "Tháng này";
-
-    return {
-      city,
-      topic,
-      maxBudget,
-      dateRange,
-      goal: "Học hỏi & Trải nghiệm",
-      audienceLevel: "beginner",
-    };
-  };
-
-  const [preferences, setPreferences] = useState<EventMatchPreferences>(() => parseQuery(query));
-
-  function handleSearch(customQuery?: string) {
-    const activeText = customQuery ?? query;
-    if (!activeText.trim()) return;
+  async function handleSearch(customQuery?: string) {
+    const activeText = (customQuery ?? query).trim();
+    if (!activeText) return;
 
     setAnalyzing(true);
-    const parsed = parseQuery(activeText);
-    setPreferences(parsed);
+    try {
+      const res = await matchEventsApi(activeText);
+      const parsed = res.parsedPreferences;
 
-    setTimeout(() => {
-      startTransition(() => {
-        // Lọc và xếp hạng sự kiện theo gu
-        const results = mockEvents
-          .map((item) => {
-            let score = 75;
-            if (item.city === parsed.city) score += 10;
-            if (parsed.topic && item.category.toLowerCase().includes(parsed.topic.slice(0, 4).toLowerCase())) score += 10;
-            if (item.minPrice <= (parsed.maxBudget ?? 500000)) score += 5;
-            return {
-              ...item,
-              matchScore: Math.min(score, 98),
-              matchReason: `Phù hợp với chủ đề ${parsed.topic}, tại ${parsed.city} và ngân sách dự kiến.`,
-            };
-          })
-          .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
-
-        setMatchedList(results.slice(0, 4));
-        setAnalyzing(false);
+      setPreferences({
+        city: parsed.city || "Toàn quốc",
+        topic: parsed.category || "Tổng hợp",
+        maxBudget: parsed.maxPrice !== undefined ? parsed.maxPrice : 500000,
+        dateRange: parsed.timeRange || "Linh hoạt",
+        goal: "Trải nghiệm & Kết nối",
       });
-    }, 350);
+
+      const converted: Event[] = (res.matches || []).map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description || "",
+        city: (item.city as Event["city"]) || "TP.HCM",
+        location: item.location,
+        startAt: item.startAt,
+        endAt: item.endAt,
+        imageUrl: item.thumbnailUrl || "",
+        category: item.category || "Sự kiện",
+        tags: item.tags && item.tags.length > 0 ? item.tags : [item.category || "Sự kiện"],
+        minPrice: item.minPrice || 0,
+        priceKnown: true,
+        status: "PUBLISHED",
+        ticketAvailability: item.availableQuantity > 0 ? "AVAILABLE" : "SOLD_OUT",
+        matchScore: item.matchScore,
+        matchReason: item.matchReason,
+      }));
+
+      setMatchedList(converted);
+    } catch (err) {
+      console.error("Failed to match events with backend API", err);
+    } finally {
+      setAnalyzing(false);
+    }
   }
+
+  // Khởi động tìm kiếm lần đầu khi tải trang
+  useEffect(() => {
+    handleSearch(query);
+  }, []);
 
   function handleExampleClick(example: string) {
     setQuery(example);
@@ -97,13 +80,13 @@ export function EventMatchPage() {
   }
 
   return (
-    <div className="ev-editorial-page ev-eventmatch-page"><p className="notice" role="status">BẢN MINH HỌA: EventMatch chưa kết nối AI hoặc dữ liệu thật. Các kết quả bên dưới là dữ liệu mẫu.</p>
+    <div className="ev-editorial-page ev-eventmatch-page">
       {/* Hero section */}
       <section className="ev-em-hero">
         <div className="ev-em-hero-inner">
           <div className="ev-em-copy">
             <span className="ev-eyebrow">
-              <LineIcon name="sparkles" /> EventMatch AI
+              <LineIcon name="sparkles" /> EventMatch AI Assistant
             </span>
             <h1>
               Nói bằng tiếng Việt,
@@ -112,7 +95,7 @@ export function EventMatchPage() {
             </h1>
             <p>
               Không cần lọc từng ô phức tạp. Bạn chỉ cần mô tả gu, lịch rảnh, thành phố và ngân
-              sách — EventMatch sẽ bóc tách nhu cầu và xếp hạng các sự kiện ăn ý nhất với bạn.
+              sách — EventMatch sẽ bóc tách nhu cầu và xếp hạng các sự kiện ăn ý nhất với bạn từ hệ thống.
             </p>
 
             <div className="ev-em-input-wrap">

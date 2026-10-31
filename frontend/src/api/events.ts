@@ -92,3 +92,41 @@ export function mapDtoToEvent(dto: EventDto, minPrice?: number): Event {
     ticketAvailability: "UNKNOWN",
   };
 }
+
+export interface MatchedEventItemDto {
+  id: string;
+  title: string;
+  description: string;
+  thumbnailUrl?: string;
+  category?: string;
+  location: string;
+  city?: string;
+  startAt: string;
+  endAt: string;
+  minPrice: number;
+  availableQuantity: number;
+  matchScore: number;
+  matchReason: string;
+  tags: string[];
+}
+
+export interface ExtractedPreferencesDto {
+  city?: string;
+  category?: string;
+  maxPrice?: number;
+  timeRange?: string;
+  rawPrompt?: string;
+}
+
+export interface EventMatchResponseDto {
+  parsedPreferences: ExtractedPreferencesDto;
+  matches: MatchedEventItemDto[];
+  totalFound: number;
+}
+
+export async function matchEventsApi(prompt: string): Promise<EventMatchResponseDto> {
+  return fetchApi<EventMatchResponseDto>("/api/v1/events/match", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+  }, false);
+}
