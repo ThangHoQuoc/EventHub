@@ -1,0 +1,88 @@
+name: EventHub CI Pipeline
+
+on:
+  push:
+    branches: [ main, "feat/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Tests (Java 21 / Maven)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: eventhub
+          POSTGRES_USER: eventhub
+          POSTGRES_PASSWORD: eventhub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: |
+          chmod +x mvnw
+          ./mvnw clean test -B
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/eventhub
+          SPRING_DATASOURCE_USERNAME: eventhub
+          SPRING_DATASOURCE_PASSWORD: eventhub
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
+          JWT_SECRET: 9a7f3c2e5b8a1d4f6c0e2b4a6d8f1a3c5e7b9a1d3f5a7c9b1e3d5f7a9b1c3d5e
+
+  frontend-test:
+    name: Frontend Tests & Build (Node 20 / Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Unit Tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Build Production Bundle
+        working-directory: ./frontend
+        run: npm run build
