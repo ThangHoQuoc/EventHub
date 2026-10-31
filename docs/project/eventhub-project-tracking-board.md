@@ -123,16 +123,16 @@ flowchart TD
 
 ---
 
-### 📅 Phase 7: Tối ưu Caching, Đóng gói Docker & CI/CD (Ưu tiên: P2 — DỰ KIẾN)
+### ⏳ Phase 7: Tối ưu Caching, Đóng gói Docker & CI/CD (Ưu tiên: P2 — ĐANG LÀM)
 *Mục tiêu: Đưa hệ thống vào trạng thái Production-Ready và vận hành tự động.*
 
-| Mã Task | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
-|---|---|---|---|:---:|---|
-| **TSK-701** | Tích hợp Redis Caching | Backend | `P2` | `TODO` | Cache danh sách sự kiện public `GET /events/public` và chi tiết sự kiện. |
-| **TSK-702** | Redisson Distributed Lock | Backend | `P2` | `TODO` | Bảo vệ giữ chỗ và mua vé trên môi trường phân tán đa máy chủ (Multi-node). |
-| **TSK-703** | Multi-stage Dockerfile | DevOps | `P2` | `TODO` | Đóng gói Backend (Java 21 JAR) và Frontend (Nginx static build). |
-| **TSK-704** | `docker-compose.prod.yml` hoàn chỉnh | DevOps | `P2` | `TODO` | Chạy toàn bộ hệ sinh thái (Postgres + Redis + Backend + Frontend + Nginx). |
-| **TSK-705** | GitHub Actions CI Pipeline | DevOps | `P2` | `TODO` | Tự động chạy `mvn test` và `npm test` mỗi khi có commit hoặc Pull Request. |
+| Mã Task | GitHub Issue | Tên Task | Phân hệ | Mức ưu tiên | Trạng thái | Tiêu chí nghiệm thu (DoD) |
+|---|:---:|---|---|:---:|:---:|---|
+| **TSK-701** | [#43](https://github.com/ThangHoQuoc/EventHub/issues/43) | Tích hợp Redis Caching cho Events | Backend | `P2` | `TODO` | Cache danh sách sự kiện public `GET /events/public` và chi tiết sự kiện với TTL & Evict. |
+| **TSK-702** | [#44](https://github.com/ThangHoQuoc/EventHub/issues/44) | Redisson Distributed Lock cho Reservation | Backend | `P2` | `TODO` | Bảo vệ giữ chỗ và mua vé trên môi trường phân tán đa máy chủ (Multi-node). |
+| **TSK-703** | [#45](https://github.com/ThangHoQuoc/EventHub/issues/45) | Multi-stage Dockerfile cho Backend & Frontend | DevOps | `P2` | `TODO` | Đóng gói Backend (Java 21 JRE slim) và Frontend (Nginx alpine SPA routing). |
+| **TSK-704** | [#46](https://github.com/ThangHoQuoc/EventHub/issues/46) | `docker-compose.prod.yml` hoàn chỉnh | DevOps | `P2` | `TODO` | Chạy toàn bộ hệ sinh thái (Postgres 17 + Redis 7 + Backend + Frontend Nginx). |
+| **TSK-705** | [#47](https://github.com/ThangHoQuoc/EventHub/issues/47) | GitHub Actions CI Pipeline | DevOps | `P2` | `TODO` | Tự động chạy `mvn test` và `npm test` mỗi khi có commit hoặc Pull Request. |
 
 ---
 
