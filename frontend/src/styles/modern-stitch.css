@@ -1,0 +1,323 @@
+/* ==============================================================================
+   EventHub Modern Editorial UI Enhancement (Design DNA based on Luma & Stitch)
+   ============================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap");
+
+:root {
+  /* --- Modern Palette --- */
+  --eh-brand: #6366f1;
+  --eh-brand-hover: #4f46e5;
+  --eh-brand-light: #eef2ff;
+  --eh-brand-glow: rgba(99, 102, 241, 0.25);
+
+  --eh-emerald: #10b981;
+  --eh-emerald-hover: #059669;
+  --eh-emerald-light: #ecfdf5;
+
+  --eh-rose: #f43f5e;
+  --eh-rose-light: #fff1f2;
+
+  --eh-amber: #f59e0b;
+  --eh-amber-light: #fef3c7;
+
+  /* --- Canvas & Surfaces --- */
+  --eh-canvas: #f8fafc;
+  --eh-canvas-subtle: #f1f5f9;
+  --eh-surface: #ffffff;
+  --eh-surface-card: #ffffff;
+
+  /* --- Text & Contrast --- */
+  --eh-text-primary: #0f172a;
+  --eh-text-secondary: #475569;
+  --eh-text-muted: #64748b;
+  --eh-text-light: #94a3b8;
+
+  /* --- Modern Borders & Dividers --- */
+  --eh-border: #e2e8f0;
+  --eh-border-subtle: rgba(226, 232, 240, 0.7);
+  --eh-border-focus: #818cf8;
+
+  /* --- Tactile Shadows & Depth --- */
+  --eh-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --eh-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
+  --eh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
+  --eh-shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+  --eh-shadow-xl: 0 20px 32px -6px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+  --eh-shadow-glow: 0 0 25px -5px var(--eh-brand-glow);
+
+  /* --- Radii --- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+}
+
+/* Global Font & Smooth Reset */
+body {
+  font-family: "Plus Jakarta Sans", "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  background-color: var(--eh-canvas) !important;
+  color: var(--eh-text-primary) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   1. Modern Floating Header (Luma / Glassmorphism Style)
+   ========================================================================== */
+.site-header {
+  position: sticky !important;
+  top: 16px !important;
+  z-index: 100 !important;
+  max-width: 1240px !important;
+  margin: 12px auto !important;
+  padding: 10px 24px !important;
+  border-radius: var(--radius-pill) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--eh-border-subtle) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.site-header.is-scrolled {
+  top: 8px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+.site-header .nav-links a {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: var(--eh-text-secondary) !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-pill) !important;
+  transition: all 0.2s ease !important;
+}
+
+.site-header .nav-links a:hover {
+  color: var(--eh-brand) !important;
+  background: var(--eh-brand-light) !important;
+}
+
+.site-header .nav-links a.active {
+  color: var(--eh-brand) !important;
+  background: var(--eh-brand-light) !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--eh-brand) 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 10px 20px !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+  border: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+}
+
+/* ==========================================================================
+   2. Modern Hero Section (Punchy Typography & Ambient Background)
+   ========================================================================== */
+.ev-home-hero {
+  position: relative;
+  border-radius: var(--radius-2xl) !important;
+  margin: 16px auto 40px auto !important;
+  max-width: 1240px !important;
+  padding: 48px 48px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+  border: 1px solid var(--eh-border) !important;
+  box-shadow: var(--eh-shadow-lg) !important;
+  overflow: hidden;
+}
+
+.ev-home-hero::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -100px;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(244, 63, 94, 0.08) 50%, transparent 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.ev-home-hero h1 {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  font-size: 52px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--eh-text-primary) !important;
+  margin-bottom: 16px !important;
+}
+
+.ev-home-hero .ev-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--eh-brand-light) !important;
+  color: var(--eh-brand) !important;
+  padding: 6px 14px !important;
+  border-radius: var(--radius-pill) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  margin-bottom: 20px !important;
+}
+
+/* Modern Search Bar in Hero */
+.ev-event-search-bar {
+  background: #ffffff !important;
+  border: 1.5px solid var(--eh-border) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 8px 12px 8px 20px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ev-event-search-bar:focus-within {
+  border-color: var(--eh-brand) !important;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Quick Topic Pills */
+.ev-quick-topics a {
+  background: #ffffff !important;
+  border: 1px solid var(--eh-border) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--eh-text-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ev-quick-topics a:hover {
+  border-color: var(--eh-brand) !important;
+  color: var(--eh-brand) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   3. Modern Bento Grid & Event Card (Polished Ticketing Aesthetics)
+   ========================================================================== */
+.ev-event-card {
+  background: var(--eh-surface) !important;
+  border-radius: var(--radius-xl) !important;
+  border: 1px solid var(--eh-border) !important;
+  overflow: hidden !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: var(--eh-shadow-sm) !important;
+}
+
+.ev-event-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: var(--eh-shadow-xl) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.ev-event-card-poster {
+  position: relative !important;
+  overflow: hidden !important;
+  border-top-left-radius: var(--radius-xl) !important;
+  border-top-right-radius: var(--radius-xl) !important;
+}
+
+.ev-event-card-poster img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.ev-event-card:hover .ev-event-card-poster img {
+  transform: scale(1.05) !important;
+}
+
+.ev-event-card-body {
+  padding: 20px !important;
+}
+
+.ev-event-card-topline {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+.ev-event-card-topline span {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--eh-brand) !important;
+}
+
+.ev-event-card h3 {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  color: var(--eh-text-primary) !important;
+  margin-bottom: 12px !important;
+}
+
+.ev-event-card-footer {
+  margin-top: 16px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid var(--eh-border-subtle) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.ev-event-card-footer strong {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+/* Modern Status Badges */
+.status-badge {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  border-radius: var(--radius-pill) !important;
+  letter-spacing: 0.02em !important;
+}
+
+.status-badge.is-available {
+  background: var(--eh-emerald-light) !important;
+  color: var(--eh-emerald) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+.status-badge.is-low-stock {
+  background: var(--eh-amber-light) !important;
+  color: #d97706 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.status-badge.is-sold-out {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* Match Score Badge (AI Feature) */
+.ev-event-card-topline small {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%) !important;
+  color: #4f46e5 !important;
+  font-weight: 800 !important;
+  padding: 3px 8px !important;
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
