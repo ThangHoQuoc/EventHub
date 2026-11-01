@@ -78,17 +78,26 @@ export function AdminUsersPage() {
   };
 
   return (
-    <div className="ev-editorial-page" style={{ padding: "40px 32px 80px", maxWidth: "1180px", margin: "0 auto" }}>
-      <header style={{ marginBottom: "24px" }}>
-        <span className="ev-eyebrow">
-          <LineIcon name="user" /> Quản trị viên · Quản lý tài khoản
-        </span>
-        <h1 style={{ fontSize: "30px", fontWeight: "800", margin: "8px 0 8px", color: "var(--eh-text)" }}>
-          Quản lý người dùng hệ thống
-        </h1>
-        <p style={{ color: "var(--eh-muted)", fontSize: "14px", margin: 0 }}>
-          Tra cứu, phân loại tài khoản theo vai trò và kiểm soát quyền truy cập của người dùng trên toàn sàn.
-        </p>
+    <div className="eh-admin-shell">
+      <header className="eh-admin-header">
+        <div>
+          <span className="eh-admin-kicker">
+            <LineIcon name="user" /> Quản trị viên · Quản lý tài khoản
+          </span>
+          <h1 className="eh-admin-title">Quản lý người dùng hệ thống</h1>
+          <p className="eh-admin-sub">
+            Tra cứu, phân loại tài khoản theo vai trò và kiểm soát quyền truy cập của người dùng trên toàn sàn.
+          </p>
+        </div>
+
+        <button
+          className="btn btn-secondary"
+          onClick={loadUsers}
+          style={{ fontSize: "13px", padding: "0 18px", minHeight: "40px", fontWeight: "700" }}
+          type="button"
+        >
+          <LineIcon name="refresh" /> Tải lại danh sách
+        </button>
       </header>
 
       <AdminNav />
@@ -96,16 +105,21 @@ export function AdminUsersPage() {
       {/* Thông báo thao tác */}
       {actionMsg && (
         <div
+          role="status"
           style={{
-            padding: "12px 18px",
-            borderRadius: "10px",
-            fontSize: "14px",
-            marginBottom: "20px",
-            background: actionMsg.success ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-            border: `1px solid ${actionMsg.success ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
-            color: actionMsg.success ? "var(--eh-green)" : "var(--eh-red)",
+            padding: "14px 20px",
+            borderRadius: "var(--radius-lg)",
+            fontSize: "13px",
+            fontWeight: "700",
+            background: actionMsg.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+            border: `1px solid ${actionMsg.success ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)"}`,
+            color: actionMsg.success ? "#059669" : "#dc2626",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
+          <LineIcon name={actionMsg.success ? "check" : "alert"} />
           {actionMsg.text}
         </div>
       )}
@@ -115,18 +129,17 @@ export function AdminUsersPage() {
         style={{
           background: "var(--eh-surface)",
           padding: "20px 24px",
-          borderRadius: "var(--radius-xl)",
+          borderRadius: "var(--radius-2xl)",
           border: "1px solid var(--eh-border)",
-          marginBottom: "24px",
-          boxShadow: "var(--eh-shadow-sm)",
+          boxShadow: "var(--eh-shadow-xs)",
           display: "flex",
           flexWrap: "wrap",
           gap: "16px",
           alignItems: "flex-end",
         }}
       >
-        <div style={{ flex: "1 1 240px", display: "grid", gap: "6px" }}>
-          <label htmlFor="usr-keyword" style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-muted)" }}>
+        <div style={{ flex: "1 1 260px", display: "grid", gap: "6px" }}>
+          <label htmlFor="usr-keyword" style={{ fontSize: "12px", fontWeight: "800", color: "var(--eh-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Tìm kiếm người dùng
           </label>
           <input
@@ -136,13 +149,13 @@ export function AdminUsersPage() {
               setPage(0);
             }}
             placeholder="Tìm theo email, họ tên, số điện thoại..."
-            style={{ width: "100%" }}
+            style={{ width: "100%", height: "42px", padding: "0 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", fontSize: "13px" }}
             value={keyword}
           />
         </div>
 
-        <div style={{ width: "160px", display: "grid", gap: "6px" }}>
-          <label htmlFor="usr-role" style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-muted)" }}>
+        <div style={{ width: "180px", display: "grid", gap: "6px" }}>
+          <label htmlFor="usr-role" style={{ fontSize: "12px", fontWeight: "800", color: "var(--eh-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Vai trò (Role)
           </label>
           <select
@@ -151,6 +164,7 @@ export function AdminUsersPage() {
               setRole(e.target.value);
               setPage(0);
             }}
+            style={{ height: "42px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 12px", fontSize: "13px" }}
             value={role}
           >
             <option value="">Tất cả vai trò</option>
@@ -160,8 +174,8 @@ export function AdminUsersPage() {
           </select>
         </div>
 
-        <div style={{ width: "160px", display: "grid", gap: "6px" }}>
-          <label htmlFor="usr-status" style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-muted)" }}>
+        <div style={{ width: "180px", display: "grid", gap: "6px" }}>
+          <label htmlFor="usr-status" style={{ fontSize: "12px", fontWeight: "800", color: "var(--eh-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Trạng thái
           </label>
           <select
@@ -170,6 +184,7 @@ export function AdminUsersPage() {
               setStatus(e.target.value);
               setPage(0);
             }}
+            style={{ height: "42px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 12px", fontSize: "13px" }}
             value={status}
           >
             <option value="">Tất cả trạng thái</option>
@@ -187,10 +202,10 @@ export function AdminUsersPage() {
             setStatus("");
             setPage(0);
           }}
-          style={{ height: "42px", padding: "0 18px" }}
+          style={{ height: "42px", padding: "0 18px", fontWeight: "700" }}
           type="button"
         >
-          Đặt lại
+          Đặt lại lọc
         </button>
       </section>
 
@@ -198,93 +213,68 @@ export function AdminUsersPage() {
 
       {/* Bảng danh sách người dùng */}
       {!loading && (
-        <section
-          style={{
-            background: "var(--eh-surface)",
-            borderRadius: "var(--radius-xl)",
-            border: "1px solid var(--eh-border)",
-            boxShadow: "var(--eh-shadow-sm)",
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--eh-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "14px", color: "var(--eh-muted)", fontWeight: "600" }}>
-              Hiển thị {users.length} trên tổng số <strong>{totalElements}</strong> người dùng
+        <section className="eh-admin-table-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+            <span style={{ fontSize: "13px", color: "var(--eh-text-muted)", fontWeight: "600" }}>
+              Hiển thị {users.length} trên tổng số <strong>{totalElements}</strong> tài khoản
             </span>
-            <button className="btn btn-secondary" onClick={loadUsers} style={{ padding: "6px 14px", fontSize: "12px" }} type="button">
-              <LineIcon name="refresh" /> Tải lại
-            </button>
+            <span style={{ fontSize: "12px", color: "var(--eh-brand)", fontWeight: "700" }}>
+              Phân quyền theo chuẩn RBAC
+            </span>
           </div>
 
           {users.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px", color: "var(--eh-muted)", fontSize: "14px" }}>
+            <div style={{ textAlign: "center", padding: "48px", color: "var(--eh-text-muted)", fontSize: "14px" }}>
               Không tìm thấy người dùng nào phù hợp với điều kiện lọc.
             </div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
+            <div className="eh-admin-table-wrap">
+              <table className="eh-admin-table">
                 <thead>
-                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--eh-border)", color: "var(--eh-muted)" }}>
-                    <th style={{ padding: "12px 18px", fontWeight: "600" }}>Người dùng</th>
-                    <th style={{ padding: "12px 18px", fontWeight: "600" }}>Số điện thoại</th>
-                    <th style={{ padding: "12px 18px", fontWeight: "600" }}>Vai trò</th>
-                    <th style={{ padding: "12px 18px", fontWeight: "600" }}>Trạng thái</th>
-                    <th style={{ padding: "12px 18px", fontWeight: "600" }}>Ngày tham gia</th>
-                    <th style={{ padding: "12px 18px", fontWeight: "600", textAlign: "center" }}>Thao tác</th>
+                  <tr>
+                    <th>Người dùng</th>
+                    <th>Số điện thoại</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tham gia</th>
+                    <th style={{ textAlign: "center" }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => (
-                    <tr key={u.id} style={{ borderBottom: "1px solid var(--eh-border)" }}>
-                      <td style={{ padding: "16px 18px" }}>
-                        <div style={{ fontWeight: "700", color: "var(--eh-text)" }}>{u.fullName}</div>
-                        <div style={{ fontSize: "12px", color: "var(--eh-muted)", marginTop: "2px" }}>{u.email}</div>
+                    <tr key={u.id}>
+                      <td>
+                        <div style={{ fontWeight: "800", color: "var(--eh-text-primary)" }}>{u.fullName || "Chưa đặt tên"}</div>
+                        <div style={{ fontSize: "12px", color: "var(--eh-text-muted)", marginTop: "2px" }}>{u.email}</div>
                       </td>
-                      <td style={{ padding: "16px 18px", color: "var(--eh-text)" }}>
+                      <td style={{ color: "var(--eh-text-secondary)" }}>
                         {u.phone || "—"}
                       </td>
-                      <td style={{ padding: "16px 18px" }}>
+                      <td>
                         <span
-                          className={`badge ${
-                            u.role === "ADMIN" ? "badge-neutral" : u.role === "ORGANIZER" ? "badge-primary" : "badge-neutral"
+                          className={`eh-role-badge ${
+                            u.role === "ADMIN" ? "is-admin" : u.role === "ORGANIZER" ? "is-organizer" : "is-customer"
                           }`}
-                          style={{
-                            background: u.role === "ADMIN" ? "#fee2e2" : u.role === "ORGANIZER" ? "#dbeafe" : "#f1f5f9",
-                            color: u.role === "ADMIN" ? "#b91c1c" : u.role === "ORGANIZER" ? "#1d4ed8" : "#475569",
-                            fontWeight: "700",
-                          }}
                         >
                           {u.role}
                         </span>
                       </td>
-                      <td style={{ padding: "16px 18px" }}>
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            fontSize: "12px",
-                            fontWeight: "700",
-                            padding: "4px 10px",
-                            borderRadius: "12px",
-                            background: u.status === "ACTIVE" ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-                            color: u.status === "ACTIVE" ? "var(--eh-green)" : "var(--eh-red)",
-                          }}
-                        >
+                      <td>
+                        <span className={`eh-user-status-pill ${u.status === "ACTIVE" ? "is-active" : "is-locked"}`}>
                           <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "currentColor" }} />
-                          {u.status}
+                          {u.status === "ACTIVE" ? "Đang hoạt động" : u.status}
                         </span>
                       </td>
-                      <td style={{ padding: "16px 18px", color: "var(--eh-muted)", fontSize: "13px" }}>
+                      <td style={{ color: "var(--eh-text-muted)", fontSize: "13px" }}>
                         {formatDateTime(u.createdAt)}
                       </td>
-                      <td style={{ padding: "16px 18px", textAlign: "center" }}>
+                      <td style={{ textAlign: "center" }}>
                         {u.role !== "ADMIN" && (
                           u.status === "ACTIVE" ? (
                             <button
                               className="btn btn-secondary"
                               onClick={() => handleOpenStatusModal(u, "BANNED")}
-                              style={{ padding: "6px 14px", fontSize: "12px", color: "var(--eh-red)" }}
+                              style={{ padding: "5px 12px", fontSize: "11px", color: "#dc2626", borderColor: "#fecaca", fontWeight: "700" }}
                               type="button"
                             >
                               Khóa tài khoản
@@ -293,7 +283,7 @@ export function AdminUsersPage() {
                             <button
                               className="btn btn-secondary"
                               onClick={() => handleOpenStatusModal(u, "ACTIVE")}
-                              style={{ padding: "6px 14px", fontSize: "12px", color: "var(--eh-green)" }}
+                              style={{ padding: "5px 12px", fontSize: "11px", color: "#059669", borderColor: "#a7f3d0", fontWeight: "700" }}
                               type="button"
                             >
                               Mở khóa
@@ -310,24 +300,24 @@ export function AdminUsersPage() {
 
           {/* Phân trang */}
           {totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", padding: "18px", borderTop: "1px solid var(--eh-border)" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", paddingTop: "14px" }}>
               <button
                 className="btn btn-secondary"
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
-                style={{ padding: "6px 14px", fontSize: "13px" }}
+                style={{ padding: "6px 14px", fontSize: "12px", fontWeight: "700" }}
                 type="button"
               >
                 Trang trước
               </button>
-              <span style={{ padding: "8px 14px", fontSize: "13px", color: "var(--eh-muted)" }}>
+              <span style={{ padding: "0 12px", fontSize: "13px", color: "var(--eh-text-muted)", fontWeight: "600" }}>
                 Trang {page + 1} / {totalPages}
               </span>
               <button
                 className="btn btn-secondary"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                style={{ padding: "6px 14px", fontSize: "13px" }}
+                style={{ padding: "6px 14px", fontSize: "12px", fontWeight: "700" }}
                 type="button"
               >
                 Trang sau
@@ -339,34 +329,14 @@ export function AdminUsersPage() {
 
       {/* Modal Xác nhận đổi trạng thái */}
       {targetUser && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              background: "var(--eh-surface)",
-              borderRadius: "var(--radius-xl)",
-              maxWidth: "460px",
-              width: "100%",
-              padding: "28px",
-              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)",
-            }}
-          >
-            <h3 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text)" }}>
+        <div className="eh-modal-backdrop" onClick={() => setTargetUser(null)}>
+          <div className="eh-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
+            <h3 style={{ fontSize: "20px", fontWeight: "900", margin: "0 0 12px", color: "var(--eh-text-primary)", letterSpacing: "-0.02em" }}>
               {newStatus === "BANNED" ? "Xác nhận khóa tài khoản" : "Xác nhận mở khóa tài khoản"}
             </h3>
-            <p style={{ color: "var(--eh-muted)", fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px" }}>
+            <p style={{ color: "var(--eh-text-secondary)", fontSize: "14px", lineHeight: "1.6", margin: "0 0 24px" }}>
               Bạn có chắc chắn muốn chuyển trạng thái tài khoản <strong>{targetUser.email}</strong> ({targetUser.fullName}) sang <strong>{newStatus}</strong>?
-              {newStatus === "BANNED" && " Người dùng này sẽ không thể đăng nhập hoặc thực hiện bất kỳ giao dịch nào trên hệ thống."}
+              {newStatus === "BANNED" && " Người dùng này sẽ bị chấm dứt phiên làm việc và không thể đặt vé hoặc đăng nhập."}
             </p>
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
@@ -374,6 +344,7 @@ export function AdminUsersPage() {
                 className="btn btn-secondary"
                 disabled={updating}
                 onClick={() => setTargetUser(null)}
+                style={{ fontWeight: "700" }}
                 type="button"
               >
                 Hủy bỏ
@@ -383,12 +354,13 @@ export function AdminUsersPage() {
                 disabled={updating}
                 onClick={handleConfirmStatusChange}
                 style={{
-                  background: newStatus === "BANNED" ? "var(--eh-red)" : "var(--eh-green)",
-                  borderColor: newStatus === "BANNED" ? "var(--eh-red)" : "var(--eh-green)",
+                  background: newStatus === "BANNED" ? "#dc2626" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  boxShadow: newStatus === "BANNED" ? "0 4px 14px rgba(220, 38, 38, 0.35)" : "0 4px 14px rgba(16, 185, 129, 0.35)",
+                  fontWeight: "800",
                 }}
                 type="button"
               >
-                {updating ? "Đang xử lý..." : "Xác nhận"}
+                {updating ? "Đang xử lý..." : "Xác nhận thay đổi"}
               </button>
             </div>
           </div>

@@ -5779,6 +5779,220 @@ body {
   }
 }
 
+/* ==========================================================================
+   20. ADMIN PORTAL (/admin/stats, /admin/users, /admin/payments)
+   ========================================================================== */
+
+.eh-admin-shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.eh-admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.eh-admin-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--eh-brand);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.eh-admin-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--eh-text-primary);
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+}
+
+.eh-admin-sub {
+  font-size: 14px;
+  color: var(--eh-text-muted);
+  margin: 0;
+  max-width: 640px;
+}
+
+/* Admin Nav Tabs */
+.eh-admin-nav-bar {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--eh-border);
+  padding-bottom: 16px;
+  overflow-x: auto;
+}
+
+.eh-admin-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--eh-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.eh-admin-nav-link svg {
+  width: 17px;
+  height: 17px;
+}
+
+.eh-admin-nav-link:hover {
+  background: var(--eh-surface-alt);
+  color: var(--eh-text-primary);
+}
+
+.eh-admin-nav-link.is-active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(79, 70, 229, 0.06) 100%);
+  color: var(--eh-brand-dark);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+/* Admin Table Bento Card */
+.eh-admin-table-card {
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-2xl);
+  padding: 28px 32px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.eh-admin-table-wrap {
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.eh-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.eh-admin-table th {
+  background: var(--eh-surface-alt);
+  padding: 12px 16px;
+  font-weight: 700;
+  color: var(--eh-text-secondary);
+  border-bottom: 1px solid var(--eh-border);
+  white-space: nowrap;
+}
+
+.eh-admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--eh-surface-alt);
+  color: var(--eh-text-primary);
+}
+
+.eh-admin-table tr:hover td {
+  background: rgba(99, 102, 241, 0.02);
+}
+
+.eh-admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status badging */
+.eh-role-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.eh-role-badge.is-customer {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--eh-brand-dark);
+}
+
+.eh-role-badge.is-organizer {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.eh-role-badge.is-admin {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.eh-user-status-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.eh-user-status-pill.is-active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.eh-user-status-pill.is-locked {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* Pending bookings list for reconciliation */
+.eh-pending-list-card {
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-2xl);
+  padding: 24px 28px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eh-pending-booking-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--eh-surface-alt);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-lg);
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.eh-pending-booking-item:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: #ffffff;
+}
+
+
 
 
 

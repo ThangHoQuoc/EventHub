@@ -29,17 +29,26 @@ export function AdminStatsPage() {
   }, []);
 
   return (
-    <div className="ev-editorial-page" style={{ padding: "40px 32px 80px", maxWidth: "1180px", margin: "0 auto" }}>
-      <header style={{ marginBottom: "24px" }}>
-        <span className="ev-eyebrow">
-          <LineIcon name="trending" /> Quản trị viên · Báo cáo tài chính & sàn
-        </span>
-        <h1 style={{ fontSize: "30px", fontWeight: "800", margin: "8px 0 8px", color: "var(--eh-text)" }}>
-          Thống kê doanh thu & KPI nền tảng
-        </h1>
-        <p style={{ color: "var(--eh-muted)", fontSize: "14px", margin: 0 }}>
-          Theo dõi tổng quan doanh số bán vé, lượng người dùng và hiệu suất của các sự kiện trên toàn sàn EventHub.
-        </p>
+    <div className="eh-admin-shell">
+      <header className="eh-admin-header">
+        <div>
+          <span className="eh-admin-kicker">
+            <LineIcon name="trending" /> Báo cáo tài chính & sàn giao dịch
+          </span>
+          <h1 className="eh-admin-title">Thống kê doanh thu & KPI nền tảng</h1>
+          <p className="eh-admin-sub">
+            Theo dõi tổng quan doanh số bán vé, lượng người dùng và hiệu suất của các sự kiện trên toàn sàn EventHub.
+          </p>
+        </div>
+
+        <button
+          className="btn btn-secondary"
+          onClick={loadStats}
+          style={{ fontSize: "13px", padding: "0 18px", minHeight: "40px", fontWeight: "700" }}
+          type="button"
+        >
+          <LineIcon name="refresh" /> Làm mới dữ liệu
+        </button>
       </header>
 
       <AdminNav />
@@ -47,169 +56,131 @@ export function AdminStatsPage() {
       <RequestState error={error ? error.message : undefined} loading={loading} onRetry={loadStats} />
 
       {!loading && stats && (
-        <div style={{ display: "grid", gap: "32px" }}>
-          {/* 4 thẻ KPI nổi bật */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+          {/* 4 Thẻ KPI Metrics lớn */}
+          <div className="eh-org-kpi-grid">
             {/* Card 1: Tổng Doanh Thu */}
-            <div
-              style={{
-                background: "var(--eh-surface)",
-                padding: "24px",
-                borderRadius: "var(--radius-xl)",
-                border: "1px solid var(--eh-border)",
-                boxShadow: "var(--eh-shadow-sm)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-muted)" }}>Tổng Doanh Thu Sàn</span>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(16,185,129,0.1)", color: "var(--eh-green)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="eh-org-kpi-card">
+              <div className="eh-org-kpi-top">
+                <span>Tổng Doanh Thu Sàn</span>
+                <div className="eh-org-kpi-icon is-emerald">
                   <LineIcon name="bank" />
                 </div>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-green)", letterSpacing: "-0.5px" }}>
+              <div className="eh-org-kpi-val" style={{ color: "#059669" }}>
                 {formatCurrency(stats.totalRevenue)}
               </div>
-              <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", marginTop: "6px", display: "block" }}>
-                Doanh số từ các đơn đặt chỗ đã xác nhận
-              </small>
+              <span className="eh-org-kpi-sub">
+                Doanh số từ các đơn đã xác nhận
+              </span>
             </div>
 
             {/* Card 2: Vé Đã Bán */}
-            <div
-              style={{
-                background: "var(--eh-surface)",
-                padding: "24px",
-                borderRadius: "var(--radius-xl)",
-                border: "1px solid var(--eh-border)",
-                boxShadow: "var(--eh-shadow-sm)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-muted)" }}>Vé Đã Phát Hành</span>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(37,99,235,0.1)", color: "var(--eh-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="eh-org-kpi-card">
+              <div className="eh-org-kpi-top">
+                <span>Vé Đã Phát Hành</span>
+                <div className="eh-org-kpi-icon is-indigo">
                   <LineIcon name="ticket" />
                 </div>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", letterSpacing: "-0.5px" }}>
-                {stats.totalTicketsSold.toLocaleString("vi-VN")} <span style={{ fontSize: "16px", fontWeight: "500", color: "var(--eh-muted)" }}>vé</span>
+              <div className="eh-org-kpi-val">
+                {stats.totalTicketsSold.toLocaleString("vi-VN")}{" "}
+                <span style={{ fontSize: "16px", fontWeight: "600", color: "var(--eh-text-muted)" }}>vé</span>
               </div>
-              <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", marginTop: "6px", display: "block" }}>
-                Tổng số vé đã xuất qua cổng thanh toán
-              </small>
+              <span className="eh-org-kpi-sub">
+                Tổng vé đã xuất qua thanh toán
+              </span>
             </div>
 
             {/* Card 3: Sự Kiện Hoạt Động */}
-            <div
-              style={{
-                background: "var(--eh-surface)",
-                padding: "24px",
-                borderRadius: "var(--radius-xl)",
-                border: "1px solid var(--eh-border)",
-                boxShadow: "var(--eh-shadow-sm)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-muted)" }}>Sự Kiện Đang Mở Bán</span>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(245,158,11,0.1)", color: "var(--eh-orange)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="eh-org-kpi-card">
+              <div className="eh-org-kpi-top">
+                <span>Sự Kiện Đang Bán</span>
+                <div className="eh-org-kpi-icon is-amber">
                   <LineIcon name="calendar" />
                 </div>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", letterSpacing: "-0.5px" }}>
-                {stats.totalActiveEvents.toLocaleString("vi-VN")} <span style={{ fontSize: "16px", fontWeight: "500", color: "var(--eh-muted)" }}>sự kiện</span>
+              <div className="eh-org-kpi-val" style={{ color: "#d97706" }}>
+                {stats.totalActiveEvents.toLocaleString("vi-VN")}{" "}
+                <span style={{ fontSize: "16px", fontWeight: "600", color: "var(--eh-text-muted)" }}>sự kiện</span>
               </div>
-              <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", marginTop: "6px", display: "block" }}>
-                Sự kiện trạng thái PUBLISHED trên sàn
-              </small>
+              <span className="eh-org-kpi-sub">
+                Trạng thái PUBLISHED trực tuyến
+              </span>
             </div>
 
             {/* Card 4: Tổng Người Dùng */}
-            <div
-              style={{
-                background: "var(--eh-surface)",
-                padding: "24px",
-                borderRadius: "var(--radius-xl)",
-                border: "1px solid var(--eh-border)",
-                boxShadow: "var(--eh-shadow-sm)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-muted)" }}>Thành Viên Hệ Thống</span>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(139,92,246,0.1)", color: "#8b5cf6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="eh-org-kpi-card">
+              <div className="eh-org-kpi-top">
+                <span>Thành Viên Hệ Thống</span>
+                <div className="eh-org-kpi-icon is-rose">
                   <LineIcon name="user" />
                 </div>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--eh-text)", letterSpacing: "-0.5px" }}>
-                {stats.totalUsers.toLocaleString("vi-VN")} <span style={{ fontSize: "16px", fontWeight: "500", color: "var(--eh-muted)" }}>tài khoản</span>
+              <div className="eh-org-kpi-val">
+                {stats.totalUsers.toLocaleString("vi-VN")}{" "}
+                <span style={{ fontSize: "16px", fontWeight: "600", color: "var(--eh-text-muted)" }}>tài khoản</span>
               </div>
-              <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", marginTop: "6px", display: "block" }}>
-                Bao gồm Customer, Organizer và Admin
-              </small>
+              <span className="eh-org-kpi-sub">
+                Khách hàng, Ban tổ chức & Admin
+              </span>
             </div>
           </div>
 
           {/* Bảng Top Sự Kiện Doanh Thu Lớn Nhất */}
-          <section
-            style={{
-              background: "var(--eh-surface)",
-              borderRadius: "var(--radius-xl)",
-              border: "1px solid var(--eh-border)",
-              boxShadow: "var(--eh-shadow-sm)",
-              padding: "28px",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <div>
-                <h2 style={{ fontSize: "18px", fontWeight: "800", color: "var(--eh-text)", margin: "0 0 4px" }}>
-                  Top Sự Kiện Có Doanh Thu Cao Nhất
-                </h2>
-                <p style={{ color: "var(--eh-muted)", fontSize: "13px", margin: 0 }}>
-                  Xếp hạng theo tổng doanh thu tiền vé thanh toán thành công
-                </p>
-              </div>
-              <button className="btn btn-secondary" onClick={loadStats} style={{ padding: "8px 16px", fontSize: "13px" }} type="button">
-                <LineIcon name="refresh" /> Làm mới
-              </button>
+          <section className="eh-admin-table-card">
+            <div>
+              <h2 style={{ fontSize: "18px", fontWeight: "800", color: "var(--eh-text-primary)", margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+                Top Sự Kiện Có Doanh Thu Cao Nhất
+              </h2>
+              <p style={{ color: "var(--eh-text-muted)", fontSize: "13px", margin: 0 }}>
+                Xếp hạng theo tổng doanh thu tiền vé thanh toán thành công trên toàn hệ thống.
+              </p>
             </div>
 
             {stats.topEvents.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px", color: "var(--eh-muted)", fontSize: "14px" }}>
+              <div style={{ textAlign: "center", padding: "40px", color: "var(--eh-text-muted)", fontSize: "14px" }}>
                 Chưa có dữ liệu giao dịch sự kiện nào trên hệ thống.
               </div>
             ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
+              <div className="eh-admin-table-wrap">
+                <table className="eh-admin-table">
                   <thead>
-                    <tr style={{ borderBottom: "1px solid var(--eh-border)", color: "var(--eh-muted)" }}>
-                      <th style={{ padding: "12px 14px", fontWeight: "600" }}>#</th>
-                      <th style={{ padding: "12px 14px", fontWeight: "600" }}>Tên Sự Kiện</th>
-                      <th style={{ padding: "12px 14px", fontWeight: "600" }}>Thể Loại</th>
-                      <th style={{ padding: "12px 14px", fontWeight: "600", textAlign: "right" }}>Vé Đã Bán</th>
-                      <th style={{ padding: "12px 14px", fontWeight: "600", textAlign: "right" }}>Tổng Doanh Thu</th>
-                      <th style={{ padding: "12px 14px", fontWeight: "600", textAlign: "center" }}>Hành Động</th>
+                    <tr>
+                      <th style={{ width: "50px" }}>#</th>
+                      <th>Tên Sự Kiện</th>
+                      <th>Thể Loại</th>
+                      <th style={{ textAlign: "right" }}>Vé Đã Bán</th>
+                      <th style={{ textAlign: "right" }}>Tổng Doanh Thu</th>
+                      <th style={{ textAlign: "center", width: "100px" }}>Thao Tác</th>
                     </tr>
                   </thead>
                   <tbody>
                     {stats.topEvents.map((evt, idx) => (
-                      <tr key={evt.eventId} style={{ borderBottom: "1px solid var(--eh-border)" }}>
-                        <td style={{ padding: "14px", fontWeight: "700", color: idx === 0 ? "var(--eh-orange)" : "var(--eh-muted)" }}>
+                      <tr key={evt.eventId}>
+                        <td style={{ fontWeight: "800", color: idx === 0 ? "#d97706" : "var(--eh-text-muted)" }}>
                           {idx + 1}
                         </td>
-                        <td style={{ padding: "14px", fontWeight: "700", color: "var(--eh-text)" }}>
+                        <td style={{ fontWeight: "800", color: "var(--eh-text-primary)" }}>
                           {evt.title}
                         </td>
-                        <td style={{ padding: "14px" }}>
-                          <span className="badge badge-neutral" style={{ fontSize: "12px" }}>
+                        <td>
+                          <span className="eh-role-badge is-customer" style={{ fontSize: "11px" }}>
                             {evt.category}
                           </span>
                         </td>
-                        <td style={{ padding: "14px", textAlign: "right", fontWeight: "600", color: "var(--eh-text)" }}>
+                        <td style={{ textAlign: "right", fontWeight: "700", color: "var(--eh-text-primary)" }}>
                           {evt.soldTickets.toLocaleString("vi-VN")} vé
                         </td>
-                        <td style={{ padding: "14px", textAlign: "right", fontWeight: "800", color: "var(--eh-green)", fontSize: "15px" }}>
+                        <td style={{ textAlign: "right", fontWeight: "900", color: "#059669", fontSize: "15px" }}>
                           {formatCurrency(evt.revenue)}
                         </td>
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          <Link className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: "12px" }} to={`/events/${evt.eventId}`}>
+                        <td style={{ textAlign: "center" }}>
+                          <Link
+                            className="btn btn-secondary"
+                            style={{ padding: "4px 12px", fontSize: "12px", fontWeight: "700" }}
+                            to={`/events/${evt.eventId}`}
+                          >
                             Chi tiết
                           </Link>
                         </td>

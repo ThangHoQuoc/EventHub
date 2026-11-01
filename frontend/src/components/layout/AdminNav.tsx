@@ -11,27 +11,14 @@ export function AdminNav() {
   ];
 
   return (
-    <nav style={{ display: "flex", gap: "8px", borderBottom: "1px solid var(--eh-border)", paddingBottom: "14px", marginBottom: "28px" }}>
+    <nav aria-label="Thanh điều hướng Quản trị viên" className="eh-admin-nav-bar">
       {links.map((item) => {
-        const isActive = location.pathname === item.to;
+        const isActive = location.pathname === item.to || (item.to === "/admin/stats" && location.pathname === "/admin");
         return (
           <Link
             key={item.to}
+            className={`eh-admin-nav-link ${isActive ? "is-active" : ""}`}
             to={item.to}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "8px 16px",
-              borderRadius: "var(--radius-lg)",
-              fontSize: "14px",
-              fontWeight: isActive ? "700" : "500",
-              color: isActive ? "var(--eh-primary)" : "var(--eh-muted)",
-              background: isActive ? "rgba(37,99,235,0.08)" : "transparent",
-              border: isActive ? "1px solid rgba(37,99,235,0.2)" : "1px solid transparent",
-              textDecoration: "none",
-              transition: "all 0.15s ease",
-            }}
           >
             <LineIcon name={item.icon} />
             <span>{item.label}</span>
