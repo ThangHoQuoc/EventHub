@@ -1,7 +1,7 @@
 /* ==============================================================================
    EventHub Unified Modern Design System
    Brand Identity: Electric Indigo & Royal Violet (#6366f1 / #4f46e5 / #8b5cf6)
-   Aesthetic: Contemporary High-End Event & Ticketing (Luma + Linear + Stripe Aesthetic)
+   Aesthetic: Contemporary High-End Editorial & Ticketing (Luma + Stripe)
    ============================================================================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap");
@@ -12,7 +12,7 @@
   --eh-brand-hover: #4f46e5;       /* Vibrant Indigo */
   --eh-brand-active: #4338ca;      /* Deep Indigo */
   --eh-brand-dark: #312e81;        /* Midnight Indigo */
-  --eh-brand-night: #090d16;       /* Obsidian Midnight for AI/Dark Sections */
+  --eh-brand-night: #090d16;       /* Obsidian Midnight for dark accents */
   --eh-brand-violet: #8b5cf6;      /* Royal Violet Accent */
   --eh-brand-violet-hover: #7c3aed;/* Deep Violet */
   --eh-brand-cyan: #06b6d4;        /* Electric Cyan Accent */
@@ -82,7 +82,7 @@ body {
 }
 
 /* ==========================================================================
-   1. Modern Floating Header (Stitch Frosted Glass)
+   1. Modern Floating Header (Frosted Glass)
    ========================================================================== */
 .ev-editorial-header {
   position: sticky !important;
@@ -91,7 +91,7 @@ body {
   max-width: 1240px !important;
   margin: 0 auto 16px auto !important;
   padding: 8px 16px !important;
-  background: rgba(255, 255, 255, 0.82) !important;
+  background: rgba(255, 255, 255, 0.86) !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
   border: 1px solid rgba(226, 232, 240, 0.8) !important;
@@ -185,7 +185,7 @@ body {
 }
 
 /* ==========================================================================
-   3. Visual City Bento Grid (Modern Stitch Experience)
+   3. Visual City Bento Grid
    ========================================================================== */
 .ev-modern-city-section {
   max-width: 1240px;
@@ -333,734 +333,531 @@ body {
 }
 
 /* ==========================================================================
-   4. High-Conversion Event Card Design
+   4. EventMatch Showcase (Editorial Light & Harmonious Aesthetic)
    ========================================================================== */
-.ev-event-card-modern {
-  background: var(--eh-surface);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 1px solid var(--eh-border);
-  box-shadow: var(--eh-shadow-sm);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.ev-event-card-modern:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--eh-shadow-xl);
-  border-color: var(--eh-brand-light-border);
-}
-
-.ev-card-thumb-wrap {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background-color: var(--eh-surface-alt);
-}
-
-.ev-card-thumb-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.ev-event-card-modern:hover .ev-card-thumb-wrap img {
-  transform: scale(1.05);
-}
-
-.ev-card-badge-category {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-}
-
-.ev-card-badge-price {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: #ffffff;
-  color: var(--eh-brand);
-  font-weight: 800;
-  font-size: 13px;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--eh-shadow-md);
-}
-
-/* ==========================================================================
-   5. AI EventMatch Showcase (Electric Indigo & Obsidian AI Lab Theme)
-   ========================================================================== */
-.ev-eventmatch-section {
-  max-width: 1240px;
+.ev-match-showcase-section {
   margin: 64px auto !important;
-  padding: 0 24px;
 }
 
-.ev-ai-showcase-container {
-  background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.18) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.22) 0%, transparent 40%),
-              linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%);
+.ev-match-showcase-box {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: var(--radius-2xl);
-  padding: 40px;
-  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.6), 0 0 30px rgba(99, 102, 241, 0.2);
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.28);
-}
-
-.ev-ai-showcase-header {
-  margin-bottom: 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 24px;
-}
-
-.ev-ai-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(99, 102, 241, 0.18);
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  color: #a5b4fc;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  margin-bottom: 12px;
-}
-
-.ev-ai-showcase-header h2 {
-  font-size: 32px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.ev-ai-showcase-header p {
-  color: #94a3b8;
-  font-size: 15px;
-  margin: 6px 0 0 0;
-}
-
-.ev-ai-grid-layout {
+  padding: 36px 40px;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(99, 102, 241, 0.05);
   display: grid;
-  grid-template-columns: 44% 56%;
+  grid-template-columns: 42% 58%;
   gap: 36px;
   align-items: start;
 }
 
-/* Cột Trái: Trắc nghiệm Quiz tương tác */
-.ev-ai-quiz-panel {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-xl);
-  padding: 28px;
+/* Cột trái: Bộ chọn gu */
+.ev-match-filter-panel {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-right: 28px;
+  border-right: 1px solid var(--eh-border);
 }
 
-.ev-ai-quiz-group fieldset {
-  border: none;
-  padding: 0;
-  margin: 0;
-}
-
-.ev-ai-quiz-group legend {
-  font-size: 12px;
-  font-weight: 700;
-  color: #c7d2fe;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.ev-match-filter-group {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.ev-ai-options-wrap {
+.ev-match-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--eh-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ev-match-pill-group {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.ev-ai-option-btn {
-  background: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.ev-match-pill-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
   border-radius: var(--radius-pill);
-  padding: 8px 16px;
+  padding: 7px 15px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.2s ease;
 }
 
-.ev-ai-option-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border-color: rgba(99, 102, 241, 0.4);
+.ev-match-pill-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
-.ev-ai-option-btn[aria-pressed="true"] {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
-  border-color: #a5b4fc !important;
+.ev-match-pill-btn.is-selected {
+  background: var(--eh-brand) !important;
+  border-color: var(--eh-brand) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
 }
 
-.ev-ai-cta-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+.ev-match-submit-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: #ffffff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 24px;
+  padding: 12px 24px;
   border-radius: var(--radius-pill);
-  text-decoration: none;
   font-weight: 700;
   font-size: 14px;
+  text-decoration: none;
   margin-top: 8px;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-  transition: all 0.25s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: all 0.2s ease;
+  align-self: flex-start;
 }
 
-.ev-ai-cta-btn:hover {
+.ev-match-submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(139, 92, 246, 0.5);
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
 }
 
-/* Cột Phải: Thẻ kết quả Live Matching */
-.ev-ai-results-panel {
+/* Cột phải: 3 Thẻ sự kiện gợi ý */
+.ev-match-cards-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-.ev-ai-results-bar {
+.ev-match-cards-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 2px;
 }
 
-.ev-ai-results-bar span {
-  font-size: 13px;
+.ev-match-cards-header h4 {
+  font-size: 15px;
   font-weight: 700;
-  color: #c7d2fe;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--eh-text-primary);
+  margin: 0;
 }
 
-.ev-ai-pulse-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.ev-match-counter {
   font-size: 12px;
-  color: #86efac;
-  background: rgba(34, 197, 94, 0.15);
+  font-weight: 600;
+  color: var(--eh-brand);
+  background: var(--eh-brand-light);
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.ev-ai-pulse-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px #22c55e;
+.ev-match-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.ev-ai-card-item {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.ev-match-item-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
   border-radius: var(--radius-lg);
-  padding: 14px 18px;
+  padding: 12px 16px;
   display: grid;
-  grid-template-columns: 88px 1fr auto;
+  grid-template-columns: 76px 1fr auto;
   gap: 16px;
   align-items: center;
   text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
 }
 
-.ev-ai-card-item::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(180deg, #6366f1, #8b5cf6);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+.ev-match-item-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.12);
+  transform: translateY(-2px);
 }
 
-.ev-ai-card-item:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(139, 92, 246, 0.45);
-  transform: translateX(4px);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4);
-}
-
-.ev-ai-card-item:hover::before {
-  opacity: 1;
-}
-
-.ev-ai-thumb {
-  width: 88px;
-  height: 88px;
+.ev-match-thumb {
+  width: 76px;
+  height: 76px;
   border-radius: var(--radius-md);
   overflow: hidden;
-  position: relative;
   flex-shrink: 0;
+  background: #f1f5f9;
 }
 
-.ev-ai-thumb img {
+.ev-match-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.ev-ai-info {
+.ev-match-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
 
-.ev-ai-tag-row {
+.ev-match-meta-line {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.ev-ai-category-tag {
-  font-size: 10px;
+.ev-match-category-tag {
+  font-size: 11px;
   font-weight: 700;
-  color: #a5b4fc;
-  background: rgba(99, 102, 241, 0.2);
+  color: var(--eh-brand);
+  background: var(--eh-brand-light);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  text-transform: uppercase;
 }
 
-.ev-ai-city-text {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.ev-ai-title {
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  margin: 0;
+.ev-match-location-text {
+  font-size: 12px;
+  color: var(--eh-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.01em;
 }
 
-.ev-ai-reason {
-  color: #cbd5e1;
-  font-size: 12px;
-  line-height: 1.4;
+.ev-match-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--eh-text-primary);
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ev-ai-score-badge {
+.ev-match-score-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--eh-brand-light);
+  border: 1px solid var(--eh-brand-light-border);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.1) 70%);
-  border: 1px solid rgba(139, 92, 246, 0.5);
-  border-radius: 50%;
-  width: 58px;
-  height: 58px;
   flex-shrink: 0;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.35);
 }
 
-.ev-ai-score-num {
-  font-size: 15px;
+.ev-match-score-badge strong {
+  font-size: 14px;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--eh-brand);
   line-height: 1;
 }
 
-.ev-ai-score-lbl {
+.ev-match-score-badge small {
   font-size: 8px;
-  font-weight: 700;
-  color: #a5b4fc;
-  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--eh-brand-hover);
   margin-top: 2px;
 }
 
 @media (max-width: 900px) {
-  .ev-ai-grid-layout {
+  .ev-match-showcase-box {
     grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  .ev-match-filter-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--eh-border);
+    padding-right: 0;
+    padding-bottom: 24px;
   }
 }
 
 /* ==========================================================================
-   6. Ticket Banner Cuối Trang (Stripe/Luma VIP Pass Showcase)
+   5. Unified Ticket Banner (Elegant High-End Indigo)
    ========================================================================== */
-.ev-ticket-banner-wrap {
-  max-width: 1240px !important;
+.ev-ticket-banner-section {
   margin: 72px auto !important;
-  padding: 0 24px;
 }
 
-.ev-vip-pass-banner {
-  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.35) 0%, transparent 50%),
-              radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.25) 0%, transparent 45%),
-              linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%) !important;
-  border-radius: var(--radius-2xl) !important;
-  padding: 56px !important;
-  box-shadow: 0 25px 60px -10px rgba(30, 27, 75, 0.6), 0 0 40px rgba(99, 102, 241, 0.25) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(165, 180, 252, 0.25) !important;
+.ev-unified-ticket-banner {
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 60%, #6366f1 100%);
+  border-radius: var(--radius-2xl);
+  padding: 52px 56px;
+  color: #ffffff;
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 340px;
   gap: 48px;
   align-items: center;
+  box-shadow: 0 20px 40px -10px rgba(49, 46, 129, 0.35);
   position: relative;
   overflow: hidden;
 }
 
-.ev-vip-pass-content {
+.ev-ticket-banner-left {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-.ev-vip-pill-top {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  color: #e0e7ff;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.ev-banner-tag {
   align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  color: #e0e7ff;
 }
 
-.ev-vip-pass-content h2 {
-  font-size: 38px;
+.ev-ticket-banner-left h2 {
+  font-size: 36px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.03em;
-  line-height: 1.18;
+  line-height: 1.2;
   margin: 0;
 }
 
-.ev-vip-pass-content p {
-  color: #cbd5e1;
-  font-size: 16px;
+.ev-ticket-banner-left p {
+  color: #e0e7ff;
+  font-size: 15px;
   line-height: 1.6;
   margin: 0;
-  max-width: 580px;
+  max-width: 540px;
 }
 
-.ev-vip-features {
+.ev-banner-btn-group {
   display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 4px;
 }
 
-.ev-vip-feature-item {
+.ev-banner-primary-btn {
+  background: #ffffff;
+  color: #312e81;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+}
+
+.ev-banner-primary-btn:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+.ev-banner-secondary-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 13px 22px;
   border-radius: var(--radius-pill);
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #e2e8f0;
-}
-
-.ev-vip-feature-item i {
-  color: #818cf8;
-}
-
-.ev-vip-actions {
-  display: flex;
+  text-decoration: none;
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.25s ease;
 }
 
-.ev-vip-btn-primary {
-  background: #ffffff !important;
-  color: #312e81 !important;
-  font-weight: 800 !important;
-  font-size: 15px !important;
-  padding: 14px 28px !important;
-  border-radius: var(--radius-pill) !important;
-  text-decoration: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+.ev-banner-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
-.ev-vip-btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.3) !important;
-  background: #f8fafc !important;
-}
-
-.ev-vip-btn-secondary {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
-  padding: 14px 24px !important;
-  border-radius: var(--radius-pill) !important;
-  text-decoration: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  backdrop-filter: blur(8px) !important;
-  transition: all 0.25s ease !important;
-}
-
-.ev-vip-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Thẻ cuống vé 3D Holographic Pass */
-.ev-vip-ticket-3d {
-  position: relative;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(139, 92, 246, 0.3);
+/* Thẻ vé trắng cao cấp, thanh lịch */
+.ev-clean-ticket-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  color: #0f172a;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
-  transition: transform 0.4s ease;
+  gap: 14px;
 }
 
-.ev-vip-ticket-3d:hover {
-  transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-4px);
-}
-
-.ev-ticket-top-bar {
+.ev-clean-ticket-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.ev-ticket-brand-chip {
+.ev-ticket-badge-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #ffffff;
+  color: #312e81;
+  letter-spacing: -0.01em;
 }
 
-.ev-ticket-chip-hologram {
+.ev-ticket-badge-vip {
   font-size: 10px;
   font-weight: 800;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #a855f7, #6366f1, #06b6d4);
-  color: #ffffff;
-  padding: 3px 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 2px 8px;
   border-radius: var(--radius-xs);
-  letter-spacing: 0.05em;
 }
 
-.ev-ticket-event-details {
-  border-top: 1px dashed rgba(255, 255, 255, 0.15);
-  padding-top: 14px;
+.ev-clean-ticket-body {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.ev-ticket-event-details small {
+.ev-clean-ticket-body small {
   font-size: 10px;
-  color: #818cf8;
   font-weight: 700;
+  color: #6366f1;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.ev-ticket-event-details h4 {
-  font-size: 16px;
+.ev-clean-ticket-body h4 {
+  font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: #0f172a;
   margin: 0;
   line-height: 1.3;
 }
 
-.ev-ticket-meta-grid {
+.ev-clean-ticket-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 8px 12px;
+  background: #f8fafc;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
 
-.ev-ticket-meta-cell {
+.ev-clean-ticket-meta div {
   display: flex;
   flex-direction: column;
 }
 
-.ev-ticket-meta-cell span {
+.ev-clean-ticket-meta span {
   font-size: 9px;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   font-weight: 600;
 }
 
-.ev-ticket-meta-cell strong {
+.ev-clean-ticket-meta strong {
   font-size: 12px;
-  color: #f1f5f9;
+  color: #1e293b;
   font-weight: 700;
 }
 
-/* Rãnh khuyết răng cưa & Perforated Line */
-.ev-ticket-divider {
+/* Rãnh xé cuống vé */
+.ev-clean-ticket-perforation {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 4px -24px;
-  height: 24px;
-}
-
-.ev-ticket-notch-left,
-.ev-ticket-notch-right {
-  position: absolute;
-  width: 20px;
+  margin: 2px -22px;
   height: 20px;
+}
+
+.ev-clean-ticket-perforation .notch-l,
+.ev-clean-ticket-perforation .notch-r {
+  position: absolute;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #252358;
+  background: #4038af;
 }
 
-.ev-ticket-notch-left {
-  left: -10px;
+.ev-clean-ticket-perforation .notch-l {
+  left: -9px;
 }
 
-.ev-ticket-notch-right {
-  right: -10px;
+.ev-clean-ticket-perforation .notch-r {
+  right: -9px;
 }
 
-.ev-ticket-dash-line {
+.ev-clean-ticket-perforation .dashed-line {
   width: 100%;
-  border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+  border-bottom: 2px dashed #e2e8f0;
 }
 
-.ev-ticket-bottom-bar {
+.ev-clean-ticket-stub {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
 }
 
-.ev-ticket-qr-box {
-  background: #ffffff;
-  padding: 6px;
-  border-radius: var(--radius-sm);
+.stub-qr {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.ev-ticket-barcode-box {
+.stub-barcode {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   align-items: flex-end;
+  gap: 4px;
   flex: 1;
 }
 
-.ev-barcode-lines {
+.barcode-bars {
   display: flex;
   gap: 2px;
-  height: 28px;
+  height: 24px;
   align-items: center;
 }
 
-.ev-barcode-lines span {
+.barcode-bars span {
   display: block;
   height: 100%;
-  background: rgba(255, 255, 255, 0.7);
+  background: #1e293b;
 }
 
-.ev-barcode-num {
+.stub-barcode small {
   font-size: 9px;
-  color: #94a3b8;
+  color: #64748b;
   font-family: monospace;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
-@media (max-width: 1024px) {
-  .ev-vip-pass-banner {
+@media (max-width: 900px) {
+  .ev-unified-ticket-banner {
     grid-template-columns: 1fr;
-    padding: 40px 28px !important;
+    padding: 36px 28px;
   }
-  .ev-vip-ticket-3d {
-    max-width: 380px;
+  .ev-clean-ticket-card {
+    max-width: 320px;
     margin: 0 auto;
-    transform: none;
   }
 }
