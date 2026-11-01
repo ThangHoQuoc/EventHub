@@ -54,7 +54,7 @@ export function LandingPage() {
       {events.length > 0 && <FeaturedEditorial events={events} />}
 
       {/* 3. Điểm nhấn Trợ lý AI EventMatch (Quiz tương tác tìm gu) */}
-      {events.length > 0 && <EventMatchShowcase events={events} />}
+      <EventMatchShowcase events={events} />
 
       {/* 4. Khám phá thành phố với hình ảnh sắc nét */}
       <CityDiscovery />
