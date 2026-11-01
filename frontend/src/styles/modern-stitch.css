@@ -1,52 +1,59 @@
 /* ==============================================================================
-   EventHub Modern Editorial UI Enhancement (Design DNA based on Luma & Stitch)
+   EventHub Unified Modern Design System
+   Brand Identity: Modern Emerald & Deep Forest (#10b981 / #059669 / #064e3b)
+   Aesthetic: Contemporary Event Ticketing (Luma + Grab / Spotify Emerald Aesthetic)
    ============================================================================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap");
 
 :root {
-  /* --- Modern Palette --- */
-  --eh-brand: #6366f1;
-  --eh-brand-hover: #4f46e5;
-  --eh-brand-light: #eef2ff;
-  --eh-brand-glow: rgba(99, 102, 241, 0.25);
+  /* --- Unified Brand Emerald Tokens --- */
+  --eh-brand: #10b981;             /* Modern Emerald Vibrant */
+  --eh-brand-hover: #059669;       /* Deep Emerald */
+  --eh-brand-active: #047857;      /* Dark Emerald */
+  --eh-brand-dark: #064e3b;        /* Forest Deep */
+  --eh-brand-night: #062c20;       /* Deep Forest Obsidian for AI/Dark Sections */
+  --eh-brand-light: #ecfdf5;       /* Soft Mint 50 */
+  --eh-brand-light-border: #a7f3d0;/* Mint 200 */
+  --eh-brand-glow: rgba(16, 185, 129, 0.28);
 
-  --eh-emerald: #10b981;
-  --eh-emerald-hover: #059669;
-  --eh-emerald-light: #ecfdf5;
-
-  --eh-rose: #f43f5e;
-  --eh-rose-light: #fff1f2;
-
+  /* --- Secondary Warm Amber Tokens (VIP, Hot deals) --- */
   --eh-amber: #f59e0b;
+  --eh-amber-hover: #d97706;
   --eh-amber-light: #fef3c7;
+  --eh-amber-border: #fde68a;
 
-  /* --- Canvas & Surfaces --- */
+  /* --- Status Colors --- */
+  --eh-success: #10b981;
+  --eh-warning: #f59e0b;
+  --eh-error: #ef4444;
+  --eh-error-light: #fef2f2;
+
+  /* --- Modern Surfaces & Canvas --- */
   --eh-canvas: #f8fafc;
-  --eh-canvas-subtle: #f1f5f9;
   --eh-surface: #ffffff;
-  --eh-surface-card: #ffffff;
+  --eh-surface-alt: #f1f5f9;
 
-  /* --- Text & Contrast --- */
-  --eh-text-primary: #0f172a;
-  --eh-text-secondary: #475569;
-  --eh-text-muted: #64748b;
+  /* --- Typography Colors --- */
+  --eh-text-primary: #0f172a;      /* Deep Slate */
+  --eh-text-secondary: #334155;    /* Slate 700 */
+  --eh-text-muted: #64748b;        /* Slate 500 */
   --eh-text-light: #94a3b8;
 
-  /* --- Modern Borders & Dividers --- */
+  /* --- Borders & Dividers --- */
   --eh-border: #e2e8f0;
-  --eh-border-subtle: rgba(226, 232, 240, 0.7);
-  --eh-border-focus: #818cf8;
+  --eh-border-subtle: rgba(226, 232, 240, 0.8);
+  --eh-border-focus: #10b981;
 
-  /* --- Tactile Shadows & Depth --- */
+  /* --- Tactile Shadows --- */
   --eh-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --eh-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
-  --eh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
+  --eh-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.07);
+  --eh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
   --eh-shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
   --eh-shadow-xl: 0 20px 32px -6px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
-  --eh-shadow-glow: 0 0 25px -5px var(--eh-brand-glow);
+  --eh-shadow-glow: 0 0 25px -4px var(--eh-brand-glow);
 
-  /* --- Radii --- */
+  /* --- Border Radii --- */
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -56,7 +63,7 @@
   --radius-pill: 9999px;
 }
 
-/* Global Font & Smooth Reset */
+/* Base Reset & Typography */
 body {
   font-family: "Plus Jakarta Sans", "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif !important;
   background-color: var(--eh-canvas) !important;
@@ -65,8 +72,29 @@ body {
 }
 
 /* ==========================================================================
-   1. Modern Floating Header (Luma / Glassmorphism Style)
+   1. Brand Logo & Floating Navigation Header
    ========================================================================== */
+.eventhub-brand {
+  color: var(--eh-brand-hover) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-weight: 800 !important;
+  font-size: 20px !important;
+  text-decoration: none !important;
+  letter-spacing: -0.02em !important;
+}
+
+.eventhub-brand svg {
+  width: 28px !important;
+  height: 28px !important;
+  fill: none !important;
+  stroke: var(--eh-brand-hover) !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
 .site-header {
   position: sticky !important;
   top: 16px !important;
@@ -75,18 +103,18 @@ body {
   margin: 12px auto !important;
   padding: 10px 24px !important;
   border-radius: var(--radius-pill) !important;
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border: 1px solid var(--eh-border-subtle) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05) !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .site-header.is-scrolled {
   top: 8px !important;
-  background: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
   border-color: rgba(203, 213, 225, 0.8) !important;
 }
 
@@ -97,46 +125,44 @@ body {
   padding: 8px 16px !important;
   border-radius: var(--radius-pill) !important;
   transition: all 0.2s ease !important;
+  text-decoration: none !important;
 }
 
-.site-header .nav-links a:hover {
-  color: var(--eh-brand) !important;
-  background: var(--eh-brand-light) !important;
-}
-
+.site-header .nav-links a:hover,
 .site-header .nav-links a.active {
-  color: var(--eh-brand) !important;
+  color: var(--eh-brand-hover) !important;
   background: var(--eh-brand-light) !important;
 }
 
+/* Primary Button in Emerald */
 .btn-primary {
-  background: linear-gradient(135deg, var(--eh-brand) 0%, #4f46e5 100%) !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   border-radius: var(--radius-pill) !important;
-  padding: 10px 20px !important;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+  padding: 10px 22px !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
   border: none !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-primary:hover {
   transform: translateY(-1.5px) !important;
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
 /* ==========================================================================
-   2. Modern Hero Section (Punchy Typography & Ambient Background)
+   2. Modern Hero Section (Emerald Ambient Lighting)
    ========================================================================== */
 .ev-home-hero {
   position: relative;
   border-radius: var(--radius-2xl) !important;
-  margin: 16px auto 40px auto !important;
+  margin: 16px auto 48px auto !important;
   max-width: 1240px !important;
-  padding: 48px 48px !important;
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
-  border: 1px solid var(--eh-border) !important;
+  padding: 52px 48px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
+  border: 1px solid var(--eh-brand-light-border) !important;
   box-shadow: var(--eh-shadow-lg) !important;
   overflow: hidden;
 }
@@ -146,11 +172,11 @@ body {
   position: absolute;
   top: -120px;
   right: -100px;
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(244, 63, 94, 0.08) 50%, transparent 70%);
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, rgba(245, 158, 11, 0.08) 50%, transparent 70%);
   pointer-events: none;
-  filter: blur(40px);
+  filter: blur(45px);
 }
 
 .ev-home-hero h1 {
@@ -168,11 +194,12 @@ body {
   align-items: center !important;
   gap: 6px !important;
   background: var(--eh-brand-light) !important;
-  color: var(--eh-brand) !important;
+  color: var(--eh-brand-hover) !important;
   padding: 6px 14px !important;
   border-radius: var(--radius-pill) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
+  border: 1px solid var(--eh-brand-light-border) !important;
   margin-bottom: 20px !important;
 }
 
@@ -182,13 +209,20 @@ body {
   border: 1.5px solid var(--eh-border) !important;
   border-radius: var(--radius-pill) !important;
   padding: 8px 12px 8px 20px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06) !important;
   transition: all 0.2s ease !important;
 }
 
 .ev-event-search-bar:focus-within {
   border-color: var(--eh-brand) !important;
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 10px 25px -5px var(--eh-brand-glow) !important;
+}
+
+.ev-event-search-bar button[type="submit"],
+.ev-event-search-bar .ev-search-submit {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border-radius: var(--radius-pill) !important;
 }
 
 /* Quick Topic Pills */
@@ -200,17 +234,19 @@ body {
   font-size: 13px !important;
   font-weight: 600 !important;
   padding: 6px 14px !important;
+  text-decoration: none !important;
   transition: all 0.2s ease !important;
 }
 
 .ev-quick-topics a:hover {
   border-color: var(--eh-brand) !important;
-  color: var(--eh-brand) !important;
+  color: var(--eh-brand-hover) !important;
+  background: var(--eh-brand-light) !important;
   transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   3. Modern Bento Grid & Event Card (Polished Ticketing Aesthetics)
+   3. Modern Event Bento Card
    ========================================================================== */
 .ev-event-card {
   background: var(--eh-surface) !important;
@@ -224,7 +260,7 @@ body {
 .ev-event-card:hover {
   transform: translateY(-6px) !important;
   box-shadow: var(--eh-shadow-xl) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
 }
 
 .ev-event-card-poster {
@@ -258,7 +294,7 @@ body {
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  color: var(--eh-brand) !important;
+  color: var(--eh-brand-hover) !important;
 }
 
 .ev-event-card h3 {
@@ -282,10 +318,10 @@ body {
 .ev-event-card-footer strong {
   font-size: 17px !important;
   font-weight: 800 !important;
-  color: #0f172a !important;
+  color: var(--eh-text-primary) !important;
 }
 
-/* Modern Status Badges */
+/* Status Badges */
 .status-badge {
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -295,15 +331,15 @@ body {
 }
 
 .status-badge.is-available {
-  background: var(--eh-emerald-light) !important;
-  color: var(--eh-emerald) !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  background: var(--eh-brand-light) !important;
+  color: var(--eh-brand-hover) !important;
+  border: 1px solid var(--eh-brand-light-border) !important;
 }
 
 .status-badge.is-low-stock {
   background: var(--eh-amber-light) !important;
-  color: #d97706 !important;
-  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: var(--eh-amber-hover) !important;
+  border: 1px solid var(--eh-amber-border) !important;
 }
 
 .status-badge.is-sold-out {
@@ -312,22 +348,22 @@ body {
   border: 1px solid #cbd5e1 !important;
 }
 
-/* Match Score Badge (AI Feature) */
+/* AI Match Score Badge in Emerald */
 .ev-event-card-topline small {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%) !important;
-  color: #4f46e5 !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%) !important;
+  color: var(--eh-brand-dark) !important;
   font-weight: 800 !important;
   padding: 3px 8px !important;
   border-radius: var(--radius-pill) !important;
-  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  border: 1px solid var(--eh-brand-light-border) !important;
 }
 
 /* ==========================================================================
-   4. TÁI THIẾT KẾ: Khám Phá Theo Thành Phố (Visual City Bento Grid)
+   4. Khám Phá Theo Thành Phố (Visual City Bento Grid Emerald Themed)
    ========================================================================== */
 .ev-modern-city-section {
   max-width: 1240px !important;
-  margin: 60px auto !important;
+  margin: 64px auto !important;
   padding: 0 24px !important;
 }
 
@@ -376,7 +412,7 @@ body {
 .ev-city-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(6, 44, 32, 0.15) 0%, rgba(6, 44, 32, 0.88) 100%);
   transition: opacity 0.3s ease;
 }
 
@@ -391,7 +427,7 @@ body {
 
 .ev-city-pill {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(16, 185, 129, 0.3);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #ffffff;
@@ -399,7 +435,7 @@ body {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(167, 243, 208, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -414,7 +450,7 @@ body {
 }
 
 .ev-city-headings p {
-  color: #cbd5e1 !important;
+  color: #d1fae5 !important;
   font-size: 13px !important;
   margin: 4px 0 0 0 !important;
   font-weight: 500;
@@ -437,11 +473,10 @@ body {
   transition: all 0.2s ease;
 }
 
-/* Hover States for City Cards */
 .ev-city-card-modern:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20px 35px -8px rgba(6, 44, 32, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
 .ev-city-card-modern:hover .ev-city-img-wrap img {
@@ -463,11 +498,11 @@ body {
 }
 
 /* ==========================================================================
-   5. NÂNG CẤP: AI EventMatch Showcase Section trên Landing Page
+   5. AI EventMatch Showcase (Deep Forest Night Theme)
    ========================================================================== */
 .ev-eventmatch-section {
   max-width: 1240px;
-  margin: 60px auto !important;
+  margin: 64px auto !important;
   padding: 0 24px;
 }
 
@@ -475,23 +510,24 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
-  background: linear-gradient(135deg, #090d16 0%, #1e1b4b 100%) !important;
+  background: linear-gradient(135deg, #062c20 0%, #064e3b 100%) !important;
   border-radius: var(--radius-2xl);
   padding: 40px;
-  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 24px 48px -12px rgba(6, 44, 32, 0.4);
   color: #ffffff;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .ev-eventmatch-layout::before {
   content: "";
   position: absolute;
-  top: -50px;
-  left: -50px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
+  top: -60px;
+  left: -60px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
   filter: blur(50px);
 }
 
@@ -504,7 +540,7 @@ body {
 .ev-match-quiz legend {
   font-size: 13px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #a7f3d0;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -528,13 +564,33 @@ body {
   background: var(--eh-brand) !important;
   border-color: var(--eh-brand) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important;
+}
+
+.ev-primary-link {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 24px !important;
+  border-radius: var(--radius-pill) !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  margin-top: 12px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ev-primary-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
 }
 
 .ev-match-result {
   background: rgba(255, 255, 255, 0.07) !important;
   backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
   border-radius: var(--radius-xl) !important;
   padding: 16px !important;
   margin-bottom: 12px;
@@ -546,7 +602,7 @@ body {
 
 .ev-match-result:hover {
   background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(99, 102, 241, 0.5) !important;
+  border-color: var(--eh-brand) !important;
   transform: translateX(4px);
 }
 
@@ -558,7 +614,7 @@ body {
 }
 
 .ev-match-result p {
-  color: #cbd5e1 !important;
+  color: #d1fae5 !important;
   font-size: 12px !important;
   margin: 0 !important;
 }
@@ -570,22 +626,17 @@ body {
 }
 
 /* ==========================================================================
-   6. NÂNG CẤP: Smart Waitlist Showcase & Ticket Banner
+   6. Ticket Banner Cuối Trang (Emerald & Forest Gradient)
    ========================================================================== */
-.ev-waitlist-section {
-  max-width: 1240px;
-  margin: 60px auto !important;
-  padding: 0 24px;
-}
-
 .ev-ticket-banner {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%) !important;
   border-radius: var(--radius-2xl) !important;
   max-width: 1240px !important;
-  margin: 60px auto !important;
+  margin: 64px auto !important;
   padding: 56px 48px !important;
-  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 20px 40px -10px rgba(5, 150, 105, 0.4) !important;
   color: #ffffff !important;
+  border: 1px solid rgba(167, 243, 208, 0.25) !important;
 }
 
 .ev-ticket-banner h2 {
@@ -599,7 +650,7 @@ body {
 
 .ev-ticket-banner a {
   background: #ffffff !important;
-  color: #4f46e5 !important;
+  color: #065f46 !important;
   font-weight: 700 !important;
   font-size: 15px !important;
   padding: 12px 28px !important;
@@ -607,12 +658,13 @@ body {
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12) !important;
   text-decoration: none !important;
   transition: all 0.2s ease !important;
 }
 
 .ev-ticket-banner a:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+  background: #f0fdf4 !important;
 }
