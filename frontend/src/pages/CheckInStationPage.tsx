@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { Html5Qrcode } from "html5-qrcode";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
 import { LineIcon } from "../components/ui/LineIcon";
 import { checkInTicketApi } from "../api/organizer";
@@ -13,14 +14,69 @@ interface ScanLog {
   message: string;
 }
 
+interface CameraDevice {
+  id: string;
+  label: string;
+}
+
+// Phát âm thanh phản hồi bằng Web Audio API không phụ thuộc file ngoài
+function triggerFeedback(success: boolean) {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (success) {
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+      } else {
+        osc.frequency.setValueAtTime(260, ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      }
+    }
+  } catch {
+    // Audio context may be restricted by autoplay policy
+  }
+
+  if (navigator.vibrate) {
+    try {
+      navigator.vibrate(success ? [100] : [200, 100, 200]);
+    } catch {
+      // Ignore vibration error
+    }
+  }
+}
+
 export function CheckInStationPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [ticketCode, setTicketCode] = useState("");
   const [result, setResult] = useState<TicketDto>();
   const [logs, setLogs] = useState<ScanLog[]>([]);
+
+  // Camera states
   const [cameraActive, setCameraActive] = useState(true);
+  const [cameraStatus, setCameraStatus] = useState<"idle" | "requesting" | "ready" | "error" | "paused">("idle");
+  const [cameraErrorMessage, setCameraErrorMessage] = useState("");
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>("");
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const lock = useRef(false);
+  const lastScannedRef = useRef<{ code: string; time: number }>({ code: "", time: 0 });
 
   async function performCheckIn(rawCode: string) {
     const code = rawCode.trim();
@@ -38,6 +94,7 @@ export function CheckInStationPage() {
       const res = await checkInTicketApi(payload);
       setResult(res);
       setTicketCode("");
+      triggerFeedback(true);
       setLogs((prev) => [
         {
           code: res.ticketCode,
@@ -50,6 +107,7 @@ export function CheckInStationPage() {
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Mã vé không hợp lệ hoặc đã qua cửa.";
       setError(errMsg);
+      triggerFeedback(false);
       setLogs((prev) => [
         {
           code: code,
@@ -65,6 +123,109 @@ export function CheckInStationPage() {
     }
   }
 
+  // Khởi động Camera Scanner
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initCamera() {
+      if (!cameraActive) {
+        if (scannerRef.current && scannerRef.current.isScanning) {
+          try {
+            await scannerRef.current.stop();
+          } catch {
+            // Ignore stop errors
+          }
+        }
+        setCameraStatus("paused");
+        return;
+      }
+
+      setCameraStatus("requesting");
+      setCameraErrorMessage("");
+
+      try {
+        // Lấy danh sách camera nếu có
+        try {
+          const devices = await Html5Qrcode.getCameras();
+          if (isMounted && devices && devices.length > 0) {
+            setCameras(devices.map((d) => ({ id: d.id, label: d.label || `Camera ${d.id}` })));
+          }
+        } catch {
+          // Trình duyệt có thể chưa cấp quyền enumerateDevices
+        }
+
+        if (!scannerRef.current) {
+          scannerRef.current = new Html5Qrcode("eh-qr-reader");
+        }
+
+        const scanner = scannerRef.current;
+        if (scanner.isScanning) {
+          try {
+            await scanner.stop();
+          } catch {
+            // Ignore
+          }
+        }
+
+        const cameraConfig = selectedCameraId
+          ? selectedCameraId
+          : { facingMode: facingMode };
+
+        await scanner.start(
+          cameraConfig,
+          {
+            fps: 10,
+            qrbox: { width: 220, height: 220 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            if (!isMounted) return;
+            const now = Date.now();
+            // Debounce 2.5s đối với cùng 1 mã
+            if (
+              lastScannedRef.current.code === decodedText &&
+              now - lastScannedRef.current.time < 2500
+            ) {
+              return;
+            }
+            lastScannedRef.current = { code: decodedText, time: now };
+            performCheckIn(decodedText);
+          },
+          () => {
+            // Frame parse error - ignore
+          }
+        );
+
+        if (isMounted) {
+          setCameraStatus("ready");
+        }
+      } catch (err: unknown) {
+        if (!isMounted) return;
+        setCameraStatus("error");
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Không thể truy cập camera. Vui lòng cấp quyền trên trình duyệt.";
+        if (msg.includes("NotAllowedError") || msg.includes("Permission denied")) {
+          setCameraErrorMessage("Quyền truy cập Camera bị từ chối. Vui lòng cấp quyền trên thanh địa chỉ.");
+        } else if (msg.includes("NotFoundError") || msg.includes("Requested device not found")) {
+          setCameraErrorMessage("Không tìm thấy Camera trên thiết bị của bạn.");
+        } else {
+          setCameraErrorMessage("Lỗi camera: " + msg);
+        }
+      }
+    }
+
+    initCamera();
+
+    return () => {
+      isMounted = false;
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, [cameraActive, selectedCameraId, facingMode]);
+
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     performCheckIn(ticketCode);
@@ -72,6 +233,11 @@ export function CheckInStationPage() {
 
   function handleDemoScan() {
     performCheckIn("EH-DEMO-98214");
+  }
+
+  function toggleFacingMode() {
+    setSelectedCameraId("");
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
   }
 
   const successCount = logs.filter((l) => l.success).length;
@@ -83,35 +249,59 @@ export function CheckInStationPage() {
       title="Trạm soát vé Check-in trực tiếp"
     >
       <div className="eh-checkin-layout">
-        {/* Cột trái: Máy quét & Kết quả */}
+        {/* Cột trái: Máy quét Camera & Kết quả */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {/* Khung máy quét Laser Scanner Mockup */}
+          {/* Khung máy quét Laser Scanner tích hợp Camera thật */}
           <section aria-label="Kính ngắm quét mã vé" className="eh-checkin-scanner-box">
-            {/* Viewfinder kính quét */}
+            {/* Viewfinder kính quét camera */}
             <div className="eh-scanner-viewfinder">
+              {/* Thẻ chứa Video Camera từ html5-qrcode */}
+              <div id="eh-qr-reader" className="eh-qr-reader-container" />
+
               {/* 4 góc viền laser neon */}
               <div className="eh-viewfinder-corner eh-corner-tl" />
               <div className="eh-viewfinder-corner eh-corner-tr" />
               <div className="eh-viewfinder-corner eh-corner-bl" />
               <div className="eh-viewfinder-corner eh-corner-br" />
 
-              {/* Tia laser quét chuyển động */}
-              {cameraActive && <div className="eh-scanner-laser" />}
+              {/* Tia laser quét chuyển động neon */}
+              {cameraActive && cameraStatus === "ready" && <div className="eh-scanner-laser" />}
 
+              {/* Trạng thái quét & Hướng dẫn */}
               <div className="eh-scanner-status-text">
                 <LineIcon name="search" />
-                <p style={{ margin: 0 }}>
-                  {cameraActive
-                    ? "Kính quét Laser sẵn sàng · Đang đợi mã QR"
-                    : "Camera đang tạm dừng"}
+                <p style={{ margin: 0, fontWeight: "700" }}>
+                  {cameraStatus === "ready" && "Camera sẵn sàng · Đưa mã QR vào khung"}
+                  {cameraStatus === "requesting" && "Đang kích hoạt Camera..."}
+                  {cameraStatus === "paused" && "Camera đang tạm dừng"}
+                  {cameraStatus === "error" && "Không thể mở Camera"}
+                  {cameraStatus === "idle" && "Đang chuẩn bị máy quét"}
                 </p>
-                <small style={{ color: "rgba(255,255,255,0.4)", display: "block", marginTop: "4px" }}>
-                  Minh họa luồng camera · chưa tích hợp webcam trực tiếp
-                </small>
+                {cameraStatus === "error" ? (
+                  <small style={{ color: "#fca5a5", display: "block", marginTop: "4px" }}>
+                    {cameraErrorMessage}
+                  </small>
+                ) : (
+                  <small style={{ color: "rgba(255,255,255,0.7)", display: "block", marginTop: "4px" }}>
+                    {cameraStatus === "ready"
+                      ? "Tự động nhận diện & phát âm thanh check-in"
+                      : "Sử dụng camera webcam máy tính hoặc camera sau điện thoại"}
+                  </small>
+                )}
               </div>
             </div>
 
-            <div style={{ marginTop: "22px", display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
+            {/* Các phím điều khiển Camera */}
+            <div
+              style={{
+                marginTop: "22px",
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <button
                 className="btn btn-secondary"
                 onClick={() => setCameraActive(!cameraActive)}
@@ -127,6 +317,50 @@ export function CheckInStationPage() {
               >
                 {cameraActive ? "Tạm dừng camera" : "Bật camera quét"}
               </button>
+
+              {cameras.length > 1 ? (
+                <select
+                  value={selectedCameraId}
+                  onChange={(e) => setSelectedCameraId(e.target.value)}
+                  style={{
+                    fontSize: "12px",
+                    height: "36px",
+                    background: "rgba(255,255,255,0.12)",
+                    borderColor: "rgba(255,255,255,0.25)",
+                    color: "#ffffff",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "0 10px",
+                    fontWeight: "600",
+                  }}
+                >
+                  <option value="" style={{ color: "#000" }}>
+                    Mặc định ({facingMode === "environment" ? "Sau" : "Trước"})
+                  </option>
+                  {cameras.map((c) => (
+                    <option key={c.id} value={c.id} style={{ color: "#000" }}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <button
+                  className="btn btn-secondary"
+                  onClick={toggleFacingMode}
+                  style={{
+                    fontSize: "12px",
+                    minHeight: "36px",
+                    background: "rgba(255,255,255,0.1)",
+                    borderColor: "rgba(255,255,255,0.2)",
+                    color: "#ffffff",
+                    fontWeight: "700",
+                  }}
+                  type="button"
+                  title="Chuyển đổi giữa Camera trước và Camera sau"
+                >
+                  {facingMode === "environment" ? "Dùng Camera trước" : "Dùng Camera sau"}
+                </button>
+              )}
+
               <button
                 className="btn btn-primary"
                 disabled={busy}
@@ -145,7 +379,7 @@ export function CheckInStationPage() {
             </div>
           </section>
 
-          {/* Form nhập mã vé thủ công */}
+          {/* Form nhập mã vé thủ công (dự phòng trường hợp không có camera) */}
           <section
             style={{
               background: "var(--eh-surface)",

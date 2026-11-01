@@ -5576,8 +5576,9 @@ body {
 }
 
 .eh-scanner-viewfinder {
-  width: 240px;
-  height: 240px;
+  width: 280px;
+  height: 280px;
+  max-width: 100%;
   border: 1.5px solid rgba(165, 180, 252, 0.25);
   border-radius: 24px;
   position: relative;
@@ -5585,8 +5586,44 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(15, 23, 42, 0.6);
   box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+.eh-qr-reader-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+#eh-qr-reader {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+#eh-qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 22px !important;
+}
+
+#eh-qr-reader__scan_region {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#eh-qr-reader__dashboard {
+  display: none !important;
 }
 
 /* 4 viewfinder corners */
@@ -5594,6 +5631,8 @@ body {
   position: absolute;
   width: 24px;
   height: 24px;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .eh-corner-tl {
@@ -5633,21 +5672,31 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: linear-gradient(90deg, transparent, #818cf8 30%, #c7d2fe 50%, #818cf8 70%, transparent);
-  box-shadow: 0 0 14px #818cf8, 0 0 28px #6366f1;
-  animation: laserSweep 2.4s ease-in-out infinite alternate;
+  box-shadow: 0 0 16px #818cf8, 0 0 32px #6366f1;
+  animation: laserSweep 2.2s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 10;
 }
 
 @keyframes laserSweep {
-  0% { top: 15%; opacity: 0.3; }
+  0% { top: 10%; opacity: 0.3; }
   50% { opacity: 1; }
-  100% { top: 85%; opacity: 0.3; }
+  100% { top: 90%; opacity: 0.3; }
 }
 
 .eh-scanner-status-text {
+  position: relative;
+  z-index: 12;
   text-align: center;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(11, 15, 25, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
   font-size: 12px;
   font-weight: 600;
 }
