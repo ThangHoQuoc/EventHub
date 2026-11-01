@@ -36,7 +36,17 @@ export function OrganizerLayout({
 
           <div className="ev-organizer-header-actions">
             {actionButton || (
-              <Link className="ev-btn-primary" to="/organizer/events/new">
+              <Link
+                className="btn btn-primary"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                  boxShadow: "0 4px 14px rgba(99, 102, 241, 0.3)",
+                  padding: "10px 20px",
+                  fontSize: "13px",
+                  fontWeight: "800",
+                }}
+                to="/organizer/events/new"
+              >
                 <LineIcon name="plus" />
                 Tạo sự kiện mới
               </Link>
@@ -71,10 +81,14 @@ export function OrganizerLayout({
         </nav>
 
         {/* Content Heading */}
-        <div className="ev-organizer-content-head">
+        <div className="ev-organizer-content-head" style={{ marginBottom: "24px" }}>
           <div>
-            <h2>{title}</h2>
-            <p>{description}</p>
+            <h2 style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.03em", color: "var(--eh-text-primary)", margin: "0 0 6px" }}>
+              {title}
+            </h2>
+            <p style={{ fontSize: "14px", color: "var(--eh-text-muted)", margin: 0 }}>
+              {description}
+            </p>
           </div>
         </div>
 
