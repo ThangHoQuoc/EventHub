@@ -25,7 +25,9 @@ export function MyTicketsPage() {
   const validCount = allTickets.filter((t) => t.status === "VALID").length;
   const usedCount = allTickets.filter((t) => t.status === "USED").length;
 
-  const visible = allTickets.filter((ticket) => filter === "ALL" || ticket.status === filter);
+  const visible = allTickets.filter(
+    (ticket) => filter === "ALL" || ticket.status === filter
+  );
 
   return (
     <CustomerLayout
@@ -33,199 +35,135 @@ export function MyTicketsPage() {
       description="Quản lý toàn bộ vé tham dự sự kiện của bạn. Mỗi vé đi kèm một mã QR duy nhất để check-in tại cổng."
       title="Vé điện tử của tôi"
     >
-      <div style={{ display: "grid", gap: "24px" }}>
+      <div className="ev-my-tickets-wrap">
         {/* Bộ lọc tab trạng thái vé */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "14px",
-            background: "var(--eh-surface)",
-            padding: "8px 12px",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--eh-border)",
-          }}
-        >
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        <div className="ev-tickets-filter-bar">
+          <div className="ev-tickets-tab-group">
             <button
+              className={`ev-ticket-tab-btn ${filter === "ALL" ? "is-active" : ""}`}
               onClick={() => setFilter("ALL")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "ALL" ? "var(--eh-green)" : "transparent",
-                color: filter === "ALL" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
               type="button"
             >
-              Tất cả ({allTickets.length})
+              <span>Tất cả</span>
+              <span className="count-pill">{allTickets.length}</span>
             </button>
             <button
+              className={`ev-ticket-tab-btn ${filter === "VALID" ? "is-active" : ""}`}
               onClick={() => setFilter("VALID")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "VALID" ? "var(--eh-green)" : "transparent",
-                color: filter === "VALID" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
               type="button"
             >
-              Có hiệu lực ({validCount})
+              <span>Có hiệu lực</span>
+              <span className="count-pill">{validCount}</span>
             </button>
             <button
+              className={`ev-ticket-tab-btn ${filter === "USED" ? "is-active" : ""}`}
               onClick={() => setFilter("USED")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "USED" ? "var(--eh-green)" : "transparent",
-                color: filter === "USED" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
               type="button"
             >
-              Đã check-in ({usedCount})
+              <span>Đã check-in</span>
+              <span className="count-pill">{usedCount}</span>
             </button>
           </div>
 
           <button
-            className="btn btn-secondary"
+            className="ev-ticket-refresh-btn"
             disabled={resource.loading}
             onClick={resource.reload}
-            style={{ fontSize: "12px", padding: "0 14px", minHeight: "36px" }}
             type="button"
           >
-            <LineIcon name="refresh" /> Làm mới
+            <LineIcon name="refresh" />
+            <span>Làm mới</span>
           </button>
         </div>
 
-        <RequestState error={resource.error} loading={resource.loading} onRetry={resource.reload} />
+        <RequestState
+          error={resource.error}
+          loading={resource.loading}
+          onRetry={resource.reload}
+        />
 
-        {/* Lưới danh sách vé điện tử */}
+        {/* Lưới danh sách thẻ vé điện tử */}
         {visible.length > 0 ? (
-          <div style={{ display: "grid", gap: "18px" }}>
+          <div className="ev-ticket-cards-list">
             {visible.map((ticket) => {
               const isValid = ticket.status === "VALID";
               return (
                 <article
                   key={ticket.id}
-                  style={{
-                    background: "var(--eh-surface)",
-                    border: "1px solid var(--eh-border)",
-                    borderRadius: "var(--radius-xl)",
-                    boxShadow: "var(--eh-shadow-sm)",
-                    overflow: "hidden",
-                    display: "grid",
-                    gridTemplateColumns: "1fr 200px",
-                    transition: "box-shadow 0.2s ease, border-color 0.2s ease",
-                  }}
+                  className={`ev-ticket-item-pass ${isValid ? "is-valid" : "is-used"}`}
                 >
                   {/* Thân vé bên trái */}
-                  <div style={{ padding: "24px 28px", display: "grid", gap: "12px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span
-                        style={{
-                          background: "var(--eh-green-50)",
-                          border: "1px solid var(--eh-green-100)",
-                          color: "var(--eh-green)",
-                          padding: "4px 10px",
-                          borderRadius: "var(--radius-md)",
-                          fontSize: "11px",
-                          fontWeight: "800",
-                        }}
-                      >
+                  <div className="ev-ticket-pass-main">
+                    <div className="ev-pass-topline">
+                      <span className="ev-pass-type-badge">
                         {ticket.ticketTypeName}
                       </span>
                       <span
-                        style={{
-                          background: isValid ? "var(--eh-green-50)" : "#f1f3f4",
-                          color: isValid ? "var(--eh-green)" : "var(--eh-muted)",
-                          padding: "3px 10px",
-                          borderRadius: "999px",
-                          fontSize: "11px",
-                          fontWeight: "700",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                        }}
+                        className={`ev-pass-status-badge ${
+                          isValid ? "status-valid" : "status-used"
+                        }`}
                       >
                         <LineIcon name={isValid ? "check" : "clock"} />
-                        {ticketStatusLabel[ticket.status] || ticket.status}
+                        <span>{ticketStatusLabel[ticket.status] || ticket.status}</span>
                       </span>
                     </div>
 
-                    <h3 style={{ fontSize: "18px", fontWeight: "800", margin: "2px 0 0", color: "var(--eh-text)", letterSpacing: "-0.03em" }}>
-                      {ticket.eventTitle}
-                    </h3>
+                    <h3 className="ev-pass-title">{ticket.eventTitle}</h3>
 
-                    <div style={{ display: "flex", gap: "20px", fontSize: "12px", color: "var(--eh-muted)", flexWrap: "wrap" }}>
-                      <span>
-                        <LineIcon name="calendar" /> Cấp lúc: {formatDateTime(ticket.issuedAt)}
+                    <div className="ev-pass-meta-row">
+                      <span className="meta-cell">
+                        <LineIcon name="calendar" />
+                        <span>Cấp lúc: {formatDateTime(ticket.issuedAt)}</span>
                       </span>
                       {ticket.checkedInAt && (
-                        <span style={{ color: "var(--eh-text)" }}>
-                          <LineIcon name="check" /> Check-in: {formatDateTime(ticket.checkedInAt)}
+                        <span className="meta-cell checked-in">
+                          <LineIcon name="check" />
+                          <span>Check-in: {formatDateTime(ticket.checkedInAt)}</span>
                         </span>
                       )}
-                      <span>
-                        <LineIcon name="ticket" /> Đơn: <code style={{ fontFamily: "monospace" }}>{ticket.bookingId.slice(0, 8)}</code>
+                      <span className="meta-cell">
+                        <LineIcon name="ticket" />
+                        <span>
+                          Đơn: <code className="mono">{ticket.bookingId.slice(0, 8)}</code>
+                        </span>
                       </span>
                     </div>
 
-                    <div style={{ paddingTop: "8px", display: "flex", gap: "14px", alignItems: "center" }}>
+                    <div className="ev-pass-actions">
                       <Link
-                        className="btn btn-primary"
-                        style={{ fontSize: "12px", padding: "0 16px", minHeight: "36px" }}
+                        className="ev-open-qr-btn"
                         to={`/my-tickets/${ticket.id}`}
                       >
-                        Mở mã vé & QR toàn màn hình
+                        <span>Mở mã vé &amp; QR toàn màn hình</span>
+                        <LineIcon name="arrow-right" />
                       </Link>
                       <Link
-                        className="ev-text-link"
-                        style={{ fontSize: "12px" }}
+                        className="ev-view-event-link"
                         to={`/events/${ticket.eventId}`}
                       >
-                        Chi tiết sự kiện <LineIcon name="arrow-right" />
+                        <span>Xem sự kiện</span>
+                        <LineIcon name="arrow-right" />
                       </Link>
                     </div>
                   </div>
 
-                  {/* Cuống vé mini bên phải */}
-                  <div
-                    style={{
-                      background: "#faf8f5",
-                      borderLeft: "2px dashed var(--eh-border)",
-                      padding: "20px 16px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ background: "#ffffff", padding: "6px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", width: "86px", height: "86px" }}>
-                      <QRCode label={`Mã QR vé ${ticket.ticketCode}`} value={ticket.qrPayload} />
+                  {/* Rãnh khuyết xé cuống vé */}
+                  <div className="ev-pass-perforation">
+                    <span className="pass-notch top" />
+                    <div className="pass-dashed-line" />
+                    <span className="pass-notch bottom" />
+                  </div>
+
+                  {/* Cuống vé chứa mã QR bên phải */}
+                  <div className="ev-ticket-pass-stub">
+                    <div className="ev-stub-qr-box">
+                      <QRCode
+                        label={`Mã QR vé ${ticket.ticketCode}`}
+                        value={ticket.qrPayload}
+                      />
                     </div>
-                    <small style={{ fontSize: "9px", color: "var(--eh-placeholder)", marginTop: "8px", fontWeight: "700" }}>
-                      MÃ CHECK-IN
-                    </small>
-                    <strong style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--eh-text)", letterSpacing: "0.05em" }}>
-                      {ticket.ticketCode}
-                    </strong>
+                    <small className="ev-stub-label">MÃ CHECK-IN</small>
+                    <strong className="ev-stub-code">{ticket.ticketCode}</strong>
                   </div>
                 </article>
               );
@@ -249,9 +187,10 @@ export function MyTicketsPage() {
           totalPages={resource.data?.totalPages ?? 0}
         />
 
-        <div style={{ textAlign: "center", paddingTop: "8px" }}>
+        <div className="ev-bottom-link-row">
           <Link className="ev-text-link" to="/my-bookings">
-            Xem lịch sử đơn đặt vé tại mục Đơn hàng <LineIcon name="arrow-right" />
+            <span>Xem lịch sử đơn đặt vé tại mục Đơn hàng</span>
+            <LineIcon name="arrow-right" />
           </Link>
         </div>
       </div>

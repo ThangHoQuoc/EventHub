@@ -50,156 +50,134 @@ export function TicketDetailPage() {
       description="Xuất trình màn hình vé này hoặc mã QR tại cổng kiểm soát vé của sự kiện."
       title="Vé điện tử chính thức"
     >
-      <div style={{ maxWidth: "860px", margin: "0 auto", display: "grid", gap: "24px" }}>
+      <div className="ev-ticket-detail-container">
         {/* Nút quay lại */}
-        <div>
-          <Link
-            className="ev-text-link"
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
-            to="/my-tickets"
-          >
-            <span style={{ transform: "rotate(180deg)", display: "inline-block" }}>
+        <div className="ev-detail-back-wrap">
+          <Link className="ev-ticket-back-btn" to="/my-tickets">
+            <span className="back-arrow">
               <LineIcon name="arrow-right" />
             </span>
-            Quay lại danh sách vé của tôi
+            <span>Quay lại danh sách vé của tôi</span>
           </Link>
         </div>
 
-        <RequestState error={resource.error} loading={resource.loading} onRetry={resource.reload} />
+        <RequestState
+          error={resource.error}
+          loading={resource.loading}
+          onRetry={resource.reload}
+        />
 
         {ticket && (
-          <>
-            {/* Master Ticket */}
-            <article
-              className={`ev-master-ticket ${isValid ? "is-valid" : "is-used"}`}
-              style={{
-                background: "var(--eh-surface)",
-                border: "1.5px solid var(--eh-border)",
-                borderRadius: "var(--radius-2xl)",
-                boxShadow: "var(--eh-shadow-card)",
-                overflow: "hidden",
-                display: "grid",
-                gridTemplateColumns: "1fr 280px",
-              }}
-            >
+          <div className="ev-master-pass-stack">
+            {/* Master Ticket Pass */}
+            <article className={`ev-master-vip-ticket ${isValid ? "is-valid" : "is-used"}`}>
               {/* Thân vé bên trái */}
-              <div style={{ padding: "32px 36px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div className="ev-master-ticket-body">
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
-                    <span className="badge badge-primary" style={{ padding: "6px 12px", fontSize: "12px" }}>
+                  <div className="ev-master-topline">
+                    <span className="ev-master-type-pill">
                       {ticket.ticketTypeName}
                     </span>
-                    <span className={`badge ${isValid ? "badge-success" : "badge-neutral"}`}>
-                      {ticketStatusLabel[ticket.status]}
+                    <span
+                      className={`ev-master-status-pill ${
+                        isValid ? "status-valid" : "status-used"
+                      }`}
+                    >
+                      <LineIcon name={isValid ? "check" : "clock"} />
+                      <span>{ticketStatusLabel[ticket.status]}</span>
                     </span>
                   </div>
 
-                  <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--eh-text)", lineHeight: "1.3", margin: "0 0 16px" }}>
-                    {ticket.eventTitle}
-                  </h2>
+                  <h2 className="ev-master-event-title">{ticket.eventTitle}</h2>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", margin: "20px 0" }}>
-                    <div>
-                      <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", fontWeight: "600", textTransform: "uppercase" }}>
-                        Thời gian phát hành
-                      </small>
-                      <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-text)", marginTop: "2px" }}>
-                        {formatDateTime(ticket.issuedAt)}
-                      </div>
+                  <div className="ev-master-grid-meta">
+                    <div className="meta-box">
+                      <small>THỜI GIAN PHÁT HÀNH</small>
+                      <strong>{formatDateTime(ticket.issuedAt)}</strong>
                     </div>
                     {ticket.checkedInAt && (
-                      <div>
-                        <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", fontWeight: "600", textTransform: "uppercase" }}>
-                          Thời gian Check-in
-                        </small>
-                        <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--eh-green)", marginTop: "2px" }}>
-                          {formatDateTime(ticket.checkedInAt)}
-                        </div>
+                      <div className="meta-box checked-in">
+                        <small>THỜI GIAN CHECK-IN</small>
+                        <strong>{formatDateTime(ticket.checkedInAt)}</strong>
                       </div>
                     )}
+                    <div className="meta-box">
+                      <small>MÃ ĐƠN HÀNG</small>
+                      <strong className="mono">{ticket.bookingId}</strong>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ borderTop: "1px dashed var(--eh-border)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
-                    Mã đơn hàng: <strong style={{ color: "var(--eh-text)" }}>{ticket.bookingId}</strong>
+                <div className="ev-master-ticket-footer">
+                  <div className="footer-brand">
+                    <LineIcon name="ticket" />
+                    <span>EventHub Official E-Ticket</span>
                   </div>
-                  <div style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
-                    EventHub Official E-Ticket
+                  <div className="footer-verified">
+                    <LineIcon name="shield" />
+                    <span>Xác thực bởi EventHub</span>
                   </div>
                 </div>
               </div>
 
+              {/* Rãnh khuyết xé cuống vé */}
+              <div className="ev-master-perforation">
+                <span className="master-notch top" />
+                <div className="master-dashed-line" />
+                <span className="master-notch bottom" />
+              </div>
+
               {/* Cuống vé chứa mã QR bên phải */}
-              <div
-                style={{
-                  background: "#faf8f5",
-                  borderLeft: "2px dashed var(--eh-border)",
-                  padding: "32px 24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  position: "relative",
-                }}
-              >
-                <div style={{ background: "#ffffff", padding: "12px", borderRadius: "var(--radius-lg)", border: "1px solid var(--eh-border)", boxShadow: "var(--eh-shadow-sm)" }}>
-                  <QRCode label={`Mã QR vé ${ticket.ticketCode}`} value={ticket.qrPayload} />
+              <div className="ev-master-ticket-stub">
+                <div className="ev-master-qr-wrap">
+                  <QRCode
+                    label={`Mã QR vé ${ticket.ticketCode}`}
+                    value={ticket.qrPayload}
+                  />
                 </div>
 
-                <div style={{ marginTop: "14px" }}>
-                  <small style={{ fontSize: "10px", color: "var(--eh-placeholder)", fontWeight: "700", letterSpacing: "0.1em", display: "block" }}>
-                    MÃ SOÁT VÉ
-                  </small>
-                  <strong style={{ fontSize: "14px", fontFamily: "monospace", letterSpacing: "0.08em", color: "var(--eh-text)" }}>
-                    {ticket.ticketCode}
-                  </strong>
+                <div className="ev-master-code-box">
+                  <small>MÃ SOÁT VÉ</small>
+                  <strong>{ticket.ticketCode}</strong>
                 </div>
 
-                <div style={{ marginTop: "18px", display: "grid", gap: "8px", width: "100%" }}>
+                {/* Các nút thao tác */}
+                <div className="ev-master-actions-list">
                   <button
-                    className="btn btn-primary"
+                    className="ev-master-btn primary"
                     onClick={() => window.print()}
-                    style={{ width: "100%", justifyContent: "center" }}
                     type="button"
                   >
-                    <LineIcon name="download" /> In vé điện tử
+                    <LineIcon name="download" />
+                    <span>In vé / Lưu PDF</span>
                   </button>
 
                   <button
-                    className="btn btn-secondary"
+                    className="ev-master-btn secondary"
                     disabled={sendingEmail}
                     onClick={handleResendEmail}
-                    style={{ width: "100%", justifyContent: "center" }}
                     type="button"
                   >
-                    <LineIcon name="mail" /> {sendingEmail ? "Đang gửi email..." : "Gửi vé vào Email"}
+                    <LineIcon name="mail" />
+                    <span>{sendingEmail ? "Đang gửi email..." : "Gửi vé vào Email"}</span>
                   </button>
 
                   <button
-                    className="btn btn-secondary"
+                    className="ev-master-btn secondary"
                     disabled={resource.loading}
                     onClick={resource.reload}
-                    style={{ width: "100%", justifyContent: "center" }}
                     type="button"
                   >
-                    <LineIcon name="refresh" /> Đồng bộ trạng thái
+                    <LineIcon name="refresh" />
+                    <span>Đồng bộ trạng thái</span>
                   </button>
                 </div>
 
                 {emailStatus && (
                   <div
-                    style={{
-                      marginTop: "10px",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      fontSize: "12px",
-                      lineHeight: "1.4",
-                      background: emailStatus.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                      color: emailStatus.success ? "var(--eh-green)" : "var(--eh-red)",
-                      border: `1px solid ${emailStatus.success ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
-                    }}
+                    className={`ev-email-status-alert ${
+                      emailStatus.success ? "success" : "error"
+                    }`}
                   >
                     {emailStatus.message}
                   </div>
@@ -208,17 +186,24 @@ export function TicketDetailPage() {
             </article>
 
             {/* Hướng dẫn vào cổng */}
-            <section style={{ background: "var(--eh-surface)", padding: "24px 28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 14px", color: "var(--eh-text)" }}>
-                Hướng dẫn check-in tại địa điểm tổ chức
-              </h3>
-              <ol style={{ margin: 0, paddingLeft: "18px", color: "var(--eh-muted)", fontSize: "13px", lineHeight: "1.8", display: "grid", gap: "6px" }}>
-                <li>Cổng check-in mở đón khách trước giờ khai mạc <strong>45 - 60 phút</strong>.</li>
-                <li>Mở sẵn màn hình vé này hoặc xuất trình email có mã QR để nhân viên quét laser nhanh chóng.</li>
-                <li>Bạn cũng có thể xuất trình bản in giấy của vé này nếu không mang điện thoại.</li>
+            <section className="ev-checkin-guide-card">
+              <div className="guide-card-head">
+                <LineIcon name="ticket" />
+                <h3>Hướng dẫn check-in tại địa điểm tổ chức</h3>
+              </div>
+              <ol className="guide-steps-list">
+                <li>
+                  Cổng check-in thường mở đón khách trước giờ khai mạc <strong>45 - 60 phút</strong>.
+                </li>
+                <li>
+                  Mở sẵn màn hình vé này hoặc xuất trình mã QR từ email để nhân viên soát vé quét laser nhanh chóng.
+                </li>
+                <li>
+                  Tăng độ sáng màn hình điện thoại tối đa để máy quét nhận diện mã QR dễ dàng hơn.
+                </li>
               </ol>
             </section>
-          </>
+          </div>
         )}
       </div>
     </CustomerLayout>
