@@ -1,7 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { OrganizerLayout } from "../components/organizer/OrganizerLayout";
-import { RequestState } from "../components/ui/RequestState";
 import { LineIcon } from "../components/ui/LineIcon";
 import { checkInTicketApi } from "../api/organizer";
 import type { TicketDto } from "../api/tickets";
@@ -80,79 +79,50 @@ export function CheckInStationPage() {
   return (
     <OrganizerLayout
       activeNav="checkin"
-      description="Trạm kiểm soát vé tại cổng: Nhập mã soát vé hoặc payload từ thiết bị đọc QR để xác thực khách vào cửa."
+      description="Trạm soát vé trực tiếp tại cửa sự kiện: Quét camera mã QR Code hoặc nhập mã vé để xác thực khách vào cửa thời gian thực."
       title="Trạm soát vé Check-in trực tiếp"
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "28px", alignItems: "start" }}>
+      <div className="eh-checkin-layout">
         {/* Cột trái: Máy quét & Kết quả */}
-        <div style={{ display: "grid", gap: "24px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {/* Khung máy quét Laser Scanner Mockup */}
-          <section
-            style={{
-              background: "#0d1612",
-              borderRadius: "var(--radius-2xl)",
-              border: "1px solid rgba(31, 138, 91, 0.4)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-              overflow: "hidden",
-              position: "relative",
-              padding: "36px 24px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "300px",
-              color: "#ffffff",
-            }}
-          >
+          <section aria-label="Kính ngắm quét mã vé" className="eh-checkin-scanner-box">
             {/* Viewfinder kính quét */}
-            <div
-              style={{
-                width: "220px",
-                height: "220px",
-                border: "2px solid rgba(255, 255, 255, 0.2)",
-                borderRadius: "20px",
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                background: "rgba(255, 255, 255, 0.03)",
-              }}
-            >
-              {/* 4 góc viền laser */}
-              <div style={{ position: "absolute", top: 0, left: 0, width: "24px", height: "24px", borderTop: "3px solid var(--eh-green)", borderLeft: "3px solid var(--eh-green)" }} />
-              <div style={{ position: "absolute", top: 0, right: 0, width: "24px", height: "24px", borderTop: "3px solid var(--eh-green)", borderRight: "3px solid var(--eh-green)" }} />
-              <div style={{ position: "absolute", bottom: 0, left: 0, width: "24px", height: "24px", borderBottom: "3px solid var(--eh-green)", borderLeft: "3px solid var(--eh-green)" }} />
-              <div style={{ position: "absolute", bottom: 0, right: 0, width: "24px", height: "24px", borderBottom: "3px solid var(--eh-green)", borderRight: "3px solid var(--eh-green)" }} />
+            <div className="eh-scanner-viewfinder">
+              {/* 4 góc viền laser neon */}
+              <div className="eh-viewfinder-corner eh-corner-tl" />
+              <div className="eh-viewfinder-corner eh-corner-tr" />
+              <div className="eh-viewfinder-corner eh-corner-bl" />
+              <div className="eh-viewfinder-corner eh-corner-br" />
 
-              {/* Tia laser quét */}
-              {cameraActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: "50%",
-                    height: "2px",
-                    background: "linear-gradient(90deg, transparent, #22c55e, #86efac, #22c55e, transparent)",
-                    boxShadow: "0 0 12px #22c55e, 0 0 24px #22c55e",
-                  }}
-                />
-              )}
+              {/* Tia laser quét chuyển động */}
+              {cameraActive && <div className="eh-scanner-laser" />}
 
-              <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.6)" }}>
+              <div className="eh-scanner-status-text">
                 <LineIcon name="search" />
-                <p style={{ fontSize: "11px", margin: "6px 0 0" }}>
-                  {cameraActive ? "Minh họa camera · chưa hỗ trợ quét trực tiếp" : "Camera đang tạm dừng"}
+                <p style={{ margin: 0 }}>
+                  {cameraActive
+                    ? "Kính quét Laser sẵn sàng · Đang đợi mã QR"
+                    : "Camera đang tạm dừng"}
                 </p>
+                <small style={{ color: "rgba(255,255,255,0.4)", display: "block", marginTop: "4px" }}>
+                  Minh họa luồng camera · chưa tích hợp webcam trực tiếp
+                </small>
               </div>
             </div>
 
-            <div style={{ marginTop: "18px", display: "flex", gap: "10px" }}>
+            <div style={{ marginTop: "22px", display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => setCameraActive(!cameraActive)}
-                style={{ fontSize: "11px", minHeight: "32px", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#ffffff" }}
+                style={{
+                  fontSize: "12px",
+                  minHeight: "36px",
+                  background: "rgba(255,255,255,0.1)",
+                  borderColor: "rgba(255,255,255,0.2)",
+                  color: "#ffffff",
+                  fontWeight: "700",
+                }}
                 type="button"
               >
                 {cameraActive ? "Tạm dừng camera" : "Bật camera quét"}
@@ -161,7 +131,13 @@ export function CheckInStationPage() {
                 className="btn btn-primary"
                 disabled={busy}
                 onClick={handleDemoScan}
-                style={{ fontSize: "11px", minHeight: "32px" }}
+                style={{
+                  fontSize: "12px",
+                  minHeight: "36px",
+                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                  boxShadow: "0 4px 14px rgba(99, 102, 241, 0.4)",
+                  fontWeight: "800",
+                }}
                 type="button"
               >
                 <LineIcon name="sparkles" /> Thử quét mã mẫu
@@ -170,24 +146,48 @@ export function CheckInStationPage() {
           </section>
 
           {/* Form nhập mã vé thủ công */}
-          <section style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text)" }}>
+          <section
+            style={{
+              background: "var(--eh-surface)",
+              padding: "24px 28px",
+              borderRadius: "var(--radius-2xl)",
+              border: "1px solid var(--eh-border)",
+              boxShadow: "var(--eh-shadow-xs)",
+            }}
+          >
+            <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text-primary)", letterSpacing: "-0.02em" }}>
               Hoặc nhập mã vé / chuỗi QR thủ công
             </h3>
 
-            <form onSubmit={submit} style={{ display: "flex", gap: "10px" }}>
+            <form onSubmit={submit} style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <input
                 disabled={busy}
                 onChange={(e) => setTicketCode(e.target.value)}
                 placeholder="Nhập mã vé (ví dụ: EH-INDIE-47120) hoặc dán toàn bộ chuỗi QR..."
                 required
-                style={{ flex: 1, height: "46px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 14px", fontSize: "13px" }}
+                style={{
+                  flex: "1 1 280px",
+                  height: "46px",
+                  borderRadius: "var(--radius-lg)",
+                  border: "1px solid var(--eh-border)",
+                  padding: "0 16px",
+                  fontSize: "13px",
+                  background: "#ffffff",
+                }}
                 value={ticketCode}
               />
               <button
-                className="ev-btn-primary"
+                className="btn btn-primary"
                 disabled={busy || !ticketCode.trim()}
-                style={{ height: "46px", padding: "0 22px", flexShrink: 0 }}
+                style={{
+                  height: "46px",
+                  padding: "0 24px",
+                  flexShrink: 0,
+                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                  boxShadow: "0 4px 14px rgba(99, 102, 241, 0.3)",
+                  fontSize: "13px",
+                  fontWeight: "800",
+                }}
                 type="submit"
               >
                 {busy ? "Đang xác thực..." : "Check-in ngay"}
@@ -195,101 +195,122 @@ export function CheckInStationPage() {
             </form>
           </section>
 
-          {/* Màn hình kết quả Check-in lớn */}
+          {/* Màn hình kết quả Check-in Hợp lệ */}
           {result && (
-            <section
-              style={{
-                background: "var(--eh-green-50)",
-                border: "2px solid var(--eh-green-100)",
-                borderRadius: "var(--radius-xl)",
-                padding: "28px",
-                display: "grid",
-                gap: "12px",
-                boxShadow: "0 4px 20px rgba(31, 138, 91, 0.15)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--eh-green)" }}>
-                <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--eh-green)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <section className="eh-checkin-result-card">
+              <div className="eh-result-head">
+                <div className="eh-result-icon">
                   <LineIcon name="check" />
                 </div>
                 <div>
-                  <strong style={{ fontSize: "18px", display: "block" }}>CHECK-IN THÀNH CÔNG!</strong>
-                  <span style={{ fontSize: "12px", color: "var(--eh-green-hover)" }}>Khách đã được xác thực vào cửa</span>
+                  <h3 className="eh-result-title">XÁC THỰC CHECK-IN THÀNH CÔNG!</h3>
+                  <p className="eh-result-sub">Vé chính chủ hợp lệ · Khách đã được phép qua cổng</p>
                 </div>
               </div>
 
-              <div style={{ background: "#ffffff", padding: "16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--eh-green-100)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "13px" }}>
-                <div>
-                  <span style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Mã vé</span>
-                  <strong style={{ fontFamily: "monospace", fontSize: "14px" }}>{result.ticketCode}</strong>
+              <div className="eh-result-meta-grid">
+                <div className="eh-meta-item">
+                  <small>Mã số vé</small>
+                  <strong style={{ fontFamily: "monospace", color: "var(--eh-brand-dark)" }}>{result.ticketCode}</strong>
                 </div>
-                <div>
-                  <span style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Trạng thái</span>
-                  <strong style={{ color: "var(--eh-green)" }}>{result.status}</strong>
+                <div className="eh-meta-item">
+                  <small>Trạng thái</small>
+                  <strong style={{ color: "#059669" }}>{result.status}</strong>
                 </div>
-                <div>
-                  <span style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Thời gian quét</span>
+                <div className="eh-meta-item">
+                  <small>Thời gian quét vào</small>
                   <strong>{result.checkedInAt ? formatDateTime(result.checkedInAt) : "Vừa xác thực"}</strong>
                 </div>
-                <div>
-                  <span style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block" }}>Loại vé</span>
-                  <strong>{result.ticketTypeName || "Vé chuẩn"}</strong>
+                <div className="eh-meta-item">
+                  <small>Hạng vé</small>
+                  <strong>{result.ticketTypeName || "Vé sự kiện"}</strong>
                 </div>
               </div>
             </section>
           )}
 
+          {/* Màn hình kết quả Check-in Không Hợp Lệ */}
           {error && (
-            <section
-              style={{
-                background: "#fce8e6",
-                border: "2px solid #fad2cf",
-                borderRadius: "var(--radius-xl)",
-                padding: "24px",
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                color: "var(--eh-error)",
-              }}
-            >
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--eh-error)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <section className="eh-checkin-error-card">
+              <div className="eh-error-icon">
                 <LineIcon name="alert" />
               </div>
               <div>
-                <strong style={{ fontSize: "16px", display: "block" }}>CHECK-IN KHÔNG HỢP LỆ!</strong>
-                <p style={{ margin: "4px 0 0", fontSize: "13px" }}>{error}</p>
+                <strong style={{ fontSize: "17px", fontWeight: "900", color: "#991b1b", display: "block", marginBottom: "4px" }}>
+                  CHECK-IN KHÔNG HỢP LỆ!
+                </strong>
+                <p style={{ margin: 0, fontSize: "13px", color: "#b91c1c", fontWeight: "600" }}>{error}</p>
               </div>
             </section>
           )}
         </div>
 
-        {/* Cột phải: Thống kê & Bảng Log */}
-        <aside style={{ display: "grid", gap: "20px" }}>
+        {/* Cột phải: Thống kê ca trực & Bảng Log */}
+        <aside style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Thống kê ca trực */}
-          <section style={{ background: "var(--eh-surface)", padding: "20px 24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h3 style={{ fontSize: "15px", fontWeight: "800", margin: "0 0 14px", color: "var(--eh-text)" }}>
+          <section
+            style={{
+              background: "var(--eh-surface)",
+              padding: "22px 24px",
+              borderRadius: "var(--radius-2xl)",
+              border: "1px solid var(--eh-border)",
+              boxShadow: "var(--eh-shadow-xs)",
+            }}
+          >
+            <h3 style={{ fontSize: "15px", fontWeight: "800", margin: "0 0 16px", color: "var(--eh-text-primary)", letterSpacing: "-0.02em" }}>
               Thống kê ca trực soát vé
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", textAlign: "center" }}>
-              <div style={{ background: "var(--eh-green-50)", padding: "14px", borderRadius: "var(--radius-md)" }}>
-                <strong style={{ fontSize: "24px", color: "var(--eh-green)", display: "block" }}>{successCount}</strong>
-                <small style={{ fontSize: "11px", color: "var(--eh-green)" }}>Hợp lệ vào cửa</small>
+              <div
+                style={{
+                  background: "rgba(16, 185, 129, 0.1)",
+                  border: "1px solid rgba(16, 185, 129, 0.25)",
+                  padding: "16px",
+                  borderRadius: "var(--radius-xl)",
+                }}
+              >
+                <strong style={{ fontSize: "26px", color: "#059669", display: "block", fontWeight: "900" }}>
+                  {successCount}
+                </strong>
+                <small style={{ fontSize: "11px", color: "#047857", fontWeight: "700", textTransform: "uppercase" }}>
+                  Hợp lệ vào cửa
+                </small>
               </div>
-              <div style={{ background: "var(--eh-bg)", padding: "14px", borderRadius: "var(--radius-md)" }}>
-                <strong style={{ fontSize: "24px", color: "var(--eh-text)", display: "block" }}>{logs.length}</strong>
-                <small style={{ fontSize: "11px", color: "var(--eh-muted)" }}>Tổng lượt quét</small>
+
+              <div
+                style={{
+                  background: "var(--eh-surface-alt)",
+                  border: "1px solid var(--eh-border)",
+                  padding: "16px",
+                  borderRadius: "var(--radius-xl)",
+                }}
+              >
+                <strong style={{ fontSize: "26px", color: "var(--eh-text-primary)", display: "block", fontWeight: "900" }}>
+                  {logs.length}
+                </strong>
+                <small style={{ fontSize: "11px", color: "var(--eh-text-muted)", fontWeight: "700", textTransform: "uppercase" }}>
+                  Tổng lượt quét
+                </small>
               </div>
             </div>
           </section>
 
           {/* Lịch sử quét vé trong ca */}
-          <section style={{ background: "var(--eh-surface)", padding: "20px 24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h3 style={{ fontSize: "15px", fontWeight: "800", margin: "0 0 14px", color: "var(--eh-text)" }}>
+          <section
+            style={{
+              background: "var(--eh-surface)",
+              padding: "22px 24px",
+              borderRadius: "var(--radius-2xl)",
+              border: "1px solid var(--eh-border)",
+              boxShadow: "var(--eh-shadow-xs)",
+            }}
+          >
+            <h3 style={{ fontSize: "15px", fontWeight: "800", margin: "0 0 14px", color: "var(--eh-text-primary)", letterSpacing: "-0.02em" }}>
               Lịch sử quét vừa qua
             </h3>
 
             {logs.length > 0 ? (
-              <div style={{ display: "grid", gap: "10px", maxHeight: "360px", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "360px", overflowY: "auto" }}>
                 {logs.map((log, idx) => (
                   <div
                     key={idx}
@@ -297,29 +318,47 @@ export function CheckInStationPage() {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      padding: "10px 12px",
-                      background: log.success ? "var(--eh-green-50)" : "#fce8e6",
-                      borderRadius: "var(--radius-md)",
+                      padding: "12px 14px",
+                      background: log.success ? "rgba(16, 185, 129, 0.08)" : "rgba(239, 68, 68, 0.08)",
+                      border: `1px solid ${log.success ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)"}`,
+                      borderRadius: "var(--radius-lg)",
                       fontSize: "12px",
                     }}
                   >
                     <div>
-                      <strong style={{ fontFamily: "monospace", display: "block" }}>{log.code}</strong>
-                      <small style={{ color: log.success ? "var(--eh-green)" : "var(--eh-error)" }}>{log.message}</small>
+                      <strong style={{ fontFamily: "monospace", display: "block", fontSize: "13px", color: "var(--eh-text-primary)" }}>
+                        {log.code}
+                      </strong>
+                      <small style={{ color: log.success ? "#059669" : "#dc2626", fontWeight: "600" }}>
+                        {log.message}
+                      </small>
                     </div>
-                    <span style={{ fontSize: "11px", color: "var(--eh-muted)" }}>{log.time}</span>
+                    <span style={{ fontSize: "11px", color: "var(--eh-text-muted)", fontWeight: "600" }}>
+                      {log.time}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ fontSize: "12px", color: "var(--eh-placeholder)", margin: 0 }}>
+              <p style={{ fontSize: "13px", color: "var(--eh-text-muted)", margin: 0 }}>
                 Chưa có lượt quét vé nào trong phiên này.
               </p>
             )}
           </section>
 
           <div style={{ textAlign: "center" }}>
-            <Link className="ev-text-link" style={{ fontSize: "12px" }} to="/organizer/dashboard">
+            <Link
+              style={{
+                fontSize: "13px",
+                fontWeight: "700",
+                color: "var(--eh-brand)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                textDecoration: "none",
+              }}
+              to="/organizer/dashboard"
+            >
               Quay lại Bảng điều khiển sự kiện <LineIcon name="arrow-right" />
             </Link>
           </div>

@@ -5548,6 +5548,238 @@ body {
   }
 }
 
+/* ==========================================================================
+   19. CHECK-IN SCANNER STATION (/organizer/check-in)
+   ========================================================================== */
+
+.eh-checkin-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  align-items: start;
+}
+
+.eh-checkin-scanner-box {
+  background: radial-gradient(circle at 50% 30%, #1e1b4b 0%, #0b0f19 75%, #05070f 100%);
+  border-radius: var(--radius-2xl);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  box-shadow: 0 16px 40px rgba(11, 15, 25, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  color: #ffffff;
+}
+
+.eh-scanner-viewfinder {
+  width: 240px;
+  height: 240px;
+  border: 1.5px solid rgba(165, 180, 252, 0.25);
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+/* 4 viewfinder corners */
+.eh-viewfinder-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+}
+
+.eh-corner-tl {
+  top: 0;
+  left: 0;
+  border-top: 3px solid #818cf8;
+  border-left: 3px solid #818cf8;
+  border-top-left-radius: 8px;
+}
+
+.eh-corner-tr {
+  top: 0;
+  right: 0;
+  border-top: 3px solid #818cf8;
+  border-right: 3px solid #818cf8;
+  border-top-right-radius: 8px;
+}
+
+.eh-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-bottom: 3px solid #818cf8;
+  border-left: 3px solid #818cf8;
+  border-bottom-left-radius: 8px;
+}
+
+.eh-corner-br {
+  bottom: 0;
+  right: 0;
+  border-bottom: 3px solid #818cf8;
+  border-right: 3px solid #818cf8;
+  border-bottom-right-radius: 8px;
+}
+
+/* Laser sweep animation */
+.eh-scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #818cf8 30%, #c7d2fe 50%, #818cf8 70%, transparent);
+  box-shadow: 0 0 14px #818cf8, 0 0 28px #6366f1;
+  animation: laserSweep 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes laserSweep {
+  0% { top: 15%; opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { top: 85%; opacity: 0.3; }
+}
+
+.eh-scanner-status-text {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.eh-scanner-status-text svg {
+  width: 24px;
+  height: 24px;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+}
+
+/* Check-in Success Banner Card */
+.eh-checkin-result-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
+  border: 2px solid #10b981;
+  border-radius: var(--radius-2xl);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.15);
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eh-result-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.eh-result-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  flex-shrink: 0;
+}
+
+.eh-result-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.eh-result-title {
+  font-size: 19px;
+  font-weight: 900;
+  color: #065f46;
+  margin: 0 0 2px;
+  letter-spacing: -0.02em;
+}
+
+.eh-result-sub {
+  font-size: 13px;
+  color: #047857;
+  margin: 0;
+  font-weight: 600;
+}
+
+.eh-result-meta-grid {
+  background: #ffffff;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-xl);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  font-size: 13px;
+}
+
+.eh-meta-item small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--eh-text-muted);
+  margin-bottom: 2px;
+}
+
+.eh-meta-item strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--eh-text-primary);
+}
+
+/* Check-in Error Alert */
+.eh-checkin-error-card {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
+  border: 2px solid #ef4444;
+  border-radius: var(--radius-2xl);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.15);
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eh-error-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  flex-shrink: 0;
+}
+
+.eh-error-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 860px) {
+  .eh-checkin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 
 
 
