@@ -10,9 +10,18 @@ type CheckoutHeaderProps = {
   orderInProgress?: boolean;
 };
 
-export function CheckoutHeader({ activeStep, orderInProgress = true, secureLabel }: CheckoutHeaderProps) {
+export function CheckoutHeader({
+  activeStep,
+  orderInProgress = true,
+  secureLabel,
+}: CheckoutHeaderProps) {
   function handleBrandClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (orderInProgress && !window.confirm("Bạn có muốn rời quy trình đặt vé? Thông tin đang nhập có thể không được lưu.")) {
+    if (
+      orderInProgress &&
+      !window.confirm(
+        "Bạn có muốn rời quy trình đặt vé? Thông tin đang nhập có thể không được lưu."
+      )
+    ) {
       event.preventDefault();
     }
   }
@@ -27,16 +36,24 @@ export function CheckoutHeader({ activeStep, orderInProgress = true, secureLabel
             const completed = step < activeStep;
             const active = step === activeStep;
             return (
-              <li className={completed ? "is-complete" : active ? "is-active" : ""} key={label} aria-current={active ? "step" : undefined}>
-                <span>{completed ? <LineIcon name="check" /> : step}</span>
-                <strong>{label}</strong>
+              <li
+                className={completed ? "is-complete" : active ? "is-active" : ""}
+                key={label}
+                aria-current={active ? "step" : undefined}
+              >
+                <span className="step-num">
+                  {completed ? <LineIcon name="check" /> : step}
+                </span>
+                <strong className="step-label">{label}</strong>
               </li>
             );
           })}
         </ol>
-        <div className="checkout-secure"><LineIcon name="lock" /><span>{secureLabel}</span></div>
+        <div className="checkout-secure">
+          <LineIcon name="lock" />
+          <span>{secureLabel}</span>
+        </div>
       </div>
     </header>
   );
 }
-

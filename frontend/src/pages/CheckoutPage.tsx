@@ -8,7 +8,6 @@ import { useApiResource } from "../hooks/useApiResource";
 import { useAuth } from "../context/AuthContext";
 import { readSelection } from "../utils/bookingState";
 import { formatCurrency, formatDateTime } from "../utils/format";
-import { EventPoster } from "../components/event/EventPoster";
 import { LineIcon } from "../components/ui/LineIcon";
 
 export function CheckoutPage() {
@@ -29,24 +28,30 @@ export function CheckoutPage() {
   const [promoError, setPromoError] = useState("");
 
   const resource = useApiResource(async () => {
-    if (!selection) throw new Error("Chưa có lựa chọn vé hợp lệ. Vui lòng chọn vé từ trang sự kiện.");
+    if (!selection)
+      throw new Error("Chưa có lựa chọn vé hợp lệ. Vui lòng chọn vé từ trang sự kiện.");
     const [event, types] = await Promise.all([
       getPublicEventById(selection.eventId),
       getEventTicketTypes(selection.eventId),
     ]);
     const ticket = types.find((type) => type.id === selection.ticketTypeId);
-    if (!ticket || ticket.eventId !== event.id) throw new Error("Loại vé không thuộc sự kiện này.");
+    if (!ticket || ticket.eventId !== event.id)
+      throw new Error("Loại vé không thuộc sự kiện này.");
     if (ticket.quantity - ticket.soldQuantity < selection.quantity) {
       throw new Error("Số lượng vé khả dụng không đủ cho số lượng bạn chọn. Vui lòng chọn lại.");
     }
     return { event, ticket };
   }, [selection?.eventId, selection?.ticketTypeId, selection?.quantity]);
 
-  const rawSubtotal = resource.data && selection ? resource.data.ticket.price * selection.quantity : 0;
+  const rawSubtotal =
+    resource.data && selection ? resource.data.ticket.price * selection.quantity : 0;
   const finalTotal = Math.max(0, rawSubtotal - appliedDiscount);
 
   function applyPromo(e: React.FormEvent) {
-    e.preventDefault(); setAppliedDiscount(0); setPromoMessage(""); setPromoError("Mã ưu đãi chưa được hỗ trợ; tổng tiền không giảm.");
+    e.preventDefault();
+    setAppliedDiscount(0);
+    setPromoMessage("");
+    setPromoError("Mã ưu đãi chưa được hỗ trợ; tổng tiền không giảm.");
   }
 
   async function submit(e: FormEvent) {
@@ -85,139 +90,139 @@ export function CheckoutPage() {
       secureLabel="Tài khoản bảo mật EventHub"
       title="Xác nhận đơn đặt vé"
       aside={
-        <div style={{ display: "grid", gap: "20px" }}>
-          {/* Tóm tắt chi phí đơn hàng */}
-          <section className="booking-card" style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <span style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "800", letterSpacing: "0.1em" }}>
-              TỔNG KẾT ĐƠN HÀNG
-            </span>
+        <div className="ev-checkout-aside-wrap">
+          {/* Card Tóm tắt chi phí đơn hàng */}
+          <section className="ev-checkout-summary-card">
+            <span className="ev-summary-badge">TỔNG KẾT ĐƠN HÀNG</span>
 
             {resource.data && selection && (
-              <div style={{ margin: "14px 0", paddingBottom: "14px", borderBottom: "1px solid var(--eh-border)", display: "flex", gap: "12px", alignItems: "center" }}>
-                <div style={{ width: "64px", height: "64px", borderRadius: "var(--radius-md)", overflow: "hidden", flexShrink: 0, background: "var(--eh-bg)" }}>
-                  {resource.data.event.thumbnailUrl ? (
-                    <img
-                      alt={resource.data.event.title}
-                      src={resource.data.event.thumbnailUrl}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--eh-placeholder)" }}>
-                      <LineIcon name="ticket" />
-                    </div>
-                  )}
+              <div className="ev-summary-event-row">
+                <div className="ev-summary-thumb">
+                  <img
+                    alt={resource.data.event.title}
+                    src={
+                      resource.data.event.thumbnailUrl ||
+                      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80"
+                    }
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80";
+                    }}
+                  />
                 </div>
-                <div>
-                  <h3 style={{ fontSize: "14px", fontWeight: "800", margin: "0 0 4px", color: "var(--eh-text)", lineHeight: "1.3" }}>
-                    {resource.data.event.title}
-                  </h3>
-                  <small style={{ color: "var(--eh-muted)", fontSize: "11px" }}>
-                    {resource.data.ticket.name} · SL: {selection.quantity}
+                <div className="ev-summary-info">
+                  <h4>{resource.data.event.title}</h4>
+                  <small>
+                    Hạng vé: <strong>{resource.data.ticket.name}</strong> · SL:{" "}
+                    <strong>{selection.quantity} vé</strong>
                   </small>
                 </div>
               </div>
             )}
 
-            <div style={{ display: "grid", gap: "10px", fontSize: "13px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-muted)" }}>
+            <div className="ev-summary-lines">
+              <div className="ev-line-item">
                 <span>Tiền vé ({selection?.quantity || 1} vé)</span>
-                <strong style={{ color: "var(--eh-text)" }}>{formatCurrency(rawSubtotal)}</strong>
+                <strong>{formatCurrency(rawSubtotal)}</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-muted)" }}>
+              <div className="ev-line-item">
                 <span>Phí dịch vụ nền tảng</span>
-                <span style={{ color: "var(--eh-green)", fontWeight: "700" }}>Miễn phí</span>
+                <span className="free-tag">Miễn phí</span>
               </div>
               {appliedDiscount > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--eh-green)" }}>
+                <div className="ev-line-item discount">
                   <span>Ưu đãi voucher</span>
                   <strong>−{formatCurrency(appliedDiscount)}</strong>
                 </div>
               )}
-              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid var(--eh-border)", alignItems: "baseline" }}>
-                <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--eh-text)" }}>Tổng thanh toán</span>
-                <strong style={{ fontSize: "22px", color: "var(--eh-green)", fontWeight: "900", letterSpacing: "-0.03em" }}>
-                  {formatCurrency(finalTotal)}
-                </strong>
+              <div className="ev-line-total">
+                <span>Tổng thanh toán</span>
+                <strong className="total-amount">{formatCurrency(finalTotal)}</strong>
               </div>
             </div>
 
-            <div style={{ marginTop: "18px", padding: "12px", background: "var(--eh-bg)", borderRadius: "var(--radius-md)", fontSize: "11px", color: "var(--eh-muted)", display: "flex", gap: "8px", alignItems: "center" }}>
+            <div className="ev-summary-notice">
               <LineIcon name="shield" />
-              <span>Vé được bảo lưu 15 phút ngay sau khi bấm Tạo đơn giữ chỗ.</span>
+              <span>Vé được bảo lưu giữ chỗ 15 phút ngay sau khi bấm Tạo đơn.</span>
             </div>
           </section>
         </div>
       }
     >
-      <RequestState error={resource.error || error} loading={resource.loading} onRetry={resource.error ? resource.reload : undefined} />
+      <RequestState
+        error={resource.error || error}
+        loading={resource.loading}
+        onRetry={resource.error ? resource.reload : undefined}
+      />
 
       {resource.data && selection && (
-        <form className="checkout-form-card" onSubmit={submit} style={{ display: "grid", gap: "24px" }}>
-          {/* Thông tin vé đã chọn */}
-          <section style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 16px", color: "var(--eh-text)" }}>
-              Chi tiết vé tham dự
-            </h2>
+        <form className="ev-checkout-form" onSubmit={submit}>
+          {/* Card 1: Thông tin vé đã chọn */}
+          <section className="ev-checkout-card">
+            <div className="ev-card-title-row">
+              <LineIcon name="ticket" />
+              <h2>Chi tiết vé tham dự</h2>
+            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", padding: "16px", background: "var(--eh-bg)", borderRadius: "var(--radius-lg)" }}>
-              <div>
-                <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Sự kiện</small>
-                <strong style={{ fontSize: "14px", color: "var(--eh-text)" }}>{resource.data.event.title}</strong>
+            <div className="ev-ticket-spec-grid">
+              <div className="spec-item">
+                <small>SỰ KIỆN</small>
+                <strong>{resource.data.event.title}</strong>
               </div>
-              <div>
-                <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Hạng vé & Số lượng</small>
-                <strong style={{ fontSize: "14px", color: "var(--eh-text)" }}>
+              <div className="spec-item">
+                <small>HẠNG VÉ &amp; SỐ LƯỢNG</small>
+                <strong>
                   {resource.data.ticket.name} × {selection.quantity} vé
                 </strong>
               </div>
-              <div>
-                <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Thời gian khai mạc</small>
-                <span style={{ fontSize: "13px", color: "var(--eh-muted)" }}>{formatDateTime(resource.data.event.startAt)}</span>
+              <div className="spec-item">
+                <small>THỜI GIAN KHAI MẠC</small>
+                <span>{formatDateTime(resource.data.event.startAt)}</span>
               </div>
-              <div>
-                <small style={{ fontSize: "11px", color: "var(--eh-placeholder)", display: "block" }}>Địa điểm tổ chức</small>
-                <span style={{ fontSize: "13px", color: "var(--eh-muted)" }}>{resource.data.event.location}</span>
+              <div className="spec-item">
+                <small>ĐỊA ĐIỂM TỔ CHỨC</small>
+                <span>{resource.data.event.location}</span>
               </div>
             </div>
           </section>
 
-          {/* Thông tin tài khoản nhận vé */}
-          <section style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 14px", color: "var(--eh-text)" }}>
-              Tài khoản nhận vé điện tử
-            </h2>
-            <div style={{ display: "grid", gap: "8px", fontSize: "13px", color: "var(--eh-muted)" }}>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <span>Họ và tên:</span>
-                <strong style={{ color: "var(--eh-text)" }}>{user?.fullName || "Chưa cập nhật tên"}</strong>
+          {/* Card 2: Thông tin tài khoản nhận vé */}
+          <section className="ev-checkout-card">
+            <div className="ev-card-title-row">
+              <LineIcon name="user" />
+              <h2>Tài khoản nhận vé điện tử</h2>
+            </div>
+            <div className="ev-account-info-box">
+              <div className="account-row">
+                <span>Họ và tên người nhận:</span>
+                <strong>{user?.fullName || "Chưa cập nhật tên"}</strong>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <span>Email nhận vé:</span>
-                <strong style={{ color: "var(--eh-text)" }}>{user?.email}</strong>
+              <div className="account-row">
+                <span>Email nhận mã QR vé:</span>
+                <strong>{user?.email}</strong>
               </div>
-              <p style={{ margin: "6px 0 0", fontSize: "12px", color: "var(--eh-placeholder)" }}>
+              <p className="account-note">
                 Vé điện tử và mã QR check-in sẽ được liên kết trực tiếp vào tài khoản này và gửi bản sao tới email trên.
               </p>
             </div>
           </section>
 
-          {/* Nhập mã ưu đãi / Voucher */}
-          <section style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-            <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text)" }}>
-              Mã giảm giá / Ưu đãi
-            </h2>
-            <div style={{ display: "flex", gap: "10px", maxWidth: "420px" }}>
+          {/* Card 3: Nhập mã ưu đãi / Voucher */}
+          <section className="ev-checkout-card">
+            <div className="ev-card-title-row">
+              <LineIcon name="sparkles" />
+              <h2>Mã giảm giá / Ưu đãi</h2>
+            </div>
+            <div className="ev-voucher-input-row">
               <input
                 disabled={busy}
                 onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="Nhập EVENTHUB50 hoặc WELCOME2026"
-                style={{ flex: 1, height: "44px", borderRadius: "var(--radius-md)", border: "1px solid var(--eh-border)", padding: "0 14px" }}
+                placeholder="Nhập mã ưu đãi (nếu có)"
                 value={promoCode}
               />
               <button
-                className="btn btn-secondary"
+                className="ev-voucher-btn"
                 onClick={applyPromo}
-                style={{ height: "44px", padding: "0 18px", flexShrink: 0 }}
                 type="button"
               >
                 Áp dụng
@@ -225,24 +230,23 @@ export function CheckoutPage() {
             </div>
 
             {promoMessage && (
-              <p style={{ color: "var(--eh-green)", fontSize: "12px", fontWeight: "600", marginTop: "8px" }}>
+              <p className="ev-promo-msg success">
                 <LineIcon name="check" /> {promoMessage}
               </p>
             )}
             {promoError && (
-              <p style={{ color: "var(--eh-error)", fontSize: "12px", fontWeight: "600", marginTop: "8px" }}>
+              <p className="ev-promo-msg error">
                 {promoError}
               </p>
             )}
           </section>
 
           {/* Hộp kiểm điều khoản */}
-          <div style={{ padding: "8px 4px" }}>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "13px", color: "var(--eh-muted)", cursor: "pointer" }}>
+          <div className="ev-terms-agreement">
+            <label>
               <input
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                style={{ marginTop: "3px" }}
                 type="checkbox"
               />
               <span>
@@ -251,22 +255,21 @@ export function CheckoutPage() {
             </label>
           </div>
 
-          {/* Nút submit */}
-          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+          {/* Nhóm nút hành động */}
+          <div className="ev-checkout-actions">
             <button
-              className="ev-btn-primary"
+              className="ev-checkout-submit-btn"
               disabled={busy || !agreed}
-              style={{ minHeight: "50px", padding: "0 36px", fontSize: "15px" }}
               type="submit"
             >
-              {busy ? "Đang tạo đơn giữ chỗ..." : "Tạo đơn giữ chỗ & Chuyển sang thanh toán"}
+              <span>{busy ? "Đang tạo đơn giữ chỗ..." : "Tạo đơn giữ chỗ & Chuyển sang thanh toán"}</span>
+              <LineIcon name="arrow-right" />
             </button>
             <Link
-              className="ev-text-link"
-              style={{ fontSize: "13px" }}
+              className="ev-checkout-back-link"
               to={selection ? `/events/${selection.eventId}` : "/explore"}
             >
-              Chọn lại loại vé khác
+              ← Chọn lại loại vé khác
             </Link>
           </div>
         </form>

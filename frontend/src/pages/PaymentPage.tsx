@@ -18,6 +18,7 @@ export function PaymentPage() {
   const [bankCode, setBankCode] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const resource = useApiResource(
     () =>
@@ -49,6 +50,12 @@ export function PaymentPage() {
     }
   }
 
+  function handleCopy(text: string, field: string) {
+    navigator.clipboard?.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  }
+
   return (
     <CheckoutLayout
       activeStep={3}
@@ -57,60 +64,66 @@ export function PaymentPage() {
       secureLabel="Cổng bảo mật SSL 256-bit"
       title="Thanh toán đơn đặt vé"
       aside={
-        <section className="booking-card" style={{ background: "var(--eh-surface)", padding: "24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 12px", color: "var(--eh-text)" }}>Hướng dẫn thanh toán</h2>
-          <p style={{ fontSize: "13px", color: "var(--eh-muted)", lineHeight: "1.6" }}>
-            EventHub hỗ trợ thanh toán trực tuyến tự động qua <strong>Cổng VNPay Sandbox</strong> (chấp nhận thẻ ATM nội địa, thẻ quốc tế và mã QR Ngân hàng).
-          </p>
-          <p style={{ fontSize: "13px", color: "var(--eh-muted)", lineHeight: "1.6" }}>
-            Sau khi hoàn tất tại cổng VNPay, hệ thống sẽ tự động kích hoạt vé điện tử kèm mã QR Code trong vòng 5 giây.
-          </p>
-          <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid var(--eh-border)" }}>
-            <Link to="/my-bookings" style={{ color: "var(--eh-green)", fontSize: "13px", fontWeight: "700" }}>
-              ← Xem danh sách đơn hàng của tôi
-            </Link>
-          </div>
-        </section>
+        <div className="ev-checkout-aside-wrap">
+          <section className="ev-checkout-summary-card">
+            <span className="ev-summary-badge">HƯỚNG DẪN THANH TOÁN</span>
+            <div className="ev-guide-text">
+              <p>
+                EventHub hỗ trợ thanh toán trực tuyến tự động qua <strong>Cổng VNPay Sandbox</strong> (chấp nhận mã VNPAY-QR, Thẻ ATM 40+ ngân hàng Việt Nam và thẻ quốc tế Visa / MasterCard).
+              </p>
+              <p>
+                Sau khi thanh toán thành công, hệ thống sẽ tự động kích hoạt vé điện tử kèm mã QR Code trong vòng 5 giây.
+              </p>
+            </div>
+            <div className="ev-guide-link-wrap">
+              <Link to="/my-bookings" className="ev-guide-back-link">
+                ← Xem danh sách đơn hàng của tôi
+              </Link>
+            </div>
+          </section>
+        </div>
       }
     >
-      <RequestState error={resource.error} loading={resource.loading} onRetry={resource.reload} />
+      <RequestState
+        error={resource.error}
+        loading={resource.loading}
+        onRetry={resource.reload}
+      />
 
       {booking && (
-        <div style={{ display: "grid", gap: "28px" }}>
+        <div className="ev-payment-content-stack">
           {/* Chi tiết đơn */}
           <BookingDetails booking={booking} />
 
           {booking.status === "CONFIRMED" ? (
-            <div style={{ padding: "20px", background: "var(--eh-green-50)", border: "1px solid var(--eh-green-100)", borderRadius: "var(--radius-lg)" }}>
-              <strong style={{ color: "var(--eh-green)", display: "block", marginBottom: "8px" }}>
-                ✓ Đơn hàng này đã được thanh toán thành công!
-              </strong>
-              <Link className="btn btn-primary" to={`/payment/result?bookingId=${encodeURIComponent(booking.id)}`}>
-                Mở vé điện tử ngay
+            <div className="ev-payment-already-confirmed">
+              <LineIcon name="check" />
+              <div>
+                <strong>Đơn hàng này đã được thanh toán thành công!</strong>
+                <p>Vé điện tử của bạn đã được phát hành tự động và sẵn sàng trong ví vé.</p>
+              </div>
+              <Link
+                className="ev-open-ticket-btn"
+                to={`/payment/result?bookingId=${encodeURIComponent(booking.id)}`}
+              >
+                <span>Mở vé điện tử ngay</span>
+                <LineIcon name="arrow-right" />
               </Link>
             </div>
           ) : (
-            <section style={{ background: "var(--eh-surface)", padding: "28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 20px", color: "var(--eh-text)" }}>
-                Chọn phương thức thanh toán
-              </h3>
+            <section className="ev-payment-methods-card">
+              <div className="ev-card-title-row">
+                <LineIcon name="card" />
+                <h2>Chọn phương thức thanh toán</h2>
+              </div>
 
               {/* Tùy chọn 1: Cổng VNPay Sandbox */}
               <div
+                className={`ev-payment-option-card ${method === "VNPAY" ? "is-selected" : ""}`}
                 onClick={() => setMethod("VNPAY")}
-                style={{
-                  border: `2px solid ${method === "VNPAY" ? "var(--eh-green)" : "var(--eh-border)"}`,
-                  borderRadius: "var(--radius-lg)",
-                  padding: "18px",
-                  cursor: "pointer",
-                  background: method === "VNPAY" ? "var(--eh-green-50)" : "transparent",
-                  marginBottom: "16px",
-                  display: "grid",
-                  gap: "10px",
-                }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div className="ev-option-top-row">
+                  <div className="ev-option-radio-label">
                     <input
                       checked={method === "VNPAY"}
                       id="opt-vnpay"
@@ -118,24 +131,23 @@ export function PaymentPage() {
                       onChange={() => setMethod("VNPAY")}
                       type="radio"
                     />
-                    <label htmlFor="opt-vnpay" style={{ fontWeight: "800", cursor: "pointer", fontSize: "15px" }}>
-                      Cổng thanh toán trực tuyến VNPay Sandbox (Khuyên dùng)
+                    <label htmlFor="opt-vnpay">
+                      Cổng thanh toán VNPay Sandbox (Khuyên dùng)
                     </label>
                   </div>
-                  <span style={{ fontSize: "11px", background: "var(--eh-green)", color: "#fff", padding: "2px 8px", borderRadius: "100px", fontWeight: "700" }}>
-                    Tự động nhận vé ngay
-                  </span>
+                  <span className="ev-instant-tag">Tự động nhận vé ngay</span>
                 </div>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--eh-muted)", paddingLeft: "26px" }}>
+
+                <p className="ev-option-desc">
                   Hỗ trợ ứng dụng ngân hàng quét VNPAY-QR, Thẻ ATM 40+ ngân hàng Việt Nam, và thẻ quốc tế Visa / MasterCard / JCB.
                 </p>
 
                 {method === "VNPAY" && (
-                  <div style={{ paddingLeft: "26px", marginTop: "8px", display: "grid", gap: "12px" }}>
-                    <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--eh-text)" }}>
-                      Chọn nhanh phương thức con trên VNPay (Tùy chọn):
-                    </label>
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <div className="ev-sub-channels-box">
+                    <span className="sub-channels-label">
+                      Chọn nhanh kênh thanh toán trên VNPay (Tùy chọn):
+                    </span>
+                    <div className="sub-channels-btns">
                       {[
                         { code: "", label: "Cổng tổng hợp VNPay" },
                         { code: "VNPAYQR", label: "Quét mã VNPAY-QR" },
@@ -145,19 +157,10 @@ export function PaymentPage() {
                         <button
                           key={b.code}
                           type="button"
+                          className={`sub-channel-btn ${bankCode === b.code ? "is-active" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setBankCode(b.code);
-                          }}
-                          style={{
-                            padding: "6px 12px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            borderRadius: "var(--radius-md)",
-                            border: `1px solid ${bankCode === b.code ? "var(--eh-green)" : "var(--eh-border)"}`,
-                            background: bankCode === b.code ? "var(--eh-green)" : "#fff",
-                            color: bankCode === b.code ? "#fff" : "var(--eh-text)",
-                            cursor: "pointer",
                           }}
                         >
                           {b.label}
@@ -170,69 +173,113 @@ export function PaymentPage() {
 
               {/* Tùy chọn 2: Chuyển khoản VietQR */}
               <div
+                className={`ev-payment-option-card ${method === "MANUAL_TRANSFER" ? "is-selected" : ""}`}
                 onClick={() => setMethod("MANUAL_TRANSFER")}
-                style={{
-                  border: `2px solid ${method === "MANUAL_TRANSFER" ? "var(--eh-green)" : "var(--eh-border)"}`,
-                  borderRadius: "var(--radius-lg)",
-                  padding: "18px",
-                  cursor: "pointer",
-                  background: method === "MANUAL_TRANSFER" ? "var(--eh-green-50)" : "transparent",
-                  display: "grid",
-                  gap: "10px",
-                }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <input
-                    checked={method === "MANUAL_TRANSFER"}
-                    id="opt-transfer"
-                    name="paymentMethod"
-                    onChange={() => setMethod("MANUAL_TRANSFER")}
-                    type="radio"
-                  />
-                  <label htmlFor="opt-transfer" style={{ fontWeight: "800", cursor: "pointer", fontSize: "15px" }}>
-                    Chuyển khoản ngân hàng VietQR (Đối soát thủ công)
-                  </label>
+                <div className="ev-option-top-row">
+                  <div className="ev-option-radio-label">
+                    <input
+                      checked={method === "MANUAL_TRANSFER"}
+                      id="opt-transfer"
+                      name="paymentMethod"
+                      onChange={() => setMethod("MANUAL_TRANSFER")}
+                      type="radio"
+                    />
+                    <label htmlFor="opt-transfer">
+                      Chuyển khoản ngân hàng VietQR (Đối soát thủ công)
+                    </label>
+                  </div>
                 </div>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--eh-muted)", paddingLeft: "26px" }}>
+
+                <p className="ev-option-desc">
                   Chuyển khoản trực tiếp tới tài khoản ngân hàng của ban tổ chức. Vé sẽ được kích hoạt sau khi kiểm tra biến động số dư.
                 </p>
 
                 {method === "MANUAL_TRANSFER" && (
-                  <div style={{ paddingLeft: "26px", marginTop: "12px", fontSize: "13px", color: "var(--eh-text)", display: "grid", gap: "6px" }}>
-                    <div>Ngân hàng: <strong>MBBank (Ngân hàng Quân Đội)</strong></div>
-                    <div>Số tài khoản: <strong style={{ fontFamily: "monospace" }}>0987654321</strong></div>
-                    <div>Chủ tài khoản: <strong>EVENTHUB CORP</strong></div>
-                    <div>Số tiền: <strong style={{ color: "var(--eh-green)" }}>{formatCurrency(booking.totalAmount)}</strong></div>
-                    <div>Nội dung chuyển khoản: <strong style={{ color: "#d93f0b", fontFamily: "monospace" }}>{booking.id}</strong></div>
+                  <div className="ev-transfer-details-box">
+                    <div className="transfer-data-row">
+                      <span>Ngân hàng thụ hưởng:</span>
+                      <strong>MBBank (Ngân hàng Quân Đội)</strong>
+                    </div>
+
+                    <div className="transfer-data-row">
+                      <span>Số tài khoản:</span>
+                      <div className="copyable-wrap">
+                        <strong className="mono">0987654321</strong>
+                        <button
+                          type="button"
+                          className="copy-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy("0987654321", "acc");
+                          }}
+                        >
+                          {copiedField === "acc" ? "Đã chép!" : "Sao chép"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="transfer-data-row">
+                      <span>Chủ tài khoản:</span>
+                      <strong>EVENTHUB CORP</strong>
+                    </div>
+
+                    <div className="transfer-data-row">
+                      <span>Số tiền chuyển chính xác:</span>
+                      <strong className="amount-highlight">
+                        {formatCurrency(booking.totalAmount)}
+                      </strong>
+                    </div>
+
+                    <div className="transfer-data-row">
+                      <span>Nội dung chuyển khoản (Bắt buộc):</span>
+                      <div className="copyable-wrap">
+                        <strong className="mono code-highlight">{booking.id}</strong>
+                        <button
+                          type="button"
+                          className="copy-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(booking.id, "content");
+                          }}
+                        >
+                          {copiedField === "content" ? "Đã chép!" : "Sao chép"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
               {errorMsg && (
-                <div style={{ color: "var(--eh-red)", padding: "12px", background: "var(--eh-red-50)", borderRadius: "var(--radius-md)", marginTop: "16px", fontSize: "13px" }}>
+                <div className="ev-payment-error-alert">
                   {errorMsg}
                 </div>
               )}
 
               {/* Action Button */}
-              <div style={{ marginTop: "24px", display: "flex", gap: "14px", alignItems: "center" }}>
+              <div className="ev-payment-actions-bar">
                 {method === "VNPAY" ? (
                   <button
-                    className="btn btn-primary"
+                    className="ev-payment-submit-btn"
                     disabled={submitting}
                     onClick={handleOnlinePayment}
-                    style={{ fontSize: "15px", padding: "12px 28px" }}
                     type="button"
                   >
-                    {submitting ? "Đang chuyển tiếp tới VNPay..." : `Thanh toán ${formatCurrency(booking.totalAmount)} qua VNPay`}
+                    <span>
+                      {submitting
+                        ? "Đang chuyển tiếp tới VNPay..."
+                        : `Thanh toán ${formatCurrency(booking.totalAmount)} qua VNPay`}
+                    </span>
+                    <LineIcon name="arrow-right" />
                   </button>
                 ) : (
                   <Link
-                    className="btn btn-secondary"
+                    className="ev-payment-submit-btn"
                     to={`/payment/result?bookingId=${encodeURIComponent(booking.id)}`}
-                    style={{ fontSize: "15px", padding: "12px 28px" }}
                   >
-                    Tôi đã chuyển khoản thành công
+                    <span>Tôi đã chuyển khoản thành công</span>
+                    <LineIcon name="arrow-right" />
                   </Link>
                 )}
               </div>
