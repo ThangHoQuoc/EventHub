@@ -74,7 +74,7 @@ export function LoginForm() {
         </label>
         <button
           onClick={() => setShowForgot(!showForgot)}
-          style={{ background: "none", border: 0, color: "var(--eh-green)", cursor: "pointer", fontWeight: "600", fontSize: "12px" }}
+          style={{ background: "none", border: 0, color: "var(--eh-brand)", cursor: "pointer", fontWeight: "700", fontSize: "12px" }}
           type="button"
         >
           Quên mật khẩu?
