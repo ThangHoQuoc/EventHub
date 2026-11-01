@@ -321,3 +321,298 @@ body {
   border-radius: var(--radius-pill) !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
+
+/* ==========================================================================
+   4. TÁI THIẾT KẾ: Khám Phá Theo Thành Phố (Visual City Bento Grid)
+   ========================================================================== */
+.ev-modern-city-section {
+  max-width: 1240px !important;
+  margin: 60px auto !important;
+  padding: 0 24px !important;
+}
+
+.ev-city-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.ev-city-card-modern {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  height: 240px;
+  text-decoration: none;
+  grid-column: span 4;
+  box-shadow: var(--eh-shadow-sm);
+  border: 1px solid var(--eh-border);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ev-city-card-modern.is-featured {
+  grid-column: span 6;
+  height: 280px;
+}
+
+.ev-city-img-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.ev-city-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ev-city-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+  transition: opacity 0.3s ease;
+}
+
+.ev-city-meta {
+  position: relative;
+  z-index: 2;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ev-city-pill {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ev-city-headings h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  color: #ffffff !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+.ev-city-headings p {
+  color: #cbd5e1 !important;
+  font-size: 13px !important;
+  margin: 4px 0 0 0 !important;
+  font-weight: 500;
+}
+
+.ev-city-arrow {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Hover States for City Cards */
+.ev-city-card-modern:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ev-city-card-modern:hover .ev-city-img-wrap img {
+  transform: scale(1.08);
+}
+
+.ev-city-card-modern:hover .ev-city-arrow {
+  background: var(--eh-brand);
+  border-color: var(--eh-brand);
+  transform: translateX(4px);
+}
+
+@media (max-width: 900px) {
+  .ev-city-card-modern,
+  .ev-city-card-modern.is-featured {
+    grid-column: span 12;
+    height: 200px;
+  }
+}
+
+/* ==========================================================================
+   5. NÂNG CẤP: AI EventMatch Showcase Section trên Landing Page
+   ========================================================================== */
+.ev-eventmatch-section {
+  max-width: 1240px;
+  margin: 60px auto !important;
+  padding: 0 24px;
+}
+
+.ev-eventmatch-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  background: linear-gradient(135deg, #090d16 0%, #1e1b4b 100%) !important;
+  border-radius: var(--radius-2xl);
+  padding: 40px;
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.ev-eventmatch-layout::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, transparent 70%);
+  filter: blur(50px);
+}
+
+.ev-match-quiz fieldset {
+  border: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.ev-match-quiz legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ev-match-quiz button {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ev-match-quiz button[aria-pressed="true"] {
+  background: var(--eh-brand) !important;
+  border-color: var(--eh-brand) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+}
+
+.ev-match-result {
+  background: rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: var(--radius-xl) !important;
+  padding: 16px !important;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.ev-match-result:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  transform: translateX(4px);
+}
+
+.ev-match-result h3 {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  margin: 4px 0 !important;
+  font-weight: 700;
+}
+
+.ev-match-result p {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .ev-eventmatch-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   6. NÂNG CẤP: Smart Waitlist Showcase & Ticket Banner
+   ========================================================================== */
+.ev-waitlist-section {
+  max-width: 1240px;
+  margin: 60px auto !important;
+  padding: 0 24px;
+}
+
+.ev-ticket-banner {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  border-radius: var(--radius-2xl) !important;
+  max-width: 1240px !important;
+  margin: 60px auto !important;
+  padding: 56px 48px !important;
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.45) !important;
+  color: #ffffff !important;
+}
+
+.ev-ticket-banner h2 {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  font-size: 38px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 12px 0 24px 0 !important;
+  letter-spacing: -0.02em;
+}
+
+.ev-ticket-banner a {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  padding: 12px 28px !important;
+  border-radius: var(--radius-pill) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.ev-ticket-banner a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+}
