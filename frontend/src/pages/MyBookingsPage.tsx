@@ -11,34 +11,26 @@ import { formatCurrency, formatDateTime } from "../utils/format";
 
 const statusConfig: Record<
   BookingStatus,
-  { label: string; bg: string; color: string; border: string; icon: "check" | "clock" | "alert" }
+  { label: string; modifier: string; icon: "check" | "clock" | "alert" }
 > = {
   CONFIRMED: {
     label: "Đã thanh toán & Có vé",
-    bg: "var(--eh-green-50)",
-    color: "var(--eh-green)",
-    border: "var(--eh-green-100)",
+    modifier: "is-confirmed",
     icon: "check",
   },
   PENDING_PAYMENT: {
     label: "Đang giữ chỗ (Chờ thanh toán)",
-    bg: "#fef3e0",
-    color: "#b45309",
-    border: "#fde68a",
+    modifier: "is-pending",
     icon: "clock",
   },
   CANCELLED: {
     label: "Đã hủy đơn",
-    bg: "#f3f4f6",
-    color: "#6b7280",
-    border: "#e5e7eb",
+    modifier: "is-cancelled",
     icon: "alert",
   },
   EXPIRED: {
-    label: "Hết hạn thanh toán",
-    bg: "#fee2e2",
-    color: "#b91c1c",
-    border: "#fecaca",
+    label: "Hết hạn giữ chỗ",
+    modifier: "is-expired",
     icon: "alert",
   },
 };
@@ -87,72 +79,101 @@ export function MyBookingsPage() {
   return (
     <CustomerLayout
       activeNav="bookings"
-      description="Lịch sử các đơn đặt vé, trạng thái giữ chỗ tạm thời và thông tin hóa đơn thanh toán."
+      description="Quản lý lịch sử các đơn đặt vé, theo dõi thời hạn giữ chỗ tạm thời và thông tin hóa đơn thanh toán."
       title="Đơn hàng & Giữ chỗ"
     >
-      <div style={{ display: "grid", gap: "24px" }}>
-        {/* Thanh lọc trạng thái đơn */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "14px",
-            background: "var(--eh-surface)",
-            padding: "8px 12px",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--eh-border)",
-          }}
-        >
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+      <div className="eh-customer-portal">
+        {/* KPI Strip */}
+        <section aria-label="Thống kê đơn hàng" className="eh-bookings-summary-strip">
+          <div className="eh-summary-card">
+            <div className="eh-summary-icon">
+              <LineIcon name="calendar" />
+            </div>
+            <div className="eh-summary-meta">
+              <small>Tổng số đơn</small>
+              <strong>{allBookings.length}</strong>
+            </div>
+          </div>
+
+          <div className={`eh-summary-card ${pendingCount > 0 ? "is-pending-alert" : ""}`}>
+            <div className="eh-summary-icon is-amber">
+              <LineIcon name="clock" />
+            </div>
+            <div className="eh-summary-meta">
+              <small>Chờ thanh toán</small>
+              <strong style={{ color: pendingCount > 0 ? "#d97706" : "inherit" }}>{pendingCount}</strong>
+            </div>
+          </div>
+
+          <div className="eh-summary-card">
+            <div className="eh-summary-icon is-emerald">
+              <LineIcon name="check" />
+            </div>
+            <div className="eh-summary-meta">
+              <small>Đã xác nhận</small>
+              <strong style={{ color: "#059669" }}>{confirmedCount}</strong>
+            </div>
+          </div>
+        </section>
+
+        {/* Cảnh báo nếu có đơn đang giữ chỗ */}
+        {pendingCount > 0 && (
+          <aside className="eh-bookings-alert-hold" role="alert">
+            <div className="eh-alert-left">
+              <LineIcon name="alert" />
+              <div>
+                <p>
+                  Bạn có <strong>{pendingCount} đơn hàng</strong> đang trong trạng thái giữ chỗ tạm thời (tối đa 10 phút).
+                </p>
+                <small style={{ color: "#a16207" }}>
+                  Vui lòng hoàn tất thanh toán trước khi thời hạn kết thúc để đảm bảo không bị nhả vé cho khách khác.
+                </small>
+              </div>
+            </div>
             <button
-              onClick={() => setFilter("ALL")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "ALL" ? "var(--eh-green)" : "transparent",
-                color: filter === "ALL" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
-              type="button"
-            >
-              Tất cả ({allBookings.length})
-            </button>
-            <button
+              className="eh-filter-chip"
               onClick={() => setFilter("PENDING_PAYMENT")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "PENDING_PAYMENT" ? "var(--eh-green)" : "transparent",
-                color: filter === "PENDING_PAYMENT" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
+              style={{ background: "#ffffff", border: "1px solid #fde68a", color: "#b45309" }}
               type="button"
             >
-              Chờ thanh toán ({pendingCount})
+              Xem ngay
+            </button>
+          </aside>
+        )}
+
+        {/* Thanh lọc trạng thái đơn hàng */}
+        <div className="eh-filter-nav-bar">
+          <div className="eh-filter-chips">
+            <button
+              className={`eh-filter-chip ${filter === "ALL" ? "is-active" : ""}`}
+              onClick={() => setFilter("ALL")}
+              type="button"
+            >
+              Tất cả
+              <span className="eh-filter-chip-count">{allBookings.length}</span>
             </button>
             <button
-              onClick={() => setFilter("CONFIRMED")}
-              style={{
-                padding: "8px 14px",
-                borderRadius: "var(--radius-md)",
-                border: 0,
-                background: filter === "CONFIRMED" ? "var(--eh-green)" : "transparent",
-                color: filter === "CONFIRMED" ? "#ffffff" : "var(--eh-muted)",
-                fontWeight: "700",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
+              className={`eh-filter-chip ${filter === "PENDING_PAYMENT" ? "is-active" : ""}`}
+              onClick={() => setFilter("PENDING_PAYMENT")}
               type="button"
             >
-              Đã thanh toán ({confirmedCount})
+              Chờ thanh toán
+              <span className="eh-filter-chip-count">{pendingCount}</span>
+            </button>
+            <button
+              className={`eh-filter-chip ${filter === "CONFIRMED" ? "is-active" : ""}`}
+              onClick={() => setFilter("CONFIRMED")}
+              type="button"
+            >
+              Đã thanh toán
+              <span className="eh-filter-chip-count">{confirmedCount}</span>
+            </button>
+            <button
+              className={`eh-filter-chip ${filter === "CANCELLED" ? "is-active" : ""}`}
+              onClick={() => setFilter("CANCELLED")}
+              type="button"
+            >
+              Đã hủy
             </button>
           </div>
 
@@ -171,70 +192,34 @@ export function MyBookingsPage() {
 
         {/* Danh sách đơn hàng */}
         {visible.length > 0 ? (
-          <div style={{ display: "grid", gap: "20px" }}>
+          <div className="eh-bookings-list">
             {visible.map((booking) => {
               const conf = statusConfig[booking.status] || statusConfig.CONFIRMED;
               const isPending = booking.status === "PENDING_PAYMENT";
 
               return (
-                <article
-                  key={booking.id}
-                  style={{
-                    background: "var(--eh-surface)",
-                    border: `1.5px solid ${isPending ? "#fde68a" : "var(--eh-border)"}`,
-                    borderRadius: "var(--radius-xl)",
-                    boxShadow: isPending ? "0 4px 16px rgba(245, 158, 11, 0.12)" : "var(--eh-shadow-sm)",
-                    overflow: "hidden",
-                    padding: "24px 28px",
-                    display: "grid",
-                    gap: "18px",
-                  }}
-                >
+                <article className={`eh-booking-card ${isPending ? "is-pending" : ""}`} key={booking.id}>
                   {/* Header thẻ đơn */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      borderBottom: "1px solid var(--eh-border)",
-                      paddingBottom: "14px",
-                      flexWrap: "wrap",
-                      gap: "12px",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span style={{ fontSize: "12px", color: "var(--eh-muted)" }}>Mã đơn:</span>
-                      <strong style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--eh-text)" }}>
-                        {booking.id}
-                      </strong>
+                  <div className="eh-booking-card-head">
+                    <div className="eh-booking-id-group">
+                      <small>Mã đơn hàng</small>
+                      <span className="eh-booking-id-code">{booking.id}</span>
                       <button
-                        className="btn btn-secondary"
+                        aria-label="Sao chép mã đơn"
+                        className="eh-copy-btn"
                         onClick={() => copyCode(booking.id)}
-                        style={{ minHeight: "26px", fontSize: "11px", padding: "0 8px" }}
                         type="button"
                       >
-                        {copiedId === booking.id ? "Đã copy!" : "Copy"}
+                        <LineIcon name={copiedId === booking.id ? "check" : "copy"} />
+                        <span>{copiedId === booking.id ? "Đã chép" : "Sao chép"}</span>
                       </button>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                      <span style={{ fontSize: "12px", color: "var(--eh-placeholder)" }}>
-                        {formatDateTime(booking.createdAt)}
+                    <div className="eh-booking-status-meta">
+                      <span className="eh-booking-date">
+                        Đặt lúc: {formatDateTime(booking.createdAt)}
                       </span>
-                      <span
-                        style={{
-                          background: conf.bg,
-                          color: conf.color,
-                          border: `1px solid ${conf.border}`,
-                          padding: "4px 12px",
-                          borderRadius: "999px",
-                          fontSize: "11px",
-                          fontWeight: "800",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                        }}
-                      >
+                      <span className={`eh-status-pill ${conf.modifier}`}>
                         <LineIcon name={conf.icon} />
                         {conf.label}
                       </span>
@@ -242,77 +227,57 @@ export function MyBookingsPage() {
                   </div>
 
                   {/* Chi tiết các dòng vé trong đơn */}
-                  <div style={{ display: "grid", gap: "10px" }}>
+                  <div className="eh-booking-items-list">
                     {booking.items.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          background: "var(--eh-bg)",
-                          padding: "12px 16px",
-                          borderRadius: "var(--radius-md)",
-                          fontSize: "13px",
-                        }}
-                      >
-                        <div>
-                          <strong style={{ color: "var(--eh-text)", display: "block" }}>
+                      <div className="eh-booking-item-row" key={item.id}>
+                        <div className="eh-item-info">
+                          <Link className="eh-item-title" to={`/events/${item.eventId}`}>
                             {item.eventTitle}
-                          </strong>
-                          <span style={{ color: "var(--eh-muted)", fontSize: "12px" }}>
-                            {item.ticketTypeName} · Đơn giá: {formatCurrency(item.unitPrice)}
-                          </span>
+                          </Link>
+                          <div className="eh-item-sub">
+                            <span className="eh-item-tag">{item.ticketTypeName}</span>
+                            <span>· Đơn giá: {formatCurrency(item.unitPrice)}</span>
+                          </div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <span style={{ color: "var(--eh-muted)", fontSize: "12px", marginRight: "12px" }}>
-                            SL: <strong>{item.quantity}</strong>
+
+                        <div className="eh-item-pricing">
+                          <span className="eh-item-qty">
+                            Số lượng: <strong>{item.quantity}</strong>
                           </span>
-                          <strong style={{ color: "var(--eh-text)", fontSize: "14px" }}>
+                          <span className="eh-item-subtotal">
                             {formatCurrency(item.subtotal)}
-                          </strong>
+                          </span>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Footer đơn: Tổng tiền & Nút bấm */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingTop: "14px",
-                      borderTop: "1px solid var(--eh-border)",
-                      flexWrap: "wrap",
-                      gap: "14px",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                      <span style={{ fontSize: "13px", color: "var(--eh-muted)" }}>Tổng thanh toán:</span>
-                      <strong style={{ fontSize: "20px", color: "var(--eh-green)", fontWeight: "900", letterSpacing: "-0.03em" }}>
-                        {formatCurrency(booking.totalAmount)}
-                      </strong>
+                  {/* Footer đơn: Tổng tiền & Nút bấm ngữ cảnh */}
+                  <div className="eh-booking-card-foot">
+                    <div className="eh-booking-total">
+                      <small>Tổng thanh toán:</small>
+                      <strong>{formatCurrency(booking.totalAmount)}</strong>
                     </div>
 
-                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <div className="eh-booking-actions">
                       {isPending && (
                         <>
                           <button
                             className="btn btn-secondary"
                             disabled={busy === booking.id}
                             onClick={() => cancel(booking.id)}
-                            style={{ color: "var(--eh-error)", fontSize: "12px" }}
+                            style={{ color: "#dc2626", fontSize: "12px", border: "1px solid #fecaca" }}
                             type="button"
                           >
-                            {busy === booking.id ? "Đang hủy..." : "Hủy đơn giữ chỗ"}
+                            <LineIcon name="trash" />
+                            {busy === booking.id ? "Đang hủy..." : "Hủy đơn"}
                           </button>
                           <Link
                             className="btn btn-primary"
-                            style={{ fontSize: "13px", padding: "0 20px" }}
+                            style={{ fontSize: "13px", padding: "0 22px", background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" }}
                             to={`/payment?bookingId=${encodeURIComponent(booking.id)}`}
                           >
-                            <LineIcon name="card" /> Thanh toán ngay
+                            <LineIcon name="card" /> Thanh toán VietQR ngay
                           </Link>
                         </>
                       )}
@@ -320,20 +285,30 @@ export function MyBookingsPage() {
                       {booking.status === "CONFIRMED" && (
                         <>
                           <Link
-                            className="btn btn-primary"
-                            style={{ fontSize: "13px", padding: "0 18px" }}
-                            to="/my-tickets"
-                          >
-                            <LineIcon name="ticket" /> Mở vé của tôi
-                          </Link>
-                          <Link
                             className="btn btn-secondary"
                             style={{ fontSize: "12px" }}
                             to={`/payment/result?bookingId=${encodeURIComponent(booking.id)}`}
                           >
-                            Xem biên lai
+                            Biên lai điện tử
+                          </Link>
+                          <Link
+                            className="btn btn-primary"
+                            style={{ fontSize: "13px", padding: "0 20px" }}
+                            to="/my-tickets"
+                          >
+                            <LineIcon name="ticket" /> Mở vé của tôi
                           </Link>
                         </>
+                      )}
+
+                      {(booking.status === "CANCELLED" || booking.status === "EXPIRED") && booking.items[0]?.eventId && (
+                        <Link
+                          className="btn btn-secondary"
+                          style={{ fontSize: "12px" }}
+                          to={`/events/${booking.items[0].eventId}`}
+                        >
+                          <LineIcon name="arrow-right" /> Xem lại sự kiện
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -346,7 +321,7 @@ export function MyBookingsPage() {
             <EmptyState
               actionLabel="Khám phá sự kiện ngay"
               actionTo="/explore"
-              description="Bạn chưa có đơn đặt vé nào trong nhóm này. Khám phá các sự kiện hấp dẫn và giữ chỗ ngay."
+              description="Bạn chưa có đơn đặt vé nào trong nhóm này. Hãy khám phá hàng trăm sự kiện hấp dẫn và giữ chỗ ngay hôm nay."
               title="Chưa có đơn hàng nào"
             />
           )
