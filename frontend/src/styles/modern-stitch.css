@@ -5298,6 +5298,257 @@ body {
   }
 }
 
+/* ==========================================================================
+   18. EVENT LIFECYCLE, EVENT FORM & TICKET CONFIGURATION
+   ========================================================================== */
+
+/* Lifecycle Stepper */
+.eh-lifecycle-stepper {
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-2xl);
+  padding: 22px 32px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.eh-stepper-track {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.eh-step-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eh-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.eh-step-circle.is-done {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.eh-step-circle.is-active {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.eh-step-circle.is-upcoming {
+  background: var(--eh-surface-alt);
+  color: var(--eh-text-muted);
+  border: 1px solid var(--eh-border);
+}
+
+.eh-step-meta strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--eh-text-primary);
+}
+
+.eh-step-meta small {
+  font-size: 11px;
+  color: var(--eh-text-muted);
+}
+
+.eh-stepper-connector {
+  width: 40px;
+  height: 2px;
+  background: var(--eh-border);
+}
+
+.eh-stepper-connector.is-active {
+  background: linear-gradient(90deg, #10b981 0%, #6366f1 100%);
+}
+
+/* Event Form Layout */
+.eh-event-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.eh-form-main-card {
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-2xl);
+  padding: 32px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.eh-category-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.eh-cat-chip-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--eh-border);
+  background: var(--eh-surface-alt);
+  color: var(--eh-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eh-cat-chip-btn:hover {
+  background: #ffffff;
+  color: var(--eh-brand);
+  border-color: var(--eh-brand);
+}
+
+.eh-cat-chip-btn.is-active {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--eh-brand-dark);
+  border-color: var(--eh-brand);
+}
+
+.eh-photo-preset-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--eh-border);
+  background: var(--eh-surface-alt);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--eh-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eh-photo-preset-btn:hover {
+  background: #ffffff;
+  color: var(--eh-brand);
+  border-color: var(--eh-brand);
+}
+
+/* Live Preview Side Column */
+.eh-live-preview-box {
+  position: sticky;
+  top: 96px;
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-2xl);
+  padding: 24px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eh-preview-head-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--eh-brand);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eh-preview-card-frame {
+  background: #ffffff;
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--eh-shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ticket Config Page Grid */
+.eh-ticket-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 28px;
+  align-items: start;
+}
+
+.eh-ticket-type-card {
+  background: var(--eh-surface);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--radius-xl);
+  padding: 22px 26px;
+  box-shadow: var(--eh-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.eh-ticket-type-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: var(--eh-shadow-sm);
+}
+
+.eh-ticket-type-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.eh-ticket-type-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--eh-text-primary);
+  margin: 0 0 4px;
+}
+
+.eh-ticket-type-desc {
+  font-size: 13px;
+  color: var(--eh-text-muted);
+  margin: 0;
+}
+
+.eh-ticket-type-price {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--eh-brand-dark);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .eh-event-form-grid,
+  .eh-ticket-config-grid {
+    grid-template-columns: 1fr;
+  }
+  .eh-live-preview-box {
+    position: static;
+  }
+}
+
+
 
 
 

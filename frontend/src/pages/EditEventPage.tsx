@@ -8,7 +8,6 @@ import { cancelEventApi, getEventApi, publishEventApi, updateEventApi } from "..
 import { useApiResource } from "../hooks/useApiResource";
 import { eventUpdatePayload, rememberEvent } from "../utils/organizerState";
 import { useAuth } from "../context/AuthContext";
-import { formatDate } from "../utils/format";
 
 export function EditEventPage() {
   const { id } = useParams();
@@ -29,7 +28,7 @@ export function EditEventPage() {
       dirty ||
       !window.confirm(
         action === "publish"
-          ? "Xuất bản sự kiện lên trang Khám phá để mở bán vé chính thức?"
+          ? "Xuất bản sự kiện lên trang Khám phá để mở bán vé chính thức cho khán giả?"
           : "Hủy sự kiện này? Hành động này sẽ khóa đặt vé và không thể hoàn tác."
       )
     )
@@ -59,19 +58,25 @@ export function EditEventPage() {
 
   const isDraft = event?.status === "DRAFT";
   const isPublished = event?.status === "PUBLISHED";
-  const isCancelled = event?.status === "CANCELLED";
 
   return (
     <OrganizerLayout
-      description="Quản lý vòng đời sự kiện: Chỉnh sửa thông tin chi tiết, cấu hình vé và phát hành ra công chúng."
+      description="Quản lý toàn diện vòng đời sự kiện: Chỉnh sửa thông tin chi tiết, quản lý cơ cấu vé và phát hành vé chính thức."
       title="Biên tập & Quản lý vòng đời sự kiện"
     >
-      <div style={{ display: "grid", gap: "24px" }}>
-        {/* Nút quay lại */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {/* Lối tắt quay lại */}
         <div>
           <Link
-            className="ev-text-link"
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "13px",
+              fontWeight: "700",
+              color: "var(--eh-brand)",
+              textDecoration: "none",
+            }}
             to="/organizer/dashboard"
           >
             <span style={{ transform: "rotate(180deg)", display: "inline-block" }}>
@@ -85,14 +90,15 @@ export function EditEventPage() {
 
         {message && (
           <div
+            role="status"
             style={{
-              background: "var(--eh-green-50)",
-              border: "1px solid var(--eh-green-100)",
-              color: "var(--eh-green)",
+              background: "rgba(16, 185, 129, 0.1)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              color: "#059669",
               padding: "14px 20px",
-              borderRadius: "var(--radius-md)",
+              borderRadius: "var(--radius-lg)",
               fontSize: "13px",
-              fontWeight: "600",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
               gap: "8px",
@@ -105,108 +111,59 @@ export function EditEventPage() {
         {event && (
           <>
             {/* Thanh tiến trình vòng đời sự kiện (Event Lifecycle Stepper) */}
-            <div
-              style={{
-                background: "var(--eh-surface)",
-                border: "1px solid var(--eh-border)",
-                borderRadius: "var(--radius-xl)",
-                padding: "20px 28px",
-                boxShadow: "var(--eh-shadow-sm)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "20px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "28px", flexWrap: "wrap" }}>
+            <div className="eh-lifecycle-stepper">
+              <div className="eh-stepper-track">
                 {/* Bước 1: Khởi tạo bản nháp */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "50%",
-                      background: "var(--eh-green)",
-                      color: "#ffffff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: "800",
-                      fontSize: "13px",
-                    }}
-                  >
-                    ✓
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: "13px", color: "var(--eh-text)", display: "block" }}>1. Tạo bản nháp</strong>
-                    <small style={{ fontSize: "11px", color: "var(--eh-muted)" }}>Thông tin sự kiện</small>
+                <div className="eh-step-node">
+                  <div className="eh-step-circle is-done">✓</div>
+                  <div className="eh-step-meta">
+                    <strong>1. Tạo bản nháp</strong>
+                    <small>Nội dung & Địa điểm</small>
                   </div>
                 </div>
 
-                <div style={{ width: "32px", height: "2px", background: "var(--eh-green)" }} />
+                <div className="eh-stepper-connector is-active" />
 
                 {/* Bước 2: Cấu hình loại vé */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "50%",
-                      background: "var(--eh-green)",
-                      color: "#ffffff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: "800",
-                      fontSize: "13px",
-                    }}
-                  >
-                    ✓
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: "13px", color: "var(--eh-text)", display: "block" }}>2. Hạng vé & Giá</strong>
-                    <small style={{ fontSize: "11px", color: "var(--eh-muted)" }}>Kho số lượng vé</small>
+                <div className="eh-step-node">
+                  <div className="eh-step-circle is-done">✓</div>
+                  <div className="eh-step-meta">
+                    <strong>2. Hạng vé & Giá</strong>
+                    <small>Số lượng & Quyền lợi</small>
                   </div>
                 </div>
 
-                <div style={{ width: "32px", height: "2px", background: isPublished ? "var(--eh-green)" : "var(--eh-border)" }} />
+                <div className={`eh-stepper-connector ${isPublished ? "is-active" : ""}`} />
 
-                {/* Bước 3: Xuất bản công khai */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "50%",
-                      background: isPublished ? "var(--eh-green)" : isDraft ? "var(--eh-amber)" : "#999",
-                      color: "#ffffff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: "800",
-                      fontSize: "13px",
-                    }}
-                  >
+                {/* Bước 3: Xuất bản mở bán */}
+                <div className="eh-step-node">
+                  <div className={`eh-step-circle ${isPublished ? "is-done" : isDraft ? "is-active" : "is-upcoming"}`}>
                     {isPublished ? "✓" : "3"}
                   </div>
-                  <div>
-                    <strong style={{ fontSize: "13px", color: "var(--eh-text)", display: "block" }}>3. Xuất bản mở bán</strong>
-                    <small style={{ fontSize: "11px", color: "var(--eh-muted)" }}>
-                      {isPublished ? "Đang mở bán công khai" : "Chờ kích hoạt"}
+                  <div className="eh-step-meta">
+                    <strong>3. Xuất bản mở bán</strong>
+                    <small>
+                      {isPublished ? "Đang mở bán trực tuyến" : "Chờ kích hoạt"}
                     </small>
                   </div>
                 </div>
               </div>
 
               {/* Nút hành động vòng đời */}
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                 {isDraft && (
                   <button
-                    className="ev-btn-primary"
+                    className="btn btn-primary"
                     disabled={busy || dirty}
                     onClick={() => transition("publish")}
-                    style={{ minHeight: "40px", padding: "0 22px" }}
+                    style={{
+                      minHeight: "40px",
+                      padding: "0 22px",
+                      background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                      fontSize: "13px",
+                      fontWeight: "800",
+                      boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
+                    }}
                     type="button"
                   >
                     <LineIcon name="check" /> {busy ? "Đang xuất bản..." : "Xuất bản sự kiện ngay"}
@@ -216,10 +173,16 @@ export function EditEventPage() {
                 {isPublished && (
                   <Link
                     className="btn btn-primary"
-                    style={{ minHeight: "40px", padding: "0 18px" }}
+                    style={{
+                      minHeight: "40px",
+                      padding: "0 18px",
+                      background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                      fontSize: "13px",
+                      fontWeight: "800",
+                    }}
                     to={`/events/${event.id}`}
                   >
-                    Xem trang ngoài web <LineIcon name="arrow-right" />
+                    Xem trang vé ngoài web <LineIcon name="arrow-right" />
                   </Link>
                 )}
 
@@ -228,7 +191,7 @@ export function EditEventPage() {
                     className="btn btn-secondary"
                     disabled={busy || dirty}
                     onClick={() => transition("cancel")}
-                    style={{ color: "var(--eh-error)", minHeight: "40px" }}
+                    style={{ color: "#dc2626", borderColor: "#fecaca", minHeight: "40px", fontSize: "12px", fontWeight: "700" }}
                     type="button"
                   >
                     Hủy sự kiện
@@ -238,20 +201,33 @@ export function EditEventPage() {
             </div>
 
             {dirty && (
-              <div style={{ background: "#fef3e0", border: "1px solid #fde68a", padding: "10px 16px", borderRadius: "var(--radius-md)", fontSize: "12px", color: "#b45309" }}>
-                <LineIcon name="info" /> Bạn có thay đổi chưa lưu trên form. Vui lòng bấm <strong>Lưu cập nhật sự kiện</strong> trước khi thao tác chuyển trạng thái.
+              <div
+                style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fde68a",
+                  padding: "12px 18px",
+                  borderRadius: "var(--radius-lg)",
+                  fontSize: "13px",
+                  color: "#92400e",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <LineIcon name="alert" /> Bạn có thay đổi chưa lưu trên form. Vui lòng bấm <strong>Lưu cập nhật sự kiện</strong> trước khi thao tác chuyển trạng thái.
               </div>
             )}
 
             {/* Form chỉnh sửa */}
-            <div style={{ display: "grid", gap: "24px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--eh-text)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--eh-text-primary)" }}>
                   Thông tin nội dung sự kiện
                 </h2>
                 <Link
                   className="btn btn-secondary"
-                  style={{ fontSize: "12px" }}
+                  style={{ fontSize: "12px", padding: "0 16px", fontWeight: "700" }}
                   to={`/organizer/events/${event.id}/tickets`}
                 >
                   <LineIcon name="ticket" /> Quản lý các hạng vé

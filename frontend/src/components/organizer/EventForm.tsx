@@ -27,7 +27,7 @@ const samplePhotos = [
   { label: "Hội thảo Tech", url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80" },
   { label: "Concert Live", url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80" },
   { label: "Workshop UI/UX", url: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80" },
-  { label: "Festival", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80" },
+  { label: "Festival Ngoài trời", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80" },
 ];
 
 export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
@@ -84,14 +84,14 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "32px", alignItems: "start" }}>
+    <div className="eh-event-form-grid">
       {/* Form nhập liệu */}
-      <form className="ev-org-form-card" onSubmit={submit} onChange={onDirty} style={{ background: "var(--eh-surface)", padding: "32px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)" }}>
+      <form className="eh-form-main-card" onChange={onDirty} onSubmit={submit}>
         <RequestState error={error} />
 
-        <fieldset disabled={busy || disabled || closed} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: "20px" }}>
+        <fieldset disabled={busy || disabled || closed} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: "22px" }}>
           <div className="ev-form-group">
-            <label htmlFor="event-title">Tên sự kiện</label>
+            <label htmlFor="event-title">Tên sự kiện *</label>
             <input
               id="event-title"
               maxLength={255}
@@ -104,12 +104,12 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
           </div>
 
           <div className="ev-form-group">
-            <label htmlFor="event-description">Mô tả sự kiện chi tiết</label>
+            <label htmlFor="event-description">Mô tả sự kiện chi tiết *</label>
             <textarea
               id="event-description"
               name="description"
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Giới thiệu nội dung sự kiện, diễn giả, trải nghiệm mà người tham dự sẽ nhận được..."
+              placeholder="Giới thiệu nội dung sự kiện, các diễn giả tham dự, lịch trình và trải nghiệm khán giả..."
               required
               rows={5}
               value={description}
@@ -117,7 +117,7 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
           </div>
 
           <div className="ev-form-group">
-            <label htmlFor="event-location">Địa điểm tổ chức (Kèm thành phố)</label>
+            <label htmlFor="event-location">Địa điểm tổ chức (Kèm thành phố) *</label>
             <input
               id="event-location"
               name="location"
@@ -130,24 +130,15 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
 
           {isDraft && (
             <>
-              {/* Danh mục */}
+              {/* Danh mục chủ đề */}
               <div className="ev-form-group">
-                <label>Chủ đề / Danh mục</label>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                <label>Chủ đề / Thể loại sự kiện</label>
+                <div className="eh-category-chips">
                   {categorySuggestions.map((cat) => (
                     <button
                       key={cat}
+                      className={`eh-cat-chip-btn ${category === cat ? "is-active" : ""}`}
                       onClick={() => setCategory(cat)}
-                      style={{
-                        padding: "6px 12px",
-                        borderRadius: "var(--radius-md)",
-                        border: `1px solid ${category === cat ? "var(--eh-green)" : "var(--eh-border)"}`,
-                        background: category === cat ? "var(--eh-green-50)" : "var(--eh-bg)",
-                        color: category === cat ? "var(--eh-green)" : "var(--eh-text)",
-                        fontSize: "12px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                      }}
                       type="button"
                     >
                       {cat}
@@ -158,7 +149,7 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
                   id="event-category"
                   name="category"
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Hoặc tự nhập danh mục tùy chọn..."
+                  placeholder="Hoặc tự nhập danh mục khác..."
                   value={category}
                 />
               </div>
@@ -167,19 +158,14 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
               <div className="ev-form-group">
                 <label htmlFor="event-thumbnail">Đường dẫn Poster / Ảnh bìa (URL)</label>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
-                  <small style={{ color: "var(--eh-placeholder)", width: "100%" }}>Chọn nhanh ảnh mẫu thực tế:</small>
+                  <small style={{ color: "var(--eh-text-muted)", width: "100%", fontSize: "11px", fontWeight: "700" }}>
+                    Chọn nhanh ảnh mẫu HD chất lượng cao:
+                  </small>
                   {samplePhotos.map((p) => (
                     <button
                       key={p.label}
+                      className="eh-photo-preset-btn"
                       onClick={() => setThumbnailUrl(p.url)}
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid var(--eh-border)",
-                        background: "var(--eh-bg)",
-                        fontSize: "11px",
-                        cursor: "pointer",
-                      }}
                       type="button"
                     >
                       {p.label}
@@ -199,7 +185,7 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
               {/* Thời gian */}
               <div className="ev-form-grid-2">
                 <div className="ev-form-group">
-                  <label htmlFor="event-start">Thời gian bắt đầu</label>
+                  <label htmlFor="event-start">Thời gian bắt đầu *</label>
                   <input
                     id="event-start"
                     name="startAt"
@@ -210,7 +196,7 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
                   />
                 </div>
                 <div className="ev-form-group">
-                  <label htmlFor="event-end">Thời gian kết thúc</label>
+                  <label htmlFor="event-end">Thời gian kết thúc *</label>
                   <input
                     id="event-end"
                     name="endAt"
@@ -227,9 +213,17 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
           {!closed && (
             <div style={{ paddingTop: "10px" }}>
               <button
-                className="ev-btn-primary"
+                className="btn btn-primary"
                 disabled={busy}
-                style={{ width: "100%", justifyContent: "center", minHeight: "48px", fontSize: "14px" }}
+                style={{
+                  width: "100%",
+                  justifyContent: "center",
+                  minHeight: "48px",
+                  fontSize: "14px",
+                  fontWeight: "800",
+                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                  boxShadow: "0 6px 18px rgba(99, 102, 241, 0.35)",
+                }}
                 type="submit"
               >
                 {busy
@@ -244,74 +238,64 @@ export function EventForm({ initial, onSave, onDirty, disabled }: Props) {
       </form>
 
       {/* Cột phải: Live Preview */}
-      <aside style={{ position: "sticky", top: "90px", display: "grid", gap: "16px" }}>
-        <div style={{ background: "var(--eh-surface)", padding: "20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)", boxShadow: "var(--eh-shadow-sm)" }}>
-          <span style={{ color: "var(--eh-green)", fontSize: "11px", fontWeight: "800", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: "6px" }}>
-            <LineIcon name="sparkles" /> XEM TRƯỚC THEO THỜI GIAN THỰC
-          </span>
+      <aside className="eh-live-preview-box">
+        <span className="eh-preview-head-kicker">
+          <LineIcon name="sparkles" /> XEM TRƯỚC THEO THỜI GIAN THỰC
+        </span>
 
-          <div
-            style={{
-              marginTop: "14px",
-              background: "#ffffff",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--eh-border)",
-              overflow: "hidden",
-            }}
-          >
-            {/* Ảnh bìa */}
-            <div style={{ height: "160px", position: "relative", background: "#15241d" }}>
-              {thumbnailUrl ? (
-                <img
-                  alt="Xem trước ảnh sự kiện"
-                  src={thumbnailUrl}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>
-                  Chưa có ảnh bìa
-                </div>
-              )}
-              <span
-                style={{
-                  position: "absolute",
-                  bottom: "10px",
-                  left: "12px",
-                  background: "rgba(0,0,0,0.65)",
-                  color: "#ffffff",
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  padding: "3px 8px",
-                  borderRadius: "var(--radius-sm)",
-                  backdropFilter: "blur(4px)",
-                }}
-              >
-                {category || "Chủ đề"}
-              </span>
-            </div>
-
-            {/* Chi tiết nội dung card */}
-            <div style={{ padding: "16px", display: "grid", gap: "8px" }}>
-              <h4 style={{ fontSize: "15px", fontWeight: "800", margin: 0, color: "var(--eh-text)", lineHeight: "1.3" }}>
-                {title || "Tên sự kiện của bạn"}
-              </h4>
-              <p style={{ fontSize: "12px", color: "var(--eh-muted)", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                <LineIcon name="map-pin" /> {location || "Địa điểm tổ chức"}
-              </p>
-              <p style={{ fontSize: "12px", color: "var(--eh-muted)", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                <LineIcon name="calendar" /> {startAt ? formatDate(new Date(startAt).toISOString()) : "Ngày diễn ra"}
-              </p>
-              <div style={{ borderTop: "1px solid var(--eh-border)", paddingTop: "10px", marginTop: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "13px", color: "var(--eh-green)" }}>Từ 0đ</strong>
-                <span style={{ fontSize: "11px", color: "var(--eh-muted)" }}>Sắp mở bán</span>
+        <div className="eh-preview-card-frame">
+          {/* Ảnh bìa */}
+          <div style={{ height: "160px", position: "relative", background: "#0f172a" }}>
+            {thumbnailUrl ? (
+              <img
+                alt="Xem trước ảnh sự kiện"
+                src={thumbnailUrl}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+                Chưa có ảnh bìa
               </div>
-            </div>
+            )}
+            <span
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                left: "12px",
+                background: "rgba(15, 23, 42, 0.75)",
+                color: "#ffffff",
+                fontSize: "11px",
+                fontWeight: "700",
+                padding: "3px 8px",
+                borderRadius: "4px",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              {category || "Chủ đề"}
+            </span>
           </div>
 
-          <small style={{ color: "var(--eh-placeholder)", fontSize: "11px", display: "block", marginTop: "10px" }}>
-            Bản xem trước phản ánh hình ảnh xuất hiện ngoài trang Khám phá sau khi bạn xuất bản sự kiện.
-          </small>
+          {/* Chi tiết nội dung card */}
+          <div style={{ padding: "16px", display: "grid", gap: "8px" }}>
+            <h4 style={{ fontSize: "15px", fontWeight: "800", margin: 0, color: "var(--eh-text-primary)", lineHeight: "1.35" }}>
+              {title || "Tên sự kiện của bạn"}
+            </h4>
+            <p style={{ fontSize: "12px", color: "var(--eh-text-secondary)", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+              <LineIcon name="map-pin" /> {location || "Địa điểm tổ chức"}
+            </p>
+            <p style={{ fontSize: "12px", color: "var(--eh-text-secondary)", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+              <LineIcon name="calendar" /> {startAt ? formatDate(new Date(startAt).toISOString()) : "Ngày diễn ra"}
+            </p>
+            <div style={{ borderTop: "1px solid var(--eh-border)", paddingTop: "10px", marginTop: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <strong style={{ fontSize: "13px", color: "var(--eh-brand-dark)" }}>Từ 0đ</strong>
+              <span style={{ fontSize: "11px", color: "var(--eh-text-muted)" }}>Sắp mở bán</span>
+            </div>
+          </div>
         </div>
+
+        <small style={{ color: "var(--eh-text-muted)", fontSize: "12px", lineHeight: "1.5" }}>
+          Thẻ xem trước mô phỏng chính xác giao diện hiển thị trên trang Khám phá sau khi bạn xuất bản sự kiện.
+        </small>
       </aside>
     </div>
   );

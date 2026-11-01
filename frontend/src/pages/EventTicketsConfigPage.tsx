@@ -64,7 +64,7 @@ export function EventTicketsConfigPage() {
   }
 
   async function remove(ticket: TicketTypeDto) {
-    if (lock.current || !isDraft || !window.confirm(`Xóa loại vé "${ticket.name}"?`)) return;
+    if (lock.current || !isDraft || !window.confirm(`Xóa loại vé "${ticket.name}" khỏi sự kiện?`)) return;
 
     lock.current = true;
     setBusy(true);
@@ -95,16 +95,16 @@ export function EventTicketsConfigPage() {
       description="Cấu hình các hạng vé, thiết lập mức giá và số lượng mở bán trước khi xuất bản sự kiện."
       title="Cấu hình loại vé & Giá mở bán"
     >
-      <div style={{ display: "grid", gap: "28px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
         {/* Header sự kiện banner */}
         {event && (
           <div
             style={{
               background: "var(--eh-surface)",
               border: "1px solid var(--eh-border)",
-              borderRadius: "var(--radius-xl)",
+              borderRadius: "var(--radius-2xl)",
               padding: "24px 28px",
-              boxShadow: "var(--eh-shadow-sm)",
+              boxShadow: "var(--eh-shadow-xs)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -116,25 +116,26 @@ export function EventTicketsConfigPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
                 <span
                   style={{
-                    background: event.status === "PUBLISHED" ? "var(--eh-green)" : "var(--eh-amber)",
+                    background: event.status === "PUBLISHED" ? "#10b981" : "#f59e0b",
                     color: "#ffffff",
-                    fontSize: "10px",
+                    fontSize: "11px",
                     fontWeight: "800",
-                    padding: "3px 8px",
+                    padding: "3px 10px",
                     borderRadius: "999px",
                     textTransform: "uppercase",
+                    letterSpacing: "0.06em",
                   }}
                 >
-                  {event.status}
+                  {event.status === "PUBLISHED" ? "Đang mở bán" : event.status}
                 </span>
-                <span style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
+                <span style={{ fontSize: "13px", color: "var(--eh-text-muted)" }}>
                   <LineIcon name="calendar" /> {formatDate(event.startAt)}
                 </span>
               </div>
-              <h1 style={{ fontSize: "22px", fontWeight: "800", margin: "0 0 4px", color: "var(--eh-text)" }}>
+              <h1 style={{ fontSize: "22px", fontWeight: "800", margin: "0 0 4px", color: "var(--eh-text-primary)", letterSpacing: "-0.03em" }}>
                 {event.title}
               </h1>
-              <small style={{ color: "var(--eh-placeholder)", fontFamily: "monospace" }}>ID: {id}</small>
+              <small style={{ color: "var(--eh-text-muted)", fontFamily: "monospace", fontSize: "12px" }}>ID: {id}</small>
             </div>
 
             <div style={{ display: "flex", gap: "10px" }}>
@@ -142,7 +143,11 @@ export function EventTicketsConfigPage() {
                 <LineIcon name="arrow-right" /> Quản lý vòng đời
               </Link>
               {event.status === "PUBLISHED" && (
-                <Link className="btn btn-primary" to={`/events/${id}`}>
+                <Link
+                  className="btn btn-primary"
+                  style={{ background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" }}
+                  to={`/events/${id}`}
+                >
                   Xem trang công khai
                 </Link>
               )}
@@ -154,14 +159,15 @@ export function EventTicketsConfigPage() {
 
         {message && (
           <div
+            role="status"
             style={{
-              background: "var(--eh-green-50)",
-              border: "1px solid var(--eh-green-100)",
-              color: "var(--eh-green)",
+              background: "rgba(16, 185, 129, 0.1)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              color: "#059669",
               padding: "12px 18px",
-              borderRadius: "var(--radius-md)",
+              borderRadius: "var(--radius-lg)",
               fontSize: "13px",
-              fontWeight: "600",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
               gap: "8px",
@@ -173,84 +179,89 @@ export function EventTicketsConfigPage() {
 
         {/* Thông báo nếu không phải DRAFT */}
         {!isDraft && event && (
-          <div style={{ background: "#fef3e0", border: "1px solid #fde68a", padding: "14px 18px", borderRadius: "var(--radius-md)", fontSize: "13px", color: "#b45309" }}>
-            <LineIcon name="info" /> <strong>Lưu ý:</strong> Sự kiện đã được xuất bản (<code>{event.status}</code>). Để bảo đảm quyền lợi người đã mua vé, không thể thêm hoặc xóa hạng vé mới.
+          <div
+            style={{
+              background: "#fffbeb",
+              border: "1px solid #fde68a",
+              padding: "14px 18px",
+              borderRadius: "var(--radius-lg)",
+              fontSize: "13px",
+              color: "#92400e",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <LineIcon name="alert" />
+            <span>
+              <strong>Lưu ý:</strong> Sự kiện đã được xuất bản (<code>{event.status}</code>). Để bảo đảm quyền lợi người đã mua vé, không thể thêm hoặc xóa hạng vé mới.
+            </span>
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: isDraft ? "1fr 400px" : "1fr", gap: "28px", alignItems: "start" }}>
+        <div className="eh-ticket-config-grid" style={{ gridTemplateColumns: isDraft ? "1fr 400px" : "1fr" }}>
           {/* Cột danh sách hạng vé */}
-          <section style={{ display: "grid", gap: "18px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <h2 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--eh-text)" }}>
+          <section style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "10px" }}>
+              <h2 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--eh-text-primary)" }}>
                 Các hạng vé hiện có ({types.length})
               </h2>
               {totalCapacity > 0 && (
-                <span style={{ fontSize: "12px", color: "var(--eh-muted)" }}>
-                  Tổng sức chứa: <strong>{totalCapacity} vé</strong> (Đã bán/giữ: <strong>{totalSold}</strong>)
+                <span style={{ fontSize: "13px", color: "var(--eh-text-muted)" }}>
+                  Tổng sức chứa: <strong>{totalCapacity} vé</strong> (Đã bán/giữ: <strong style={{ color: "var(--eh-brand)" }}>{totalSold}</strong>)
                 </span>
               )}
             </div>
 
             {types.length > 0 ? (
-              <div style={{ display: "grid", gap: "14px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 {types.map((ticket) => {
                   const remaining = Math.max(0, ticket.quantity - ticket.soldQuantity);
                   const percent = Math.min(100, Math.round((ticket.soldQuantity / ticket.quantity) * 100));
 
                   return (
-                    <article
-                      key={ticket.id}
-                      style={{
-                        background: "var(--eh-surface)",
-                        border: "1px solid var(--eh-border)",
-                        borderRadius: "var(--radius-xl)",
-                        padding: "20px 24px",
-                        boxShadow: "var(--eh-shadow-sm)",
-                        display: "grid",
-                        gap: "12px",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <article className="eh-ticket-type-card" key={ticket.id}>
+                      <div className="eh-ticket-type-head">
                         <div>
-                          <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 4px", color: "var(--eh-text)" }}>
-                            {ticket.name}
-                          </h3>
-                          <p style={{ fontSize: "12px", color: "var(--eh-muted)", margin: 0 }}>
+                          <h3 className="eh-ticket-type-name">{ticket.name}</h3>
+                          <p className="eh-ticket-type-desc">
                             {ticket.description || "Không có mô tả bổ sung"}
                           </p>
                         </div>
-                        <strong style={{ fontSize: "18px", color: "var(--eh-green)", fontWeight: "900", letterSpacing: "-0.03em" }}>
+                        <span className="eh-ticket-type-price">
                           {formatCurrency(ticket.price)}
-                        </strong>
+                        </span>
                       </div>
 
                       {/* Tiến độ bán vé */}
-                      <div style={{ display: "grid", gap: "6px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--eh-muted)" }}>
-                          <span>Đã bán: <strong>{ticket.soldQuantity}</strong> / {ticket.quantity} vé</span>
-                          <span>Còn lại: <strong style={{ color: remaining <= 5 ? "var(--eh-error)" : "var(--eh-text)" }}>{remaining} vé</strong> ({percent}%)</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--eh-text-secondary)" }}>
+                          <span>
+                            Đã bán: <strong>{ticket.soldQuantity}</strong> / {ticket.quantity} vé
+                          </span>
+                          <span>
+                            Còn lại: <strong style={{ color: remaining <= 5 ? "#dc2626" : "var(--eh-text-primary)" }}>{remaining} vé</strong> ({percent}%)
+                          </span>
                         </div>
-                        <div style={{ width: "100%", height: "8px", background: "var(--eh-bg)", borderRadius: "999px", overflow: "hidden" }}>
+                        <div className="eh-progress-track">
                           <div
+                            className="eh-progress-fill"
                             style={{
                               width: `${percent}%`,
-                              height: "100%",
-                              background: percent >= 90 ? "var(--eh-error)" : "var(--eh-green)",
-                              borderRadius: "999px",
-                              transition: "width 0.3s ease",
+                              background: percent >= 90 ? "linear-gradient(90deg, #f59e0b 0%, #dc2626 100%)" : "linear-gradient(90deg, #6366f1 0%, #10b981 100%)",
                             }}
                           />
                         </div>
                       </div>
 
                       {isDraft && (
-                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "8px", borderTop: "1px solid var(--eh-border)" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "10px", borderTop: "1px solid var(--eh-surface-alt)" }}>
                           <button
                             className="btn btn-secondary"
                             disabled={busy}
                             onClick={() => setEditing(ticket)}
-                            style={{ fontSize: "11px", minHeight: "30px", padding: "0 12px" }}
+                            style={{ fontSize: "12px", minHeight: "32px", padding: "0 14px", fontWeight: "700" }}
                             type="button"
                           >
                             Chỉnh sửa
@@ -259,7 +270,7 @@ export function EventTicketsConfigPage() {
                             className="btn btn-secondary"
                             disabled={busy}
                             onClick={() => remove(ticket)}
-                            style={{ fontSize: "11px", minHeight: "30px", padding: "0 12px", color: "var(--eh-error)" }}
+                            style={{ fontSize: "12px", minHeight: "32px", padding: "0 14px", color: "#dc2626", borderColor: "#fecaca", fontWeight: "700" }}
                             type="button"
                           >
                             Xóa
@@ -271,7 +282,7 @@ export function EventTicketsConfigPage() {
                 })}
               </div>
             ) : (
-              <div style={{ background: "var(--eh-surface)", padding: "36px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)", textAlign: "center", color: "var(--eh-muted)", fontSize: "13px" }}>
+              <div style={{ background: "var(--eh-surface)", padding: "40px", borderRadius: "var(--radius-xl)", border: "1px solid var(--eh-border)", textAlign: "center", color: "var(--eh-text-muted)", fontSize: "14px" }}>
                 Chưa có hạng vé nào được tạo. Hãy sử dụng form bên cạnh để thiết lập vé đầu tiên.
               </div>
             )}
@@ -279,15 +290,15 @@ export function EventTicketsConfigPage() {
 
           {/* Form thêm/sửa loại vé */}
           {isDraft && (
-            <aside style={{ background: "var(--eh-surface)", padding: "26px", borderRadius: "var(--radius-xl)", border: "1.5px solid var(--eh-border)", boxShadow: "var(--eh-warm-shadow)" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 16px", color: "var(--eh-text)" }}>
-                {editing ? `Sửa: ${editing.name}` : "Tạo loại vé mới"}
+            <aside style={{ background: "var(--eh-surface)", padding: "28px", borderRadius: "var(--radius-2xl)", border: "1px solid var(--eh-border)", boxShadow: "var(--eh-shadow-xs)" }}>
+              <h3 style={{ fontSize: "17px", fontWeight: "800", margin: "0 0 18px", color: "var(--eh-text-primary)", letterSpacing: "-0.02em" }}>
+                {editing ? `Sửa hạng vé: ${editing.name}` : "Tạo loại vé mới"}
               </h3>
 
-              <form onSubmit={save} key={editing?.id ?? "new"} style={{ display: "grid", gap: "16px" }}>
-                <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: "16px" }}>
+              <form key={editing?.id ?? "new"} onSubmit={save} style={{ display: "grid", gap: "18px" }}>
+                <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: "18px" }}>
                   <div className="ev-form-group">
-                    <label htmlFor="ticket-name">Tên loại vé</label>
+                    <label htmlFor="ticket-name">Tên loại vé *</label>
                     <input
                       defaultValue={editing?.name ?? ""}
                       id="ticket-name"
@@ -304,13 +315,13 @@ export function EventTicketsConfigPage() {
                       defaultValue={editing?.description ?? ""}
                       id="ticket-description"
                       name="description"
-                      placeholder="Bao gồm tài liệu, teabreak hoặc quà tặng..."
+                      placeholder="Bao gồm tài liệu sự kiện, teabreak, quà tặng độc quyền..."
                       rows={3}
                     />
                   </div>
 
                   <div className="ev-form-group">
-                    <label htmlFor="ticket-price">Giá vé (VNĐ)</label>
+                    <label htmlFor="ticket-price">Giá vé (VNĐ) *</label>
                     <input
                       defaultValue={editing?.price ?? ""}
                       id="ticket-price"
@@ -324,7 +335,7 @@ export function EventTicketsConfigPage() {
                   </div>
 
                   <div className="ev-form-group">
-                    <label htmlFor="ticket-quantity">Số lượng phát hành</label>
+                    <label htmlFor="ticket-quantity">Số lượng phát hành *</label>
                     <input
                       defaultValue={editing?.quantity ?? ""}
                       id="ticket-quantity"
@@ -337,11 +348,18 @@ export function EventTicketsConfigPage() {
                     />
                   </div>
 
-                  <div style={{ display: "flex", gap: "8px", paddingTop: "8px" }}>
+                  <div style={{ display: "flex", gap: "10px", paddingTop: "8px" }}>
                     <button
-                      className="ev-btn-primary"
+                      className="btn btn-primary"
                       disabled={busy}
-                      style={{ flex: 1, justifyContent: "center" }}
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                        boxShadow: "0 4px 14px rgba(99, 102, 241, 0.3)",
+                        fontWeight: "800",
+                        fontSize: "13px",
+                      }}
                       type="submit"
                     >
                       {busy ? "Đang lưu..." : editing ? "Cập nhật vé" : "Tạo hạng vé"}
@@ -350,6 +368,7 @@ export function EventTicketsConfigPage() {
                       <button
                         className="btn btn-secondary"
                         onClick={() => setEditing(undefined)}
+                        style={{ fontWeight: "700" }}
                         type="button"
                       >
                         Hủy
