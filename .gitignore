@@ -8,6 +8,7 @@ backend/target/
 .env.*
 !.env.example
 !frontend/.env.example
+render.env
 application-local.properties
 application-local.yml
 !backend/src/main/resources/application-local.yml
