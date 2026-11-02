@@ -1,5 +1,10 @@
 const TOKEN_KEY = "eventhub_access_token";
 
+const API_BASE_URL = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL
+  ? String(import.meta.env.VITE_API_BASE_URL)
+  : ""
+).replace(/\/$/, "");
+
 export class ApiError extends Error {
   code?: number;
   status: number;
@@ -42,7 +47,9 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}, a
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(endpoint, {
+  const targetUrl = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
+
+  const response = await fetch(targetUrl, {
     ...options,
     headers,
   });

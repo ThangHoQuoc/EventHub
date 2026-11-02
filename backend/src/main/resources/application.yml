@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: eventhub-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  main:
+    allow-bean-definition-overriding: true
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Asia/Ho_Chi_Minh
+
+  mail:
+    host: ${SPRING_MAIL_HOST:localhost}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:notification@eventhub.vn}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_AUTH:false}
+          starttls:
+            enable: ${SPRING_MAIL_STARTTLS:false}
+
+jwt:
+  secret: ${JWT_SECRET:1GoW+muYogITqBOOJ3lhB505eGlX21OaTcNNbUn/yDg=}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+vnpay:
+  tmn-code: ${VNPAY_TMN_CODE:2QXUI4J4}
+  hash-secret: ${VNPAY_HASH_SECRET:RAOCTRECEAXYZGTRJAHHAHNZGSGKTZXQ}
+  url: ${VNPAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+  return-url: ${VNPAY_RETURN_URL:http://localhost:5173/payment/result}
+
+app:
+  mail:
+    enabled: ${APP_MAIL_ENABLED:false}
+    from-address: ${APP_MAIL_FROM:no-reply@eventhub.vn}
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized

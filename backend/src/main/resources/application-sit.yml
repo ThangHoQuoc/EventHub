@@ -1,0 +1,39 @@
+# ==============================================================================
+# PROFILE: SIT (System Integration Testing - Kiểm thử tích hợp hệ thống)
+# Kết nối PostgreSQL Supabase Cloud qua Session Pooler (port 5432) với TLS/SSL bắt buộc
+# ==============================================================================
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # Supabase Session Pooler (IPv4 compatible, port 5432)
+    # Định dạng User Supabase: postgres.<project-ref>
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${SUPABASE_SIT_HOST:aws-0-ap-southeast-1.pooler.supabase.com}:${SUPABASE_SIT_PORT:5432}/${SUPABASE_SIT_DB:postgres}?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:${SUPABASE_SIT_USER:postgres.your-sit-project-ref}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${SUPABASE_SIT_PASSWORD:your-sit-db-password}}
+    hikari:
+      pool-name: EventHubHikariPool-SIT
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:5}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: 30000
+      idle-timeout: 30000
+      max-lifetime: 600000
+      data-source-properties:
+        options: "-c timezone=Asia/Ho_Chi_Minh"
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    com.eventhub.eventhub_backend: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN

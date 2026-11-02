@@ -1,0 +1,34 @@
+# ==============================================================================
+# PROFILE: PROD (Production - Vận hành chính thức)
+# Kết nối PostgreSQL Supabase Cloud qua Connection Pooler với TLS/SSL bắt buộc
+# ==============================================================================
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${SUPABASE_PROD_HOST}:${SUPABASE_PROD_PORT:5432}/${SUPABASE_PROD_DB:postgres}?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:${SUPABASE_PROD_USER}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${SUPABASE_PROD_PASSWORD}}
+    hikari:
+      pool-name: EventHubHikariPool-PROD
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:3}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      data-source-properties:
+        options: "-c timezone=Asia/Ho_Chi_Minh"
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    com.eventhub.eventhub_backend: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: ERROR

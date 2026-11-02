@@ -1,0 +1,37 @@
+# ==============================================================================
+# PROFILE: UAT (User Acceptance Testing - Nghiệm thu người dùng & Demo hội đồng)
+# Kết nối PostgreSQL Supabase Cloud qua Session Pooler (port 5432) với TLS/SSL bắt buộc
+# Bảo vệ tính toàn vẹn dữ liệu: ddl-auto=validate (không tự ý thay đổi cấu trúc bảng)
+# ==============================================================================
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # Supabase Session Pooler (IPv4 compatible, port 5432)
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${SUPABASE_UAT_HOST:aws-0-ap-southeast-1.pooler.supabase.com}:${SUPABASE_UAT_PORT:5432}/${SUPABASE_UAT_DB:postgres}?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:${SUPABASE_UAT_USER:postgres.your-uat-project-ref}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${SUPABASE_UAT_PASSWORD:your-uat-db-password}}
+    hikari:
+      pool-name: EventHubHikariPool-UAT
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:8}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      data-source-properties:
+        options: "-c timezone=Asia/Ho_Chi_Minh"
+
+  jpa:
+    hibernate:
+      # UAT yêu cầu schema ổn định chuẩn hoá, không tự ý mutate cấu trúc bảng
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    com.eventhub.eventhub_backend: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: ERROR

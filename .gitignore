@@ -7,8 +7,10 @@ backend/target/
 .env
 .env.*
 !.env.example
+!frontend/.env.example
 application-local.properties
 application-local.yml
+!backend/src/main/resources/application-local.yml
 
 # Frontend dependencies and build output
 frontend/node_modules/
